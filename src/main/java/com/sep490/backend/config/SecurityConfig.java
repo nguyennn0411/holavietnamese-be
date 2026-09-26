@@ -24,9 +24,25 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private final String[] PUBLIC_ENDPOINTS = {
-            "/api/users", "/api/auth/token", "/api/auth/introspect", "/api/auth/logout", "/api/auth/refresh"
-            , "/api/auth/forgot-password/initiate", "/api/auth/forgot-password/verify-otp", "/api/auth/forgot-password/change-password"
+
+    /**
+     * Các endpoint không cần xác thực (public).
+     * Chú ý: chỉ áp dụng cho POST theo cấu hình bên dưới.
+     */
+    private final String[] PUBLIC_POST_ENDPOINTS = {
+            "/api/auth/token",
+            "/api/auth/introspect",
+            "/api/auth/logout",
+            "/api/auth/refresh",
+            "/api/auth/forgot-password/initiate",
+            "/api/auth/forgot-password/verify-otp",
+            "/api/auth/forgot-password/change-password",
+            "/api/users/register",
+    };
+
+    private final String[] PUBLIC_GET_ENDPOINTS = {
+            "/api/lessons/public/**",
+            "/api/topics/public/**",
     };
 
     @Autowired
@@ -35,19 +51,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                .cors((cors) -> {
-                    cors.configurationSource(corsConfigurationSource());
-                })
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .anyRequest().authenticated()); // Changed from permitAll() to authenticated() to actually secure the app
+                        .anyRequest().authenticated()
+                );
 
-        httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer
+        httpSecurity.oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwtConfigurer -> jwtConfigurer
                         .decoder(customJwtDecoder)
                         .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
+
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
 
         return httpSecurity.build();
@@ -58,10 +76,14 @@ public class SecurityConfig {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:5173",
-                "https://ducthang-grocery.vercel.app",
-                "https://ducthang-grocery-*.vercel.app"
-        ));        
-        corsConfiguration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
+                "http://localhost:3000",
+                // Thêm domain production của project khi deploy
+                "https://holavietnamese.vercel.app",
+                "https://holavietnamese-*.vercel.app"
+        ));
+        corsConfiguration.setAllowedHeaders(Arrays.asList(
+                "Authorization", "Content-Type", "Accept", "X-Requested-With"
+        ));
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setMaxAge(3600L);
@@ -74,6 +96,7 @@ public class SecurityConfig {
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        // Không thêm prefix vì scope đã chứa "ROLE_"
         jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();

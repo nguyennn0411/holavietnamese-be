@@ -10,13 +10,20 @@ import com.sep490.backend.dto.request.IntrospectRequest;
 import com.sep490.backend.dto.request.LogoutRequest;
 import com.sep490.backend.dto.response.AuthenticationResponse;
 import com.sep490.backend.dto.response.IntrospectResponse;
+import com.sep490.backend.entity.User;
+import com.sep490.backend.exception.AppException;
 import com.sep490.backend.exception.ErrorCode;
+import com.sep490.backend.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
@@ -25,32 +32,51 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@Slf4j
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationService {
 
-    final PasswordEncoder passwordEncoder;
+    UserRepository userRepository;
+    PasswordEncoder passwordEncoder;
+    RedisTemplate<String, Object> redisTemplate;
 
-    @Value("${jwt.signerKey:this_is_a_very_secret_key_that_should_be_at_least_64_bytes_long_for_hs512}")
-    protected String signerKey;
+    @NonFinal
+    @Value("${jwt.secretKey}")
+    protected String SIGNER_KEY;
 
-    // For simple mock implementation, a set of logged out token IDs
-    private final Set<String> invalidatedTokens = new HashSet<>();
+    @NonFinal
+    @Value("${jwt.expiration}")
+    protected long VALID_DURATION;
 
+    @NonFinal
+    @Value("${jwt.refresh-duration}")
+    protected long REFRESHABLE_DURATION;
+
+    private static final String LOGOUT_TOKEN_PREFIX = "logout_token:";
+
+    // ──────────────────────────────────────────────────
+    // Public API
+    // ──────────────────────────────────────────────────
+
+    /**
+     * Xác thực người dùng và trả về JWT nếu thành công.
+     */
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        // Mock authentication - replace with actual DB lookup
-        boolean authenticated = false;
-        if ("admin".equals(request.getUsername()) && "admin".equals(request.getPassword())) {
-            authenticated = true;
-        }
+        var user = userRepository
+                .findActiveByUsernameWithRoles(request.getUsername())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (!authenticated) {
-            throw new RuntimeException(ErrorCode.UNAUTHENTICATED.getMessage());
-        }
+        // Kiểm tra password trước, sau đó mới check status
+        boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
+        if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
+        if (!"ACTIVE".equals(user.getStatus())) throw new AppException(ErrorCode.USER_DEACTIVATED);
 
-        String token = generateToken(request.getUsername());
+        String token = generateToken(user);
+        log.info("User [{}] đã đăng nhập thành công", request.getUsername());
 
         return AuthenticationResponse.builder()
                 .token(token)
@@ -58,75 +84,116 @@ public class AuthenticationService {
                 .build();
     }
 
+    /**
+     * Kiểm tra xem token có hợp lệ không (dùng bởi CustomJwtDecoder).
+     */
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
-        String token = request.getToken();
         boolean isValid = true;
-        
         try {
-            verifyToken(token);
-        } catch (Exception e) {
+            verifyToken(request.getToken(), false);
+        } catch (AppException e) {
             isValid = false;
         }
-
-        return IntrospectResponse.builder()
-                .valid(isValid)
-                .build();
-    }
-    
-    public IntrospectResponse introspect(String token) throws JOSEException, ParseException {
-        return introspect(new IntrospectRequest(token));
+        return IntrospectResponse.builder().valid(isValid).build();
     }
 
+    /**
+     * Đăng xuất: đưa token vào blacklist Redis cho đến khi nó hết hạn.
+     */
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
+        if (request == null || request.getToken() == null || request.getToken().isBlank()) {
+            log.info("Logout được gọi mà không có token hợp lệ - bỏ qua");
+            return;
+        }
         try {
-            SignedJWT signToken = verifyToken(request.getToken());
+            var signToken = verifyToken(request.getToken(), true);
             String jit = signToken.getJWTClaimsSet().getJWTID();
-            
-            // In a real app, save to DB with expiry time
-            invalidatedTokens.add(jit);
-        } catch (Exception e) {
-            // Token is already invalid or expired, just ignore
+            Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
+
+            String key = LOGOUT_TOKEN_PREFIX + jit;
+            long remainingTime = expiryTime.getTime() - System.currentTimeMillis();
+            if (remainingTime > 0) {
+                redisTemplate.opsForValue().set(key, "logged_out", remainingTime, TimeUnit.MILLISECONDS);
+                log.info("Token [{}] đã được đưa vào blacklist, hết hạn sau {}ms", jit, remainingTime);
+            }
+        } catch (AppException e) {
+            log.info("Token đã hết hạn khi logout - bỏ qua");
         }
     }
 
-    private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
-        JWSVerifier verifier = new MACVerifier(signerKey.getBytes());
-        SignedJWT signedJWT = SignedJWT.parse(token);
+    // ──────────────────────────────────────────────────
+    // Private helpers
+    // ──────────────────────────────────────────────────
 
-        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-        boolean verified = signedJWT.verify(verifier);
-
-        if (!(verified && expiryTime.after(new Date())))
-            throw new RuntimeException("Unauthenticated");
-
-        if (invalidatedTokens.contains(signedJWT.getJWTClaimsSet().getJWTID()))
-            throw new RuntimeException("Unauthenticated");
-
-        return signedJWT;
-    }
-
-    private String generateToken(String username) {
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+    private String generateToken(User user) {
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(username)
-                .issuer("com.sep490.backend")
+                .subject(user.getUsername())
+                .issuer("holavietnamese.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
-                ))
+                        Instant.now().plus(VALID_DURATION, ChronoUnit.MILLIS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
-                .claim("scope", "ROLE_ADMIN") // Mock role
+                .claim("scope", buildScope(user))
+                .claim("userId", user.getId())
+                .claim("fullName", user.getFullName())
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
 
         try {
-            jwsObject.sign(new MACSigner(signerKey.getBytes()));
+            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
             return jwsObject.serialize();
         } catch (JOSEException e) {
+            log.error("Không thể tạo token JWT", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
+        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
+        SignedJWT signedJWT = SignedJWT.parse(token);
+
+        // Khi isRefresh = true, dùng issueTime + REFRESHABLE_DURATION để kiểm tra; ngược lại dùng exp
+        Date expiryTime = isRefresh
+                ? new Date(signedJWT.getJWTClaimsSet().getIssueTime()
+                        .toInstant()
+                        .plus(REFRESHABLE_DURATION, ChronoUnit.MILLIS)
+                        .toEpochMilli())
+                : signedJWT.getJWTClaimsSet().getExpirationTime();
+
+        boolean verified = signedJWT.verify(verifier);
+        if (!verified || expiryTime.before(new Date())) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        // Kiểm tra blacklist Redis
+        String jit = signedJWT.getJWTClaimsSet().getJWTID();
+        String key = LOGOUT_TOKEN_PREFIX + jit;
+        try {
+            if (redisTemplate != null && Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+                throw new AppException(ErrorCode.UNAUTHENTICATED);
+            }
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("Không thể kiểm tra token blacklist từ Redis: {}", e.getMessage());
+        }
+
+        return signedJWT;
+    }
+
+    /**
+     * Xây dựng danh sách quyền cho JWT scope claim.
+     * Format: ROLE_LEARNER, ROLE_ADMIN, ...
+     */
+    private String[] buildScope(User user) {
+        Set<String> scopes = new HashSet<>();
+        if (!CollectionUtils.isEmpty(user.getRoles())) {
+            user.getRoles().forEach(role -> scopes.add("ROLE_" + role.getName()));
+        }
+        return scopes.toArray(new String[0]);
     }
 }
