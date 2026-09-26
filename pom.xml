@@ -63,11 +63,13 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- ===== Redis (token blacklist) ===== -->
+        <!-- ===== Redis (token blacklist) - tạm thời chưa dùng ===== -->
+        <!--
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
+        -->
 
         <!-- ===== Utilities ===== -->
         <dependency>

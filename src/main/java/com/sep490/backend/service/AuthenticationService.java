@@ -20,7 +20,6 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -28,11 +27,11 @@ import org.springframework.util.CollectionUtils;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +41,12 @@ public class AuthenticationService {
 
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
-    RedisTemplate<String, Object> redisTemplate;
+
+    /**
+     * Blacklist lưu tạm trong bộ nhớ (in-memory).
+     * TODO: Thay bằng Redis khi cần scale hoặc restart server không mất token.
+     */
+    Set<String> invalidatedTokens = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @NonFinal
     @Value("${jwt.secretKey}")
@@ -55,8 +59,6 @@ public class AuthenticationService {
     @NonFinal
     @Value("${jwt.refresh-duration}")
     protected long REFRESHABLE_DURATION;
-
-    private static final String LOGOUT_TOKEN_PREFIX = "logout_token:";
 
     // ──────────────────────────────────────────────────
     // Public API
@@ -98,7 +100,9 @@ public class AuthenticationService {
     }
 
     /**
-     * Đăng xuất: đưa token vào blacklist Redis cho đến khi nó hết hạn.
+     * Đăng xuất: đưa JWT ID vào blacklist in-memory.
+     * Lưu ý: nếu server restart, token đã logout sẽ có thể dùng lại.
+     * Khi cần production-grade, bật lại Redis.
      */
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
         if (request == null || request.getToken() == null || request.getToken().isBlank()) {
@@ -108,14 +112,8 @@ public class AuthenticationService {
         try {
             var signToken = verifyToken(request.getToken(), true);
             String jit = signToken.getJWTClaimsSet().getJWTID();
-            Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
-
-            String key = LOGOUT_TOKEN_PREFIX + jit;
-            long remainingTime = expiryTime.getTime() - System.currentTimeMillis();
-            if (remainingTime > 0) {
-                redisTemplate.opsForValue().set(key, "logged_out", remainingTime, TimeUnit.MILLISECONDS);
-                log.info("Token [{}] đã được đưa vào blacklist, hết hạn sau {}ms", jit, remainingTime);
-            }
+            invalidatedTokens.add(jit);
+            log.info("Token [{}] đã được thêm vào blacklist (in-memory)", jit);
         } catch (AppException e) {
             log.info("Token đã hết hạn khi logout - bỏ qua");
         }
@@ -156,7 +154,7 @@ public class AuthenticationService {
         JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
         SignedJWT signedJWT = SignedJWT.parse(token);
 
-        // Khi isRefresh = true, dùng issueTime + REFRESHABLE_DURATION để kiểm tra; ngược lại dùng exp
+        // isRefresh=true: kiểm tra theo issueTime + REFRESHABLE_DURATION; ngược lại dùng exp
         Date expiryTime = isRefresh
                 ? new Date(signedJWT.getJWTClaimsSet().getIssueTime()
                         .toInstant()
@@ -169,17 +167,10 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        // Kiểm tra blacklist Redis
+        // Kiểm tra blacklist in-memory
         String jit = signedJWT.getJWTClaimsSet().getJWTID();
-        String key = LOGOUT_TOKEN_PREFIX + jit;
-        try {
-            if (redisTemplate != null && Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
-                throw new AppException(ErrorCode.UNAUTHENTICATED);
-            }
-        } catch (AppException e) {
-            throw e;
-        } catch (Exception e) {
-            log.warn("Không thể kiểm tra token blacklist từ Redis: {}", e.getMessage());
+        if (invalidatedTokens.contains(jit)) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
         return signedJWT;
@@ -190,7 +181,7 @@ public class AuthenticationService {
      * Format: ROLE_LEARNER, ROLE_ADMIN, ...
      */
     private String[] buildScope(User user) {
-        Set<String> scopes = new HashSet<>();
+        Set<String> scopes = java.util.Collections.newSetFromMap(new ConcurrentHashMap<>());
         if (!CollectionUtils.isEmpty(user.getRoles())) {
             user.getRoles().forEach(role -> scopes.add("ROLE_" + role.getName()));
         }
