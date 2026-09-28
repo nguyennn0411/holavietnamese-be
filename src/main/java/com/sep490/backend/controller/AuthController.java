@@ -9,6 +9,7 @@ import com.sep490.backend.dto.response.ApiResponse;
 import com.sep490.backend.dto.response.AuthenticationResponse;
 import com.sep490.backend.dto.response.IntrospectResponse;
 import com.sep490.backend.service.AuthenticationService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ public class AuthController {
     AuthenticationService authenticationService;
 
     /**
-     * Đăng nhập - xác thực tài khoản và trả về JWT token.
+     * Đăng nhập - xác thực tài khoản và trả về JWT token cùng thông tin người dùng.
      *
      * POST /api/auth/token
      * Body: { "username": "...", "password": "..." }
@@ -37,7 +38,6 @@ public class AuthController {
     public ApiResponse<AuthenticationResponse> authenticate(
             @Valid @RequestBody AuthenticationRequest request) {
         var result = authenticationService.authenticate(request);
-        log.info("User [{}] đăng nhập thành công", request.getUsername());
         return ApiResponse.<AuthenticationResponse>builder()
                 .result(result)
                 .message("Đăng nhập thành công")
@@ -75,16 +75,29 @@ public class AuthController {
 
     /**
      * Đăng xuất - đưa token vào blacklist.
+     * Hỗ trợ lấy token từ Body { "token": "..." } hoặc Header "Authorization: Bearer <token>".
      *
      * POST /api/auth/logout
-     * Body: { "token": "eyJ..." }
      */
     @PostMapping("/logout")
     public ApiResponse<Void> logout(
-            @RequestBody(required = false) LogoutRequest request) throws ParseException, JOSEException {
-        if (request != null) {
-            authenticationService.logout(request);
+            @RequestBody(required = false) LogoutRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            HttpServletRequest httpServletRequest) {
+
+        String token = null;
+        if (request != null && request.getToken() != null && !request.getToken().isBlank()) {
+            token = request.getToken();
+        } else if (authHeader != null && !authHeader.isBlank()) {
+            token = authHeader;
         }
-        return ApiResponse.<Void>builder().message("Đăng xuất thành công").build();
+
+        if (token != null) {
+            authenticationService.logout(token);
+        }
+
+        return ApiResponse.<Void>builder()
+                .message("Đăng xuất thành công")
+                .build();
     }
 }
