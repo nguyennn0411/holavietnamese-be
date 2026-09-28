@@ -21,18 +21,42 @@ public class User extends BaseEntity {
     @Column(name = "full_name", length = 100)
     private String fullName;
 
-    @Column(name = "username", length = 50, unique = true)
+    @Column(name = "username", length = 50, unique = true, nullable = false)
     private String username;
 
-    @Column(name = "password_hash")
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "email", length = 100, unique = true)
+    @Column(name = "email", length = 100, unique = true, nullable = false)
     private String email;
+
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
+    /**
+     * Ngôn ngữ mẹ đẻ của người học (vd: "en", "ko", "ja", "zh", "fr")
+     */
+    @Column(name = "native_language", length = 50)
+    private String nativeLanguage;
+
+    /**
+     * Mục tiêu học tiếng Việt (vd: "travel", "business", "exam_vsl", "daily_communication")
+     */
+    @Column(name = "learning_goal", length = 255)
+    private String learningGoal;
+
+    /**
+     * Trình độ mục tiêu theo khung năng lực tiếng Việt (vd: "A1", "A2", "B1", "B2", "C1", "C2")
+     */
+    @Column(name = "target_level", length = 20)
+    private String targetLevel;
 
     @ColumnDefault("'ACTIVE'")
     @Column(name = "status", length = 20)
-    private String status;
+    private String status = "ACTIVE";
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

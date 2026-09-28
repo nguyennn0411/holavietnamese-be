@@ -4,6 +4,7 @@ import com.nimbusds.jose.JOSEException;
 import com.sep490.backend.dto.request.AuthenticationRequest;
 import com.sep490.backend.dto.request.IntrospectRequest;
 import com.sep490.backend.dto.request.LogoutRequest;
+import com.sep490.backend.dto.request.RefreshRequest;
 import com.sep490.backend.dto.response.ApiResponse;
 import com.sep490.backend.dto.response.AuthenticationResponse;
 import com.sep490.backend.dto.response.IntrospectResponse;
@@ -27,7 +28,7 @@ public class AuthController {
     AuthenticationService authenticationService;
 
     /**
-     * Đăng nhập - trả về JWT token.
+     * Đăng nhập - xác thực tài khoản và trả về JWT token.
      *
      * POST /api/auth/token
      * Body: { "username": "...", "password": "..." }
@@ -37,20 +38,39 @@ public class AuthController {
             @Valid @RequestBody AuthenticationRequest request) {
         var result = authenticationService.authenticate(request);
         log.info("User [{}] đăng nhập thành công", request.getUsername());
-        return ApiResponse.<AuthenticationResponse>builder().result(result).build();
+        return ApiResponse.<AuthenticationResponse>builder()
+                .result(result)
+                .message("Đăng nhập thành công")
+                .build();
     }
 
     /**
-     * Kiểm tra token có hợp lệ không.
+     * Kiểm tra token có hợp lệ không (Introspect).
      *
      * POST /api/auth/introspect
      * Body: { "token": "eyJ..." }
      */
     @PostMapping("/introspect")
     public ApiResponse<IntrospectResponse> introspect(
-            @RequestBody IntrospectRequest request) throws ParseException, JOSEException {
+            @Valid @RequestBody IntrospectRequest request) throws ParseException, JOSEException {
         var result = authenticationService.introspect(request);
         return ApiResponse.<IntrospectResponse>builder().result(result).build();
+    }
+
+    /**
+     * Làm mới token (Refresh token).
+     *
+     * POST /api/auth/refresh
+     * Body: { "token": "eyJ..." }
+     */
+    @PostMapping("/refresh")
+    public ApiResponse<AuthenticationResponse> refreshToken(
+            @Valid @RequestBody RefreshRequest request) throws ParseException, JOSEException {
+        var result = authenticationService.refreshToken(request);
+        return ApiResponse.<AuthenticationResponse>builder()
+                .result(result)
+                .message("Làm mới token thành công")
+                .build();
     }
 
     /**
@@ -58,7 +78,6 @@ public class AuthController {
      *
      * POST /api/auth/logout
      * Body: { "token": "eyJ..." }
-     * Header: Authorization: Bearer eyJ...
      */
     @PostMapping("/logout")
     public ApiResponse<Void> logout(

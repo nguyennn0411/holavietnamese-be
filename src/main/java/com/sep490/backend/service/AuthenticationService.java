@@ -8,6 +8,7 @@ import com.nimbusds.jwt.SignedJWT;
 import com.sep490.backend.dto.request.AuthenticationRequest;
 import com.sep490.backend.dto.request.IntrospectRequest;
 import com.sep490.backend.dto.request.LogoutRequest;
+import com.sep490.backend.dto.request.RefreshRequest;
 import com.sep490.backend.dto.response.AuthenticationResponse;
 import com.sep490.backend.dto.response.IntrospectResponse;
 import com.sep490.backend.entity.User;
@@ -44,7 +45,7 @@ public class AuthenticationService {
 
     /**
      * Blacklist lưu tạm trong bộ nhớ (in-memory).
-     * TODO: Thay bằng Redis khi cần scale hoặc restart server không mất token.
+     * Khi cần production-grade, bật lại Redis.
      */
     Set<String> invalidatedTokens = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -100,9 +101,29 @@ public class AuthenticationService {
     }
 
     /**
+     * Làm mới token (Refresh token).
+     */
+    public AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException {
+        var signedJWT = verifyToken(request.getToken(), true);
+
+        var jit = signedJWT.getJWTClaimsSet().getJWTID();
+        invalidatedTokens.add(jit);
+
+        var username = signedJWT.getJWTClaimsSet().getSubject();
+        var user = userRepository.findActiveByUsernameWithRoles(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        var token = generateToken(user);
+        log.info("Làm mới token thành công cho user [{}]", username);
+
+        return AuthenticationResponse.builder()
+                .token(token)
+                .authenticated(true)
+                .build();
+    }
+
+    /**
      * Đăng xuất: đưa JWT ID vào blacklist in-memory.
-     * Lưu ý: nếu server restart, token đã logout sẽ có thể dùng lại.
-     * Khi cần production-grade, bật lại Redis.
      */
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
         if (request == null || request.getToken() == null || request.getToken().isBlank()) {
@@ -113,7 +134,7 @@ public class AuthenticationService {
             var signToken = verifyToken(request.getToken(), true);
             String jit = signToken.getJWTClaimsSet().getJWTID();
             invalidatedTokens.add(jit);
-            log.info("Token [{}] đã được thêm vào blacklist (in-memory)", jit);
+            log.info("Token [{}] đã được thêm vào blacklist", jit);
         } catch (AppException e) {
             log.info("Token đã hết hạn khi logout - bỏ qua");
         }
