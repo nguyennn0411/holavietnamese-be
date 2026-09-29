@@ -21,6 +21,7 @@ public enum ErrorCode {
     ROLE_NOT_FOUND(1009, "Vai trò không tồn tại trong hệ thống", HttpStatus.BAD_REQUEST),
     INVALID_FULL_NAME(1010, "Họ và tên không hợp lệ", HttpStatus.BAD_REQUEST),
     INVALID_EMAIL(1011, "Email không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_GOOGLE_TOKEN(1001, "Google token không hợp lệ hoặc đã hết hạn", HttpStatus.UNAUTHORIZED),
 
     // === OTP / Forgot Password (2xxx) ===
     TOO_MANY_OTP_REQUESTS(2001, "Quá nhiều yêu cầu OTP. Vui lòng thử lại sau.", HttpStatus.TOO_MANY_REQUESTS),

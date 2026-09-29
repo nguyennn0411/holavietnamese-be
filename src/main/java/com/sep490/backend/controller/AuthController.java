@@ -45,6 +45,23 @@ public class AuthController {
     }
 
     /**
+     * Đăng nhập bằng Google (Google ID Token / Credential).
+     *
+     * POST /api/auth/google
+     * Body: { "credential": "eyJ..." }
+     */
+    @PostMapping("/google")
+    public ApiResponse<AuthenticationResponse> authenticateGoogle(
+            @Valid @RequestBody com.sep490.backend.dto.request.GoogleLoginRequest request) {
+        var result = authenticationService.authenticateGoogle(request);
+        return ApiResponse.<AuthenticationResponse>builder()
+                .code(1000)
+                .result(result)
+                .message("Đăng nhập Google thành công")
+                .build();
+    }
+
+    /**
      * Kiểm tra token có hợp lệ không (Introspect).
      *
      * POST /api/auth/introspect
