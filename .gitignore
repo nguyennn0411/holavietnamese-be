@@ -1,7 +1,10 @@
 target/
+.m2/
+.verification/
 .idea/
 .vscode/
 *.iml
 .DS_Store
 *.log
 .env
+.env.sqlserver

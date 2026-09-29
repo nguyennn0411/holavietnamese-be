@@ -1,0 +1,17 @@
+spring:
+  config:
+    import: "optional:file:./.env.sqlserver[.properties]"
+  datasource:
+    url: "${SQLSERVER_URL:jdbc:sqlserver://localhost:${MSSQL_PORT:14330};databaseName=hola_vietnamese;encrypt=true;trustServerCertificate=true}"
+    username: ${SQLSERVER_USERNAME:sa}
+    password: ${MSSQL_SA_PASSWORD}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  flyway:
+    locations: classpath:db/sqlserver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
+        use_nationalized_character_data: true
+        type:
+          preferred_instant_jdbc_type: TIMESTAMP

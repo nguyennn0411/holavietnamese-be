@@ -1,65 +1,46 @@
-# SEP490 Backend - Clean Architecture Skeleton
+# Hola Vietnamese Backend
 
-Đây là khung Spring Boot backend theo Clean Architecture.
-Chỉ dựng cấu trúc project, chưa có business logic, CRUD, database hay authentication.
+Backend Spring Boot được tổ chức theo monolith phân lớp. Frontend vẫn là dự án riêng; API và database không đổi.
 
-## Dependency direction
+## Cấu trúc
 
-adapter/in -> application -> domain
-adapter/out implements application/port/out
-
-Domain không phụ thuộc Spring, JPA hoặc framework bên ngoài.
-
-## Project structure
-
-src/main/java/com/sep490/backend
+```text
+src/main/java/com/sep490/backend/
 ├── BackendApplication.java
-├── domain
-│   ├── entity
-│   ├── valueobject
-│   └── exception
-├── application
-│   ├── port
-│   │   ├── in
-│   │   └── out
-│   ├── usecase
-│   └── dto
-│       ├── request
-│       └── response
-├── adapter
-│   ├── in
-│   │   └── web
-│   │       ├── controller
-│   │       └── mapper
-│   └── out
-│       └── persistence
-│           ├── entity
-│           ├── repository
-│           └── mapper
-├── infrastructure
-│   ├── config
-│   └── exception
-└── common
-    ├── constant
-    └── util
-
-## Ý nghĩa layer
-
-- domain: Entity, Value Object và rule nghiệp vụ thuần Java.
-- application/port/in: interface các use case mà bên ngoài được phép gọi.
-- application/port/out: interface application cần để giao tiếp DB/service ngoài.
-- application/usecase: implementation của use case.
-- adapter/in/web: REST Controller và mapper request/response.
-- adapter/out/persistence: adapter kết nối persistence, repository implementation.
-- infrastructure/config: Spring Bean/configuration.
-- infrastructure/exception: global exception handling phía framework.
-- common: constant/util dùng chung, hạn chế chứa business logic.
-
-## Run
-
-```bash
-mvn spring-boot:run
+├── controller/          # REST endpoints
+├── service/             # Nghiệp vụ và transaction
+│   └── importing/       # Đọc và kiểm tra workbook Excel
+├── repository/          # Truy vấn, lưu dữ liệu và khóa đồng thời
+│   └── jpa/             # Spring Data JPA repositories
+├── entity/              # JPA entities, giữ nguyên mapping bảng
+│   └── enums/
+├── dto/
+│   ├── request/
+│   ├── response/
+│   ├── model/           # Snapshot dữ liệu và tính toán tiến độ
+│   └── courseimport/    # Dữ liệu và hợp đồng workbook
+├── mapper/              # Chuyển JPA entity sang model
+├── config/              # Security, principal và cấu hình Spring
+└── exception/           # Exception và REST error handler
 ```
 
-Yêu cầu Java 21.
-"# holavietnamese-be" 
+Controller gọi service trực tiếp. Service gọi repository; các repository dùng Spring Data JPA hoặc JDBC.
+Không còn lớp port/use-case interface và persistence adapter của cấu trúc cũ.
+Các model bất biến và mapper được giữ để bảo toàn hành vi, không trả JPA entity trực tiếp qua API.
+Transaction, phân quyền, URL API, schema và migration được giữ nguyên.
+
+## Chạy và kiểm thử
+
+Yêu cầu Java 21 và Maven. Cache dependency dùng mặc định `%USERPROFILE%\.m2\repository`.
+
+- Mở Docker Desktop và chạy `.\start-sqlserver.ps1` trong thư mục `BE`.
+- Chạy `BackendApplication` trong IntelliJ với working directory là `BE`, hoặc `mvn spring-boot:run`.
+- Profile mặc định `sqlserver` đọc mật khẩu từ `.env.sqlserver`; không commit file này.
+- Sau lần chuyển cấu trúc này, chạy `mvn clean test` để bỏ class package cũ trong `target`.
+- Test mặc định dùng H2 riêng, không thay đổi SQL Server đang chạy.
+
+## Tài liệu
+
+- [LEARNER_FEATURES.md](LEARNER_FEATURES.md): API học viên và kiểm thử.
+- [COURSE_IMPORT.md](COURSE_IMPORT.md): import Excel dành cho ADMIN.
+- [SQLSERVER_DOCKER.md](SQLSERVER_DOCKER.md): cấu hình SQL Server Docker.
