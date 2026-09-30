@@ -25,7 +25,6 @@ public class UserRegisterRequest {
     @Email(message = "Email không đúng định dạng")
     String email;
 
-    @NotBlank(message = "Họ và tên không được để trống")
     String fullName;
 
     String phoneNumber;

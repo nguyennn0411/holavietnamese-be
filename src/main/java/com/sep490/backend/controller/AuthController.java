@@ -17,6 +17,10 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import com.sep490.backend.dto.request.UserRegisterRequest;
+import com.sep490.backend.dto.response.UserResponse;
+import com.sep490.backend.service.UserService;
+
 import java.text.ParseException;
 
 @RestController
@@ -27,6 +31,23 @@ import java.text.ParseException;
 public class AuthController {
 
     AuthenticationService authenticationService;
+    UserService userService;
+
+    /**
+     * Đăng ký tài khoản học viên mới.
+     *
+     * POST /api/auth/register
+     */
+    @PostMapping("/register")
+    public ApiResponse<UserResponse> register(
+            @Valid @RequestBody UserRegisterRequest request) {
+        UserResponse result = userService.register(request);
+        return ApiResponse.<UserResponse>builder()
+                .code(1000)
+                .result(result)
+                .message("Đăng ký tài khoản thành công")
+                .build();
+    }
 
     /**
      * Đăng nhập - xác thực tài khoản và trả về JWT token cùng thông tin người dùng.

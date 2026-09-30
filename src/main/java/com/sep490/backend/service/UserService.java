@@ -33,9 +33,11 @@ public class UserService {
     UserRepository userRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
+    AuthenticationService authenticationService;
 
     /**
      * Đăng ký tài khoản mới cho học viên nước ngoài học tiếng Việt.
+     * Tự động đăng nhập và trả về JWT token luôn.
      */
     @Transactional
     public UserResponse register(UserRegisterRequest request) {
@@ -55,21 +57,29 @@ public class UserService {
                 });
 
         User user = new User();
-        user.setUsername(request.getUsername());
+        user.setUsername(request.getUsername().trim());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setEmail(request.getEmail());
-        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail().trim().toLowerCase());
+        user.setFullName(request.getFullName() != null && !request.getFullName().isBlank() 
+                ? request.getFullName().trim() : request.getUsername().trim());
         user.setPhoneNumber(request.getPhoneNumber());
-        user.setNativeLanguage(request.getNativeLanguage() != null ? request.getNativeLanguage() : "en");
+        user.setNativeLanguage(request.getNativeLanguage() != null && !request.getNativeLanguage().isBlank() 
+                ? request.getNativeLanguage().trim() : "en");
         user.setLearningGoal(request.getLearningGoal());
-        user.setTargetLevel(request.getTargetLevel() != null ? request.getTargetLevel() : "A1");
+        user.setTargetLevel(request.getTargetLevel() != null && !request.getTargetLevel().isBlank() 
+                ? request.getTargetLevel().trim() : "A1");
         user.setStatus("ACTIVE");
         user.setRoles(new HashSet<>(Set.of(learnerRole)));
 
         User savedUser = userRepository.save(user);
         log.info("Học viên [{}] đăng ký tài khoản thành công", savedUser.getUsername());
 
-        return toUserResponse(savedUser);
+        // Sinh token tự động để học viên đăng nhập ngay lập tức
+        String token = authenticationService.generateToken(savedUser);
+        UserResponse response = toUserResponse(savedUser);
+        response.setToken(token);
+
+        return response;
     }
 
     /**

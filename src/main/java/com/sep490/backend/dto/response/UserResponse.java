@@ -1,5 +1,6 @@
 package com.sep490.backend.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -11,6 +12,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserResponse {
     Integer id;
     String username;
@@ -23,5 +25,6 @@ public class UserResponse {
     String targetLevel;
     String status;
     Set<String> roles;
+    String token;
     LocalDateTime createdAt;
 }
