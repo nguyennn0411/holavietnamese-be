@@ -12,8 +12,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles " +
-           "WHERE u.username = :username AND u.isRemoved = false")
-    Optional<User> findActiveByUsernameWithRoles(@Param("username") String username);
+           "WHERE (u.username = :usernameOrEmail OR u.email = :usernameOrEmail) AND u.isRemoved = false")
+    Optional<User> findActiveByUsernameWithRoles(@Param("usernameOrEmail") String usernameOrEmail);
 
     Optional<User> findByUsername(String username);
 

@@ -80,8 +80,9 @@ public class AuthenticationService {
      * Xác thực người dùng bằng username/password và trả về JWT + thông tin cơ bản.
      */
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        String identifier = request.getUsername() != null ? request.getUsername().trim() : "";
         var user = userRepository
-                .findActiveByUsernameWithRoles(request.getUsername())
+                .findActiveByUsernameWithRoles(identifier)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
