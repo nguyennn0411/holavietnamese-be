@@ -1,0 +1,8 @@
+spring:
+  config:
+    import: "optional:file:./.env.mysql[.properties]"
+  datasource:
+    url: jdbc:mysql://localhost:${MYSQL_PORT:3307}/hola_features_test?connectionTimeZone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${MYSQL_USER:hola}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver

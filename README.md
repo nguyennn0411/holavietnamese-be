@@ -1,6 +1,6 @@
 # Hola Vietnamese Backend
 
-Backend Spring Boot được tổ chức theo monolith phân lớp. Frontend vẫn là dự án riêng; API và database không đổi.
+Backend Spring Boot được tổ chức theo monolith phân lớp, sử dụng MySQL 8.4 và Flyway. Frontend là ứng dụng React riêng trong `FE/holavietnamese_fe`.
 
 ## Cấu trúc
 
@@ -27,20 +27,21 @@ src/main/java/com/sep490/backend/
 Controller gọi service trực tiếp. Service gọi repository; các repository dùng Spring Data JPA hoặc JDBC.
 Không còn lớp port/use-case interface và persistence adapter của cấu trúc cũ.
 Các model bất biến và mapper được giữ để bảo toàn hành vi, không trả JPA entity trực tiếp qua API.
-Transaction, phân quyền, URL API, schema và migration được giữ nguyên.
+Transaction, phân quyền và URL API được giữ nguyên. Flyway dùng migration MySQL trong `src/main/resources/db/migration`.
 
 ## Chạy và kiểm thử
 
 Yêu cầu Java 21 và Maven. Cache dependency dùng mặc định `%USERPROFILE%\.m2\repository`.
 
-- Mở Docker Desktop và chạy `.\start-sqlserver.ps1` trong thư mục `BE`.
-- Chạy `BackendApplication` trong IntelliJ với working directory là `BE`, hoặc `mvn spring-boot:run`.
-- Profile mặc định `sqlserver` đọc mật khẩu từ `.env.sqlserver`; không commit file này.
-- Sau lần chuyển cấu trúc này, chạy `mvn clean test` để bỏ class package cũ trong `target`.
-- Test mặc định dùng H2 riêng, không thay đổi SQL Server đang chạy.
+- Mở Docker Desktop (Linux containers), chạy `.\start-mysql.ps1 -StartBackend` bằng PowerShell 7 để chạy MySQL và BE trong Docker.
+- Script tự tạo `.env.mysql` với mật khẩu ngẫu nhiên nếu chưa có. Không commit file này.
+- Nếu chạy BE trong IntelliJ: chạy `.\start-mysql.ps1` để bật MySQL, rồi chạy `BackendApplication` với working directory là `BE`, hoặc `mvn spring-boot:run`.
+- MySQL ở `localhost:3307`. BE mặc định ở `http://localhost:8080`; máy hiện tại dùng `http://localhost:8088` trong `.env.mysql` để tránh trùng cổng.
+- Chạy `mvn clean test` với Java 21. Test mặc định dùng H2 riêng.
+- MySQL dùng volume mới; dữ liệu SQL Server cũ chưa được chuyển tự động.
 
 ## Tài liệu
 
 - [LEARNER_FEATURES.md](LEARNER_FEATURES.md): API học viên và kiểm thử.
 - [COURSE_IMPORT.md](COURSE_IMPORT.md): import Excel dành cho ADMIN.
-- [SQLSERVER_DOCKER.md](SQLSERVER_DOCKER.md): cấu hình SQL Server Docker.
+- [MYSQL_DOCKER.md](MYSQL_DOCKER.md): cấu hình MySQL Docker và kiểm thử trên MySQL.
