@@ -1,14 +1,13 @@
 package com.sep490.backend.controller;
 
 import com.nimbusds.jose.JOSEException;
-import com.sep490.backend.dto.request.AuthenticationRequest;
-import com.sep490.backend.dto.request.IntrospectRequest;
-import com.sep490.backend.dto.request.LogoutRequest;
-import com.sep490.backend.dto.request.RefreshRequest;
+import com.sep490.backend.dto.request.*;
 import com.sep490.backend.dto.response.ApiResponse;
 import com.sep490.backend.dto.response.AuthenticationResponse;
 import com.sep490.backend.dto.response.IntrospectResponse;
+import com.sep490.backend.dto.response.UserResponse;
 import com.sep490.backend.service.AuthenticationService;
+import com.sep490.backend.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -16,10 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-
-import com.sep490.backend.dto.request.UserRegisterRequest;
-import com.sep490.backend.dto.response.UserResponse;
-import com.sep490.backend.service.UserService;
 
 import java.text.ParseException;
 
@@ -33,11 +28,6 @@ public class AuthController {
     AuthenticationService authenticationService;
     UserService userService;
 
-    /**
-     * Đăng ký tài khoản học viên mới.
-     *
-     * POST /api/auth/register
-     */
     @PostMapping("/register")
     public ApiResponse<UserResponse> register(
             @Valid @RequestBody UserRegisterRequest request) {
@@ -49,12 +39,6 @@ public class AuthController {
                 .build();
     }
 
-    /**
-     * Đăng nhập - xác thực tài khoản và trả về JWT token cùng thông tin người dùng.
-     *
-     * POST /api/auth/token
-     * Body: { "username": "...", "password": "..." }
-     */
     @PostMapping("/token")
     public ApiResponse<AuthenticationResponse> authenticate(
             @Valid @RequestBody AuthenticationRequest request) {
@@ -65,15 +49,9 @@ public class AuthController {
                 .build();
     }
 
-    /**
-     * Đăng nhập bằng Google (Google ID Token / Credential).
-     *
-     * POST /api/auth/google
-     * Body: { "credential": "eyJ..." }
-     */
     @PostMapping("/google")
     public ApiResponse<AuthenticationResponse> authenticateGoogle(
-            @Valid @RequestBody com.sep490.backend.dto.request.GoogleLoginRequest request) {
+            @Valid @RequestBody GoogleLoginRequest request) {
         var result = authenticationService.authenticateGoogle(request);
         return ApiResponse.<AuthenticationResponse>builder()
                 .code(1000)
@@ -82,12 +60,44 @@ public class AuthController {
                 .build();
     }
 
-    /**
-     * Kiểm tra token có hợp lệ không (Introspect).
-     *
-     * POST /api/auth/introspect
-     * Body: { "token": "eyJ..." }
-     */
+    @GetMapping("/verify-email")
+    public ApiResponse<Void> verifyEmail(@RequestParam("token") String token) {
+        authenticationService.verifyEmail(token);
+        return ApiResponse.<Void>builder()
+                .code(1000)
+                .message("Xác minh email thành công")
+                .build();
+    }
+
+    @PostMapping("/forgot-password/initiate")
+    public ApiResponse<String> initiateForgotPassword(@Valid @RequestBody ForgotPasswordInitiateRequest request) {
+        String otp = authenticationService.initiateForgotPassword(request.getEmail());
+        return ApiResponse.<String>builder()
+                .code(1000)
+                .result(otp)
+                .message("Đã gửi mã OTP khôi phục mật khẩu đến email")
+                .build();
+    }
+
+    @PostMapping("/forgot-password/verify-otp")
+    public ApiResponse<Boolean> verifyForgotPasswordOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        boolean valid = authenticationService.verifyForgotPasswordOtp(request.getEmail(), request.getOtp());
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .result(valid)
+                .message(valid ? "Mã OTP hợp lệ" : "Mã OTP không hợp lệ hoặc đã hết hạn")
+                .build();
+    }
+
+    @PostMapping("/forgot-password/reset-password")
+    public ApiResponse<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authenticationService.resetPasswordWithOtp(request);
+        return ApiResponse.<Void>builder()
+                .code(1000)
+                .message("Đặt lại mật khẩu thành công")
+                .build();
+    }
+
     @PostMapping("/introspect")
     public ApiResponse<IntrospectResponse> introspect(
             @Valid @RequestBody IntrospectRequest request) throws ParseException, JOSEException {
@@ -95,12 +105,6 @@ public class AuthController {
         return ApiResponse.<IntrospectResponse>builder().result(result).build();
     }
 
-    /**
-     * Làm mới token (Refresh token).
-     *
-     * POST /api/auth/refresh
-     * Body: { "token": "eyJ..." }
-     */
     @PostMapping("/refresh")
     public ApiResponse<AuthenticationResponse> refreshToken(
             @Valid @RequestBody RefreshRequest request) throws ParseException, JOSEException {
@@ -111,12 +115,6 @@ public class AuthController {
                 .build();
     }
 
-    /**
-     * Đăng xuất - đưa token vào blacklist.
-     * Hỗ trợ lấy token từ Body { "token": "..." } hoặc Header "Authorization: Bearer <token>".
-     *
-     * POST /api/auth/logout
-     */
     @PostMapping("/logout")
     public ApiResponse<Void> logout(
             @RequestBody(required = false) LogoutRequest request,

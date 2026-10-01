@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -13,6 +15,7 @@ import java.util.Set;
 @Entity
 @Table(name = "users")
 public class User extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -36,6 +39,9 @@ public class User extends BaseEntity {
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
+    @Column(name = "country", length = 100)
+    private String country;
+
     /**
      * Ngôn ngữ mẹ đẻ của người học (vd: "en", "ko", "ja", "zh", "fr")
      */
@@ -53,6 +59,48 @@ public class User extends BaseEntity {
      */
     @Column(name = "target_level", length = 20)
     private String targetLevel;
+
+    @Column(name = "daily_learning_goal_minutes")
+    private Integer dailyLearningGoalMinutes = 15;
+
+    @Column(name = "audio_speed")
+    private Double audioSpeed = 1.0;
+
+    @Column(name = "pronunciation_hints_enabled")
+    private Boolean pronunciationHintsEnabled = true;
+
+    @Column(name = "auto_translate_enabled")
+    private Boolean autoTranslateEnabled = true;
+
+    @Column(name = "notifications_enabled")
+    private Boolean notificationsEnabled = true;
+
+    @Column(name = "onboarding_completed")
+    private Boolean onboardingCompleted = false;
+
+    @Column(name = "email_verified")
+    private Boolean emailVerified = false;
+
+    @Column(name = "email_verification_token", length = 100)
+    private String emailVerificationToken;
+
+    @Column(name = "verification_token_expiry")
+    private LocalDateTime verificationTokenExpiry;
+
+    @Column(name = "reset_password_otp", length = 10)
+    private String resetPasswordOtp;
+
+    @Column(name = "reset_password_otp_expiry")
+    private LocalDateTime resetPasswordOtpExpiry;
+
+    @Column(name = "streak_count")
+    private Integer streakCount = 0;
+
+    @Column(name = "last_activity_date")
+    private LocalDate lastActivityDate;
+
+    @Column(name = "total_xp")
+    private Integer totalXp = 0;
 
     @ColumnDefault("'ACTIVE'")
     @Column(name = "status", length = 20)

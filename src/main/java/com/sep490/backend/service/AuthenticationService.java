@@ -9,11 +9,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import com.sep490.backend.dto.request.AuthenticationRequest;
-import com.sep490.backend.dto.request.GoogleLoginRequest;
-import com.sep490.backend.dto.request.IntrospectRequest;
-import com.sep490.backend.dto.request.LogoutRequest;
-import com.sep490.backend.dto.request.RefreshRequest;
+import com.sep490.backend.dto.request.*;
 import com.sep490.backend.dto.response.AuthenticationResponse;
 import com.sep490.backend.dto.response.IntrospectResponse;
 import com.sep490.backend.entity.Role;
@@ -35,6 +31,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,10 +47,6 @@ public class AuthenticationService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
 
-    /**
-     * Blacklist lưu tạm trong bộ nhớ (in-memory).
-     * Khi cần production-grade đa server, có thể chuyển sang Redis.
-     */
     Set<String> invalidatedTokens = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @NonFinal
@@ -72,13 +65,6 @@ public class AuthenticationService {
     @Value("${google.client-id:}")
     protected String GOOGLE_CLIENT_ID;
 
-    // ──────────────────────────────────────────────────
-    // Public API
-    // ──────────────────────────────────────────────────
-
-    /**
-     * Xác thực người dùng bằng username/password và trả về JWT + thông tin cơ bản.
-     */
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         String identifier = request.getUsername() != null ? request.getUsername().trim() : "";
         var user = userRepository
@@ -104,15 +90,11 @@ public class AuthenticationService {
                 .build();
     }
 
-    /**
-     * Xác thực người dùng qua Google ID Token (Sign in with Google).
-     */
     @Transactional
     public AuthenticationResponse authenticateGoogle(GoogleLoginRequest request) {
         GoogleIdTokenVerifier.Builder verifierBuilder = new GoogleIdTokenVerifier.Builder(
                 new NetHttpTransport(), GsonFactory.getDefaultInstance());
 
-        // Nếu client ID đã được cấu hình thật (không phải placeholder), xác thực đúng audience
         if (GOOGLE_CLIENT_ID != null && !GOOGLE_CLIENT_ID.isBlank() && !GOOGLE_CLIENT_ID.contains("your-google-client-id")) {
             verifierBuilder.setAudience(Collections.singletonList(GOOGLE_CLIENT_ID));
         }
@@ -139,7 +121,6 @@ public class AuthenticationService {
         String fullName = (String) payload.get("name");
         String pictureUrl = (String) payload.get("picture");
 
-        // Tìm user theo email hoặc tạo mới nếu chưa tồn tại
         User user = userRepository.findActiveByEmailWithRoles(email).orElseGet(() -> {
             Role learnerRole = roleRepository.findByName("LEARNER")
                     .orElseGet(() -> {
@@ -156,6 +137,7 @@ public class AuthenticationService {
             newUser.setAvatarUrl(pictureUrl);
             newUser.setNativeLanguage("en");
             newUser.setTargetLevel("A1");
+            newUser.setEmailVerified(true);
             newUser.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
             newUser.setStatus("ACTIVE");
             newUser.setRoles(new HashSet<>(Set.of(learnerRole)));
@@ -181,9 +163,63 @@ public class AuthenticationService {
                 .build();
     }
 
-    /**
-     * Kiểm tra xem token có hợp lệ không (dùng bởi CustomJwtDecoder và client).
-     */
+    @Transactional
+    public void verifyEmail(String token) {
+        User user = userRepository.findAll().stream()
+                .filter(u -> token.equals(u.getEmailVerificationToken()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Mã xác minh email không hợp lệ hoặc đã hết hạn"));
+
+        if (user.getVerificationTokenExpiry() != null && user.getVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Mã xác minh email đã hết hạn");
+        }
+
+        user.setEmailVerified(true);
+        user.setEmailVerificationToken(null);
+        user.setVerificationTokenExpiry(null);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public String initiateForgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        String otp = String.format("%06d", new Random().nextInt(999999));
+        user.setResetPasswordOtp(otp);
+        user.setResetPasswordOtpExpiry(LocalDateTime.now().plusMinutes(15));
+        userRepository.save(user);
+
+        log.info("Đã tạo mã OTP khôi phục mật khẩu cho email [{}]: {}", email, otp);
+        return otp; // Returning OTP for development/testing
+    }
+
+    @Transactional
+    public boolean verifyForgotPasswordOtp(String email, String otp) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (user.getResetPasswordOtp() == null || !user.getResetPasswordOtp().equals(otp)) {
+            return false;
+        }
+        return user.getResetPasswordOtpExpiry() != null && user.getResetPasswordOtpExpiry().isAfter(LocalDateTime.now());
+    }
+
+    @Transactional
+    public void resetPasswordWithOtp(ResetPasswordRequest request) {
+        if (!verifyForgotPasswordOtp(request.getEmail(), request.getOtp())) {
+            throw new RuntimeException("Mã OTP không hợp lệ hoặc đã hết hạn");
+        }
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setResetPasswordOtp(null);
+        user.setResetPasswordOtpExpiry(null);
+        userRepository.save(user);
+    }
+
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
         boolean isValid = true;
         try {
@@ -194,9 +230,6 @@ public class AuthenticationService {
         return IntrospectResponse.builder().valid(isValid).build();
     }
 
-    /**
-     * Làm mới token (Refresh token).
-     */
     public AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException {
         String rawToken = cleanToken(request.getToken());
         var signedJWT = verifyToken(rawToken, true);
@@ -223,9 +256,6 @@ public class AuthenticationService {
                 .build();
     }
 
-    /**
-     * Đăng xuất: đưa JWT ID vào blacklist.
-     */
     public void logout(String token) {
         if (token == null || token.isBlank()) {
             log.info("Logout được gọi mà không có token hợp lệ - bỏ qua");
@@ -247,10 +277,6 @@ public class AuthenticationService {
             logout(request.getToken());
         }
     }
-
-    // ──────────────────────────────────────────────────
-    // Private helpers
-    // ──────────────────────────────────────────────────
 
     public String cleanToken(String token) {
         if (token == null) return null;
