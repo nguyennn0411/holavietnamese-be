@@ -1,23 +1,68 @@
 package com.sep490.backend.exception;
 
+import com.sep490.backend.dto.courseimport.CourseImportPreview;
+import com.sep490.backend.dto.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.server.ResponseStatusException;
-import com.sep490.backend.dto.response.ApiResponse;
 
 import java.io.IOException;
+import java.time.Instant;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    // --- Course Import Exception Handlers ---
+
+    @ExceptionHandler(CourseImportRejected.class)
+    public ResponseEntity<CourseImportPreview> handleImportRejected(CourseImportRejected e) {
+        return ResponseEntity.badRequest().body(e.preview());
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUploadTooLarge(Exception e) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(ApiResponse.error(413, "Upload limit is 10 MiB per file."));
+    }
+
+    @ExceptionHandler({MissingServletRequestPartException.class, MissingServletRequestParameterException.class})
+    public ResponseEntity<ApiResponse<Void>> handleMissingPart(Exception e) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(400, "Required file or importMode is missing."));
+    }
+
+    @ExceptionHandler(LearningException.class)
+    public ResponseEntity<ApiResponse<Void>> handleLearningException(LearningException e) {
+        HttpStatus status = switch (e.kind()) {
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case CONFLICT -> HttpStatus.CONFLICT;
+            case FORBIDDEN -> HttpStatus.FORBIDDEN;
+            case INVALID -> HttpStatus.BAD_REQUEST;
+        };
+        return ResponseEntity.status(status)
+                .body(ApiResponse.error(status.value(), e.getMessage()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(DataIntegrityViolationException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(409, "This record already exists or conflicts with related data. Refresh and try again."));
+    }
+
+    // --- Auth & General Exception Handlers ---
 
     @ExceptionHandler({org.springframework.http.converter.HttpMessageNotReadableException.class,
             org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})

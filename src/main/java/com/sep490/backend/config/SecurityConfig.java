@@ -17,6 +17,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,10 +26,6 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    /**
-     * Các endpoint không cần xác thực (public).
-     * Chú ý: chỉ áp dụng cho POST theo cấu hình bên dưới.
-     */
     private final String[] PUBLIC_POST_ENDPOINTS = {
             "/api/auth/token",
             "/api/auth/google",
@@ -40,15 +37,26 @@ public class SecurityConfig {
             "/api/auth/forgot-password/verify-otp",
             "/api/auth/forgot-password/change-password",
             "/api/users/register",
+            "/api/login",
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
             "/api/lessons/public/**",
             "/api/topics/public/**",
+            "/api/courses/**",
+            "/api/lessons/**",
+            "/api/vocabulary/**",
+            "/api/csrf",
+            "/error",
     };
 
     @Autowired
     private CustomJwtDecoder customJwtDecoder;
+
+    @Bean
+    public Clock clock() {
+        return Clock.systemUTC();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -79,12 +87,11 @@ public class SecurityConfig {
         corsConfiguration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:5173",
                 "http://localhost:3000",
-                // Thêm domain production của project khi deploy
                 "https://holavietnamese.vercel.app",
                 "https://holavietnamese-*.vercel.app"
         ));
         corsConfiguration.setAllowedHeaders(Arrays.asList(
-                "Authorization", "Content-Type", "Accept", "X-Requested-With"
+                "Authorization", "Content-Type", "Accept", "X-Requested-With", "X-CSRF-TOKEN"
         ));
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         corsConfiguration.setAllowCredentials(true);
@@ -96,9 +103,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    JwtAuthenticationConverter jwtAuthenticationConverter() {
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        // Không thêm prefix vì scope đã chứa "ROLE_"
         jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
@@ -108,7 +114,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
 }
