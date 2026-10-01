@@ -177,8 +177,8 @@ the existing personal `vocabulary_entries` notebook.
 
 ## Migration and ADMIN access
 
-Flyway V3 is additive for both MySQL and SQL Server. Do not edit applied V1/V2 migrations.
-Existing courses/lessons can keep null codes; SQL Server uses filtered unique indexes for this.
+Flyway V3 is additive for MySQL. Do not edit applied V1/V2 migrations.
+Existing courses/lessons can keep null codes; MySQL unique indexes permit multiple null values.
 Existing users receive role `LEARNER`; **no account is automatically elevated**.
 
 A database administrator can deliberately grant the role to an existing trusted account:
@@ -192,7 +192,7 @@ UPDATE users SET role = 'ADMIN' WHERE email = 'your-admin@example.com';
 Sign out and sign in again after a role change. Session authorities are loaded at login.
 ADMIN also retains LEARNER authority for existing learner APIs. Do not expose a public role-update API.
 
-For local SQL Server startup, see [SQLSERVER_DOCKER.md](SQLSERVER_DOCKER.md).
+For local MySQL startup, see [MYSQL_DOCKER.md](MYSQL_DOCKER.md).
 Rebuild and restart the backend to apply V3 and load the new endpoints.
 
 ## Try it with PowerShell 7
@@ -238,19 +238,11 @@ Run all tests with Java 21:
 & 'C:\apache-maven-3.9.12\bin\mvn.cmd' clean test
 ```
 
-The default test profile uses isolated H2. SQL Server tests require an existing dedicated
+The default test configuration uses isolated H2. MySQL tests use a dedicated
 `hola_features_test` database in the local Docker instance:
 
 ```powershell
-$env:MSSQL_SA_PASSWORD = (Get-Content '.env.sqlserver' |
-  Where-Object { $_ -like 'MSSQL_SA_PASSWORD=*' }).Substring(18)
-$env:SPRING_PROFILES_ACTIVE = 'sqlserver'
-$env:SQLSERVER_URL = 'jdbc:sqlserver://localhost:14330;databaseName=hola_features_test;encrypt=true;trustServerCertificate=true'
-try {
-  & 'C:\apache-maven-3.9.12\bin\mvn.cmd' '-Dmaven.repo.local=.m2' test
-} finally {
-  Remove-Item Env:MSSQL_SA_PASSWORD, Env:SPRING_PROFILES_ACTIVE, Env:SQLSERVER_URL -ErrorAction SilentlyContinue
-}
+.\test-mysql.ps1
 ```
 
 Integration tests clear fixture tables only after verifying the dedicated test database.

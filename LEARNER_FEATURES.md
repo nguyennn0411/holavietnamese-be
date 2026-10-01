@@ -4,8 +4,8 @@ Implemented in order: course enrollment → My Courses → lesson learning → l
 
 ## Setup
 
-SQL Server Docker support was added subsequently. See [SQLSERVER_DOCKER.md](SQLSERVER_DOCKER.md)
-for container startup, the `sqlserver` profile, and database-specific migrations. The file inventory below describes the original learner-feature implementation.
+The backend now uses MySQL 8.4 in Docker. See [MYSQL_DOCKER.md](MYSQL_DOCKER.md)
+for startup and isolated database tests. The file inventory below describes the original learner-feature implementation; see the FE README for its current monolith structure.
 
 The starting repositories were skeletons: no existing User entity, authentication, Course, or Lesson was present.
 A minimal `users` table and database-backed Spring Security session login were therefore added.
