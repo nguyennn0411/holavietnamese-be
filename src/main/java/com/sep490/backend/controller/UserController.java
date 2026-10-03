@@ -1,10 +1,10 @@
 package com.sep490.backend.controller;
 
-import com.sep490.backend.dto.request.ChangePasswordRequest;
-import com.sep490.backend.dto.request.UserRegisterRequest;
-import com.sep490.backend.dto.request.UserUpdateRequest;
-import com.sep490.backend.dto.response.ApiResponse;
-import com.sep490.backend.dto.response.UserResponse;
+import com.sep490.backend.dto.request.*;
+import com.sep490.backend.dto.response.*;
+import com.sep490.backend.service.AchievementService;
+import com.sep490.backend.service.NotificationService;
+import com.sep490.backend.service.UserProgressService;
 import com.sep490.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -22,11 +22,10 @@ import java.util.List;
 public class UserController {
 
     UserService userService;
+    UserProgressService userProgressService;
+    AchievementService achievementService;
+    NotificationService notificationService;
 
-    /**
-     * Đăng ký tài khoản học viên mới (Public).
-     * POST /api/users/register
-     */
     @PostMapping("/register")
     public ApiResponse<UserResponse> register(@Valid @RequestBody UserRegisterRequest request) {
         UserResponse response = userService.register(request);
@@ -36,10 +35,6 @@ public class UserController {
                 .build();
     }
 
-    /**
-     * Lấy thông tin cá nhân của người dùng hiện tại (Secured).
-     * GET /api/users/me
-     */
     @GetMapping("/me")
     public ApiResponse<UserResponse> getMyProfile() {
         UserResponse response = userService.getMyProfile();
@@ -48,10 +43,6 @@ public class UserController {
                 .build();
     }
 
-    /**
-     * Cập nhật thông tin học tập và cá nhân (Secured).
-     * PUT /api/users/me
-     */
     @PutMapping("/me")
     public ApiResponse<UserResponse> updateProfile(@Valid @RequestBody UserUpdateRequest request) {
         UserResponse response = userService.updateProfile(request);
@@ -61,10 +52,64 @@ public class UserController {
                 .build();
     }
 
-    /**
-     * Đổi mật khẩu (Secured).
-     * PUT /api/users/change-password
-     */
+    @PostMapping("/onboarding")
+    public ApiResponse<UserResponse> completeOnboarding(@Valid @RequestBody OnboardingRequest request) {
+        UserResponse response = userProgressService.completeOnboarding(request);
+        return ApiResponse.<UserResponse>builder()
+                .result(response)
+                .message("Hoàn thành Onboarding thành công")
+                .build();
+    }
+
+    @PutMapping("/settings")
+    public ApiResponse<UserResponse> updateSettings(@RequestBody UserSettingsRequest request) {
+        UserResponse response = userProgressService.updateUserSettings(request);
+        return ApiResponse.<UserResponse>builder()
+                .result(response)
+                .message("Cập nhật cài đặt thành công")
+                .build();
+    }
+
+    @GetMapping("/progress")
+    public ApiResponse<UserProgressResponse> getUserProgress() {
+        UserProgressResponse response = userProgressService.getUserProgress();
+        return ApiResponse.<UserProgressResponse>builder()
+                .result(response)
+                .build();
+    }
+
+    @GetMapping("/achievements")
+    public ApiResponse<List<BadgeResponse>> getUserAchievements() {
+        List<BadgeResponse> response = achievementService.getUserBadges();
+        return ApiResponse.<List<BadgeResponse>>builder()
+                .result(response)
+                .build();
+    }
+
+    @GetMapping("/notifications")
+    public ApiResponse<List<NotificationResponse>> getNotifications() {
+        List<NotificationResponse> response = notificationService.getUserNotifications();
+        return ApiResponse.<List<NotificationResponse>>builder()
+                .result(response)
+                .build();
+    }
+
+    @PutMapping("/notifications/{id}/read")
+    public ApiResponse<Void> markNotificationAsRead(@PathVariable("id") Long id) {
+        notificationService.markAsRead(id);
+        return ApiResponse.<Void>builder()
+                .message("Đã đánh dấu thông báo là đã đọc")
+                .build();
+    }
+
+    @PutMapping("/notifications/read-all")
+    public ApiResponse<Void> markAllNotificationsAsRead() {
+        notificationService.markAllAsRead();
+        return ApiResponse.<Void>builder()
+                .message("Đã đánh dấu tất cả thông báo là đã đọc")
+                .build();
+    }
+
     @PutMapping("/change-password")
     public ApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(request);
@@ -73,10 +118,6 @@ public class UserController {
                 .build();
     }
 
-    /**
-     * Lấy danh sách toàn bộ người dùng (Dành cho Admin).
-     * GET /api/users
-     */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<UserResponse>> getAllUsers() {

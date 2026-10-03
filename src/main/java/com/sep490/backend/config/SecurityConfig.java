@@ -35,12 +35,13 @@ public class SecurityConfig {
             "/api/auth/refresh",
             "/api/auth/forgot-password/initiate",
             "/api/auth/forgot-password/verify-otp",
-            "/api/auth/forgot-password/change-password",
+            "/api/auth/forgot-password/reset-password",
             "/api/users/register",
             "/api/login",
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
+            "/api/auth/verify-email",
             "/api/lessons/public/**",
             "/api/topics/public/**",
             "/api/courses/**",
