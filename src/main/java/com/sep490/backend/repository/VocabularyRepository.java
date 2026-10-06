@@ -17,7 +17,7 @@ public class VocabularyRepository {
     public Optional<VocabularyEntry> findOwned(Long id, Long userId) { return repository.findByIdAndUserId(id, userId).map(VocabularyMapper::toDomain); }
     public VocabularyEntry save(VocabularyEntry e) {
         var row = e.id() == null ? new VocabularyJpaEntity() : repository.findByIdAndUserId(e.id(), e.userId()).orElseThrow();
-        row.setUser(em.getReference(UserJpaEntity.class, e.userId()));
+        row.setUser(em.getReference(User.class, e.userId()));
         row.setLesson(e.lessonId() == null ? null : em.getReference(LessonJpaEntity.class, e.lessonId()));
         row.setWord(e.word()); row.setMeaning(e.meaning()); row.setPronunciation(e.pronunciation());
         row.setExampleSentence(e.exampleSentence()); row.setNote(e.note()); row.setCreatedAt(e.createdAt());

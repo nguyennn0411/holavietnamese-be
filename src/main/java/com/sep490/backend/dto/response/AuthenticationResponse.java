@@ -13,7 +13,7 @@ import java.util.Set;
 public class AuthenticationResponse {
     String token;
     boolean authenticated;
-    Integer userId;
+    Long userId;
     String username;
     String fullName;
     Set<String> roles;
