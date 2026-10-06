@@ -71,6 +71,8 @@ public class UserService {
         user.setTargetLevel(request.getTargetLevel() != null && !request.getTargetLevel().isBlank() 
                 ? request.getTargetLevel().trim() : "A1");
         user.setStatus("ACTIVE");
+        user.setEnabled(true);
+        user.setRole("LEARNER");
         user.setEmailVerified(false);
         user.setEmailVerificationToken(UUID.randomUUID().toString());
         user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));

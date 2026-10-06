@@ -43,6 +43,8 @@ public class DataInitializer implements CommandLineRunner {
                 admin.setEmail("admin@holavietnamese.com");
                 admin.setFullName("System Administrator");
                 admin.setStatus("ACTIVE");
+                admin.setEnabled(true);
+                admin.setRole("ADMIN");
                 admin.setRoles(new HashSet<>(Set.of(adminRole)));
                 userRepository.save(admin);
                 log.info(">>> Khởi tạo tài khoản admin mặc định: admin / admin123");
@@ -59,6 +61,8 @@ public class DataInitializer implements CommandLineRunner {
                 learner.setLearningGoal("Du lịch và giao tiếp hàng ngày");
                 learner.setTargetLevel("A1");
                 learner.setStatus("ACTIVE");
+                learner.setEnabled(true);
+                learner.setRole("LEARNER");
                 learner.setRoles(new HashSet<>(Set.of(learnerRole)));
                 userRepository.save(learner);
                 log.info(">>> Khởi tạo tài khoản học viên mẫu: learner / learner123");

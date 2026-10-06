@@ -140,6 +140,8 @@ public class AuthenticationService {
             newUser.setEmailVerified(true);
             newUser.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
             newUser.setStatus("ACTIVE");
+            newUser.setEnabled(true);
+            newUser.setRole("LEARNER");
             newUser.setRoles(new HashSet<>(Set.of(learnerRole)));
             return userRepository.save(newUser);
         });

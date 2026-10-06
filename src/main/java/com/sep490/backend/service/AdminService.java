@@ -136,6 +136,11 @@ public class AdminService {
                 .collect(Collectors.toSet());
 
         user.setRoles(roles);
+        user.setRole(roles.stream()
+                .map(Role::getName)
+                .filter("ADMIN"::equals)
+                .findFirst()
+                .orElse("LEARNER"));
         userRepository.save(user);
 
         logAdminAction("UPDATE_USER_ROLES", "User ID: " + id, "Updated roles: " + String.join(", ", roleNames));
