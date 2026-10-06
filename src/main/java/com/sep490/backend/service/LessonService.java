@@ -21,7 +21,7 @@ public class LessonService {
     private final CourseRepository courses;
     private final LearnerAccess access;
     private final Clock clock;
-    public List<LessonResponse> lessons(Integer userId, Long courseId) {
+    public List<LessonResponse> lessons(Long userId, Long courseId) {
         Enrollment e = access.requireEnrollment(userId, courseId, false);
         List<Lesson> list = lessons.findPublishedByCourse(courseId);
         var states = progress.findByEnrollment(e.id()).stream().collect(Collectors.toMap(LessonProgress::lessonId, Function.identity()));
@@ -29,18 +29,16 @@ public class LessonService {
         for (int i = 0; i < list.size(); i++) result.add(response(list.get(i), states.get(list.get(i).id()), list, i, false));
         return result;
     }
-    public LessonResponse lesson(Integer userId, Long lessonId) {
+    public LessonResponse lesson(Long userId, Long lessonId) {
         Lesson l = published(lessonId);
         Enrollment e = access.requireEnrollment(userId, l.courseId(), false);
         return detail(l, progress.find(e.id(), l.id()).orElse(null));
     }
     @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
-    public LessonResponse start(Integer userId, Long lessonId) { return update(userId, lessonId, false); }
-    public LessonResponse start(Long userId, Long lessonId) { return start(Math.toIntExact(userId), lessonId); }
+    public LessonResponse start(Long userId, Long lessonId) { return update(userId, lessonId, false); }
     @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
-    public LessonResponse complete(Integer userId, Long lessonId) { return update(userId, lessonId, true); }
-    public LessonResponse complete(Long userId, Long lessonId) { return complete(Math.toIntExact(userId), lessonId); }
-    private LessonResponse update(Integer userId, Long lessonId, boolean complete) {
+    public LessonResponse complete(Long userId, Long lessonId) { return update(userId, lessonId, true); }
+    private LessonResponse update(Long userId, Long lessonId, boolean complete) {
         Lesson l = published(lessonId);
         // Every progress mutation locks the parent enrollment, serializing concurrent lesson completions.
         Enrollment e = access.requireEnrollment(userId, l.courseId(), true);

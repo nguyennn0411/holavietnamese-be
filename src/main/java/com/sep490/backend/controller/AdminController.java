@@ -45,7 +45,7 @@ public class AdminController {
     }
 
     @GetMapping("/users/{id}")
-    public ApiResponse<AdminUserResponse> getUserById(@PathVariable("id") Integer id) {
+    public ApiResponse<AdminUserResponse> getUserById(@PathVariable("id") Long id) {
         return ApiResponse.<AdminUserResponse>builder()
                 .result(adminService.getUserById(id))
                 .build();
@@ -53,7 +53,7 @@ public class AdminController {
 
     @PatchMapping("/users/{id}/status")
     public ApiResponse<AdminUserResponse> toggleUserStatus(
-            @PathVariable("id") Integer id,
+            @PathVariable("id") Long id,
             @RequestParam("status") String status) {
         return ApiResponse.<AdminUserResponse>builder()
                 .result(adminService.toggleUserStatus(id, status))
@@ -63,7 +63,7 @@ public class AdminController {
 
     @PutMapping("/users/{id}/roles")
     public ApiResponse<AdminUserResponse> updateUserRoles(
-            @PathVariable("id") Integer id,
+            @PathVariable("id") Long id,
             @RequestBody Set<String> roles) {
         return ApiResponse.<AdminUserResponse>builder()
                 .result(adminService.updateUserRoles(id, roles))

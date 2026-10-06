@@ -29,7 +29,7 @@ public class CourseService {
     }
     private CourseResponse response(Course c) { return CourseResponse.from(c, courses.countPublishedLessons(c.id())); }
     @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
-    public EnrollmentResponse enroll(Integer userId, Long courseId) {
+    public EnrollmentResponse enroll(Long userId, Long courseId) {
         Course c = available(courseId);
         Enrollment existing = enrollments.findForUpdate(userId, courseId).orElse(null);
         if (existing != null && existing.status() != EnrollmentStatus.CANCELLED)
@@ -43,15 +43,9 @@ public class CourseService {
         }
         return toResponse(enrollments.save(enrollment), c);
     }
-    public EnrollmentResponse enroll(Long userId, Long courseId) {
-        return enroll(Math.toIntExact(userId), courseId);
-    }
-    public Optional<EnrollmentResponse> enrollmentStatus(Integer userId, Long courseId) {
+    public Optional<EnrollmentResponse> enrollmentStatus(Long userId, Long courseId) {
         Course c = available(courseId);
         return enrollments.find(userId, courseId).map(e -> toResponse(e, c));
-    }
-    public Optional<EnrollmentResponse> enrollmentStatus(Long userId, Long courseId) {
-        return enrollmentStatus(Math.toIntExact(userId), courseId);
     }
     private EnrollmentResponse toResponse(Enrollment e, Course c) {
         int total = courses.countPublishedLessons(c.id());

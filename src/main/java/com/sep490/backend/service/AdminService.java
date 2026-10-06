@@ -98,14 +98,14 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
-    public AdminUserResponse getUserById(Integer id) {
+    public AdminUserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return mapToAdminUserResponse(user);
     }
 
     @Transactional
-    public AdminUserResponse toggleUserStatus(Integer id, String status) {
+    public AdminUserResponse toggleUserStatus(Long id, String status) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         String normalizedStatus = normalizeStatus(status);
@@ -117,7 +117,7 @@ public class AdminService {
     }
 
     @Transactional
-    public AdminUserResponse updateUserRoles(Integer id, Set<String> roleNames) {
+    public AdminUserResponse updateUserRoles(Long id, Set<String> roleNames) {
         if (roleNames == null || roleNames.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one role is required.");
         }

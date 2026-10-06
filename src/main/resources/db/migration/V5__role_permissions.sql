@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS roles (
 );
 
 CREATE TABLE IF NOT EXISTS users_roles (
-    users_id INT NOT NULL,
+    users_id BIGINT NOT NULL,
     roles_id INT NOT NULL,
     CONSTRAINT pk_users_roles PRIMARY KEY (users_id, roles_id),
     CONSTRAINT fk_users_roles_user FOREIGN KEY (users_id) REFERENCES users(id) ON DELETE CASCADE,

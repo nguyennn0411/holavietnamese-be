@@ -18,26 +18,26 @@ public class VocabularyService {
     private final CourseRepository courses;
     private final LearnerAccess access;
     private final Clock clock;
-    public List<VocabularyResponse> search(Integer userId, String search, Long courseId, Long lessonId) {
+    public List<VocabularyResponse> search(Long userId, String search, Long courseId, Long lessonId) {
         if (search != null && search.length() > 200) throw new LearningException(LearningException.Kind.INVALID, "Search must be at most 200 characters.");
         return vocabulary.search(userId, search == null ? "" : search.trim(), courseId, lessonId).stream().map(this::response).toList();
     }
-    public VocabularyResponse get(Integer userId, Long id) { return response(owned(userId, id)); }
+    public VocabularyResponse get(Long userId, Long id) { return response(owned(userId, id)); }
     @Transactional
-    public VocabularyResponse add(Integer userId, VocabularyRequest r) {
+    public VocabularyResponse add(Long userId, VocabularyRequest r) {
         validateLesson(userId, r.lessonId());
         return response(vocabulary.save(new VocabularyEntry(null, userId, r.lessonId(), r.word().trim(), r.meaning().trim(), trim(r.pronunciation()), trim(r.exampleSentence()), trim(r.note()), clock.instant())));
     }
     @Transactional
-    public VocabularyResponse update(Integer userId, Long id, VocabularyRequest r) {
+    public VocabularyResponse update(Long userId, Long id, VocabularyRequest r) {
         var e = owned(userId, id);
         if (!Objects.equals(e.lessonId(), r.lessonId())) validateLesson(userId, r.lessonId());
         return response(vocabulary.save(new VocabularyEntry(e.id(), userId, r.lessonId(), r.word().trim(), r.meaning().trim(), trim(r.pronunciation()), trim(r.exampleSentence()), trim(r.note()), e.createdAt())));
     }
     @Transactional
-    public void delete(Integer userId, Long id) { vocabulary.delete(owned(userId, id)); }
-    private VocabularyEntry owned(Integer userId, Long id) { return vocabulary.findOwned(id, userId).orElseThrow(() -> LearningException.notFound("Vocabulary entry")); }
-    private void validateLesson(Integer userId, Long lessonId) {
+    public void delete(Long userId, Long id) { vocabulary.delete(owned(userId, id)); }
+    private VocabularyEntry owned(Long userId, Long id) { return vocabulary.findOwned(id, userId).orElseThrow(() -> LearningException.notFound("Vocabulary entry")); }
+    private void validateLesson(Long userId, Long lessonId) {
         if (lessonId == null) return;
         var l = lessons.findById(lessonId).filter(Lesson::published).orElseThrow(() -> LearningException.notFound("Lesson"));
         access.requireEnrollment(userId, l.courseId(), false);

@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface UserBadgeRepository extends JpaRepository<UserBadge, Long> {
-    List<UserBadge> findByUserId(Integer userId);
-    Optional<UserBadge> findByUserIdAndBadgeId(Integer userId, Long badgeId);
-    boolean existsByUserIdAndBadgeCode(Integer userId, String badgeCode);
+    List<UserBadge> findByUserId(Long userId);
+    Optional<UserBadge> findByUserIdAndBadgeId(Long userId, Long badgeId);
+    boolean existsByUserIdAndBadgeCode(Long userId, String badgeCode);
 }

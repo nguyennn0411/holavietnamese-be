@@ -16,7 +16,7 @@ public class LearningProgressService {
     private final LearnerAccess access;
     private final LessonRepository lessons;
     private final LessonProgressRepository progress;
-    public LearningProgressResponse progress(Integer userId, Long courseId) {
+    public LearningProgressResponse progress(Long userId, Long courseId) {
         var e = access.requireEnrollment(userId, courseId, false);
         var states = progress.findByEnrollment(e.id()).stream().collect(Collectors.toMap(LessonProgress::lessonId, Function.identity()));
         var list = lessons.findPublishedByCourse(courseId).stream().map(l -> {

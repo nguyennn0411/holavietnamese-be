@@ -13,9 +13,9 @@ import com.sep490.backend.dto.model.VocabularyEntry;
 public class VocabularyRepository {
     private final VocabularyJpaRepository repository;
     private final EntityManager em;
-    public List<VocabularyEntry> search(Integer userId, String search, Long courseId, Long lessonId) { return repository.search(userId, search, courseId, lessonId).stream().map(VocabularyMapper::toDomain).toList(); }
-    public Optional<VocabularyEntry> findOwned(Long id, Integer userId) { return repository.findByIdAndUserId(id, userId).map(VocabularyMapper::toDomain); }
-    public int countByUser(Integer userId) { return repository.countByUserId(userId); }
+    public List<VocabularyEntry> search(Long userId, String search, Long courseId, Long lessonId) { return repository.search(userId, search, courseId, lessonId).stream().map(VocabularyMapper::toDomain).toList(); }
+    public Optional<VocabularyEntry> findOwned(Long id, Long userId) { return repository.findByIdAndUserId(id, userId).map(VocabularyMapper::toDomain); }
+    public int countByUser(Long userId) { return repository.countByUserId(userId); }
     public VocabularyEntry save(VocabularyEntry e) {
         var row = e.id() == null ? new VocabularyJpaEntity() : repository.findByIdAndUserId(e.id(), e.userId()).orElseThrow();
         row.setUser(em.getReference(UserJpaEntity.class, e.userId()));
