@@ -1,27 +1,43 @@
 spring:
   config:
     import: "optional:file:./.env.mysql[.properties]"
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 11MB
+
   application:
-    name: sep490-backend
+    name: holavietnamese-be
+
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:${MYSQL_PORT:3307}/${MYSQL_DATABASE:hola_vietnamese}?connectionTimeZone=UTC&allowPublicKeyRetrieval=true&useSSL=false}
     username: ${DB_USERNAME:${MYSQL_USER:hola}}
     password: ${DB_PASSWORD:${MYSQL_PASSWORD:}}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
   flyway:
     enabled: false
+
   jpa:
     open-in-view: false
+    show-sql: false
     hibernate:
       ddl-auto: update
     properties:
-      hibernate.jdbc.time_zone: UTC
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
+
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 server:
-  port: 8080
+  port: ${PORT:8080}
+
   servlet:
     session:
       cookie:
@@ -29,5 +45,18 @@ server:
         same-site: lax
         secure: ${SESSION_COOKIE_SECURE:false}
 
+jwt:
+  secretKey: ${JWT_SECRET_KEY:holaVietnameseSecretKey2025holaVietnameseSecretKey2025}
+  expiration: ${JWT_EXPIRATION:86400000}
+  refresh-duration: ${JWT_REFRESH_DURATION:604800000}
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID:your-google-client-id.apps.googleusercontent.com}
+
 app:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+
+logging:
+  level:
+    com.sep490.backend: INFO
+    org.springframework.security: INFO
