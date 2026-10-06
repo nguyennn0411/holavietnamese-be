@@ -11,7 +11,7 @@ import lombok.*;
 public class UserJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(name = "email", nullable = false, unique = true, length = 254)
     private String email;
