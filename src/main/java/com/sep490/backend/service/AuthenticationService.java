@@ -217,7 +217,7 @@ public class AuthenticationService {
         } else {
             log.info("Đã tạo mã OTP khôi phục mật khẩu cho email [{}]: {}", email, otp);
         }
-        return otp; // Returning OTP for development/testing
+        return sent ? null : otp; // Only expose OTP when email delivery is not configured.
     }
 
     @Transactional

@@ -7,11 +7,6 @@
     <method v="2"><option name="Make" enabled="true" /></method>
     <envs>
       <env name="GOOGLE_CLIENT_ID" value="83340839816-gedunfghqkvndvgb8t9ec6992ialb9om.apps.googleusercontent.com" />
-      <env name="MAIL_ENABLED" value="true" />
-      <env name="MAIL_HOST" value="smtp.gmail.com" />
-      <env name="MAIL_PORT" value="587" />
-      <env name="MAIL_USERNAME" value="" />
-      <env name="MAIL_PASSWORD" value="" />
     </envs>
   </configuration>
 </component>
