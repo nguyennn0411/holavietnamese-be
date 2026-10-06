@@ -3,6 +3,7 @@ package com.sep490.backend.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -40,8 +41,13 @@ public class EmailService {
                 If you did not request this, please ignore this email.
                 """.formatted(otp));
 
-        mailSender.send(message);
-        return true;
+        try {
+            mailSender.send(message);
+            return true;
+        } catch (MailException e) {
+            log.error("Could not send password reset OTP email to [{}]: {}", to, e.getMessage());
+            return false;
+        }
     }
 
     private boolean isConfigured() {
