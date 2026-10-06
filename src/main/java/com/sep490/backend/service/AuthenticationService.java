@@ -46,6 +46,7 @@ public class AuthenticationService {
     UserRepository userRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
+    EmailService emailService;
 
     Set<String> invalidatedTokens = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -210,7 +211,12 @@ public class AuthenticationService {
         user.setResetPasswordOtpExpiry(LocalDateTime.now().plusMinutes(15));
         userRepository.save(user);
 
-        log.info("Đã tạo mã OTP khôi phục mật khẩu cho email [{}]: {}", email, otp);
+        boolean sent = emailService.sendPasswordResetOtp(user.getEmail(), otp);
+        if (sent) {
+            log.info("Đã gửi mã OTP khôi phục mật khẩu cho email [{}]", email);
+        } else {
+            log.info("Đã tạo mã OTP khôi phục mật khẩu cho email [{}]: {}", email, otp);
+        }
         return otp; // Returning OTP for development/testing
     }
 
