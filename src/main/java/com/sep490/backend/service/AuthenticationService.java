@@ -181,6 +181,24 @@ public class AuthenticationService {
     }
 
     @Transactional
+    public String resendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (Boolean.TRUE.equals(user.getEmailVerified())) {
+            return null;
+        }
+
+        String token = UUID.randomUUID().toString();
+        user.setEmailVerificationToken(token);
+        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
+        userRepository.save(user);
+
+        log.info("ÄÃ£ táº¡o láº¡i token xÃ¡c minh email cho [{}]", email);
+        return token; // Returning token for development/testing until email delivery is configured.
+    }
+
+    @Transactional
     public String initiateForgotPassword(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));

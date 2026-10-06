@@ -28,9 +28,12 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            Role adminRole = initRole("ADMIN", "Quản trị viên hệ thống");
-            Role learnerRole = initRole("LEARNER", "Học viên học tiếng Việt");
-            initRole("TEACHER", "Giáo viên giảng dạy tiếng Việt");
+            Role adminRole = initRole("ADMIN", "Quản trị viên hệ thống",
+                    Set.of("USER_READ", "USER_WRITE", "ROLE_WRITE", "SETTING_WRITE", "ACHIEVEMENT_WRITE", "XP_RULE_WRITE", "AUDIT_READ"));
+            Role learnerRole = initRole("LEARNER", "Học viên học tiếng Việt",
+                    Set.of("PROFILE_READ", "PROFILE_WRITE", "LEARNING_READ"));
+            initRole("TEACHER", "Giáo viên giảng dạy tiếng Việt",
+                    Set.of("COURSE_READ", "LESSON_WRITE", "QUIZ_WRITE"));
 
             // Tạo tài khoản admin mặc định nếu chưa tồn tại
             if (!userRepository.existsByUsername("admin")) {
@@ -65,11 +68,18 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private Role initRole(String name, String description) {
-        return roleRepository.findByName(name).orElseGet(() -> {
+    private Role initRole(String name, String description, Set<String> permissions) {
+        return roleRepository.findByName(name).map(role -> {
+            if (role.getPermissions() == null || role.getPermissions().isEmpty()) {
+                role.setPermissions(new HashSet<>(permissions));
+                return roleRepository.save(role);
+            }
+            return role;
+        }).orElseGet(() -> {
             Role role = new Role();
             role.setName(name);
             role.setDescription(description);
+            role.setPermissions(new HashSet<>(permissions));
             return roleRepository.save(role);
         });
     }

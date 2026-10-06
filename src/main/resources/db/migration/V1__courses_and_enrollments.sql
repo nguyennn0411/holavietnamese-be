@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS users (
- id BIGINT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(254) NOT NULL UNIQUE,
+ id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(254) NOT NULL UNIQUE,
  password_hash VARCHAR(100) NOT NULL, enabled BOOLEAN NOT NULL DEFAULT TRUE
 );
 CREATE TABLE IF NOT EXISTS courses (
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS lessons (
  CONSTRAINT uk_lesson_order UNIQUE (course_id, lesson_order)
 );
 CREATE TABLE IF NOT EXISTS enrollments (
- id BIGINT AUTO_INCREMENT PRIMARY KEY, user_id BIGINT NOT NULL, course_id BIGINT NOT NULL,
+ id BIGINT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, course_id BIGINT NOT NULL,
  enrolled_at TIMESTAMP(6) NOT NULL, status VARCHAR(20) NOT NULL,
  last_accessed_lesson_id BIGINT, last_accessed_at TIMESTAMP(6),
  CONSTRAINT uk_enrollment_user_course UNIQUE (user_id, course_id),

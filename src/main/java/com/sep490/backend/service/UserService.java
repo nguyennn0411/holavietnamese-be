@@ -21,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,6 +71,9 @@ public class UserService {
         user.setTargetLevel(request.getTargetLevel() != null && !request.getTargetLevel().isBlank() 
                 ? request.getTargetLevel().trim() : "A1");
         user.setStatus("ACTIVE");
+        user.setEmailVerified(false);
+        user.setEmailVerificationToken(UUID.randomUUID().toString());
+        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
         user.setRoles(new HashSet<>(Set.of(learnerRole)));
 
         User savedUser = userRepository.save(user);
@@ -115,6 +120,9 @@ public class UserService {
         }
         if (request.getAvatarUrl() != null) {
             user.setAvatarUrl(request.getAvatarUrl());
+        }
+        if (request.getCountry() != null) {
+            user.setCountry(request.getCountry());
         }
         if (request.getNativeLanguage() != null) {
             user.setNativeLanguage(request.getNativeLanguage());
@@ -174,9 +182,19 @@ public class UserService {
                 .fullName(user.getFullName())
                 .phoneNumber(user.getPhoneNumber())
                 .avatarUrl(user.getAvatarUrl())
+                .country(user.getCountry())
                 .nativeLanguage(user.getNativeLanguage())
                 .learningGoal(user.getLearningGoal())
                 .targetLevel(user.getTargetLevel())
+                .dailyLearningGoalMinutes(user.getDailyLearningGoalMinutes())
+                .audioSpeed(user.getAudioSpeed())
+                .pronunciationHintsEnabled(user.getPronunciationHintsEnabled())
+                .autoTranslateEnabled(user.getAutoTranslateEnabled())
+                .notificationsEnabled(user.getNotificationsEnabled())
+                .onboardingCompleted(user.getOnboardingCompleted())
+                .emailVerified(user.getEmailVerified())
+                .streakCount(user.getStreakCount())
+                .totalXp(user.getTotalXp())
                 .status(user.getStatus())
                 .roles(roleNames)
                 .createdAt(user.getCreatedAt())

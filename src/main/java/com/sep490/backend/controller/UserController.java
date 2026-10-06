@@ -78,6 +78,11 @@ public class UserController {
                 .build();
     }
 
+    @GetMapping("/learning-overview")
+    public ApiResponse<UserProgressResponse> getLearningOverview() {
+        return getUserProgress();
+    }
+
     @GetMapping("/achievements")
     public ApiResponse<List<BadgeResponse>> getUserAchievements() {
         List<BadgeResponse> response = achievementService.getUserBadges();

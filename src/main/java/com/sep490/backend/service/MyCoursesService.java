@@ -12,7 +12,7 @@ import com.sep490.backend.entity.enums.EnrollmentStatus;
 public class MyCoursesService {
     private final EnrollmentRepository enrollments;
     private final CourseRepository courses;
-    public List<MyCourseResponse> myCourses(Long userId) {
+    public List<MyCourseResponse> myCourses(Integer userId) {
         return enrollments.findByUser(userId).stream().filter(e -> e.status() != EnrollmentStatus.CANCELLED).map(e -> {
             var c = courses.findById(e.courseId()).orElseThrow();
             int total = courses.countPublishedLessons(c.id());

@@ -11,7 +11,7 @@ import static com.sep490.backend.exception.LearningException.Kind.*;
 public class LearnerAccess {
     private final CourseRepository courses;
     private final EnrollmentRepository enrollments;
-    public Enrollment requireEnrollment(Long userId, Long courseId, boolean lock) {
+    public Enrollment requireEnrollment(Integer userId, Long courseId, boolean lock) {
         var course = courses.findById(courseId).filter(c -> c.status() == CourseStatus.PUBLISHED)
             .orElseThrow(() -> LearningException.notFound("Available course"));
         return (lock ? enrollments.findForUpdate(userId, course.id()) : enrollments.find(userId, course.id()))
