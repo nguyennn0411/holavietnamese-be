@@ -5,5 +5,8 @@
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <shortenClasspath name="MANIFEST" />
     <method v="2"><option name="Make" enabled="true" /></method>
+    <envs>
+      <env name="GOOGLE_CLIENT_ID" value="83340839816-gedunfghqkvndvgb8t9ec6992ialb9om.apps.googleusercontent.com" />
+    </envs>
   </configuration>
 </component>

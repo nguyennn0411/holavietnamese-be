@@ -19,7 +19,7 @@ public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Integer id;
+    private Long id;
 
     @Column(name = "full_name", length = 100)
     private String fullName;
@@ -29,6 +29,14 @@ public class User extends BaseEntity {
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
+
+    @ColumnDefault("true")
+    @Column(name = "enabled", nullable = false)
+    private Boolean enabled = true;
+
+    @ColumnDefault("'LEARNER'")
+    @Column(name = "role", nullable = false, length = 20)
+    private String role = "LEARNER";
 
     @Column(name = "email", length = 100, unique = true, nullable = false)
     private String email;

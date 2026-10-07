@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import com.sep490.backend.repository.EnrollmentRepository;
 import com.sep490.backend.repository.jpa.EnrollmentJpaRepository;
 import com.sep490.backend.entity.*;
+import com.sep490.backend.entity.enums.EnrollmentStatus;
 import com.sep490.backend.mapper.EnrollmentMapper;
 import com.sep490.backend.dto.model.Enrollment;
 @Repository @RequiredArgsConstructor
@@ -20,10 +21,14 @@ public class EnrollmentRepository {
         EnrollmentJpaEntity row = e.id() == null ? new EnrollmentJpaEntity() : repository.findById(e.id()).orElseThrow();
         row.setUser(em.getReference(UserJpaEntity.class, e.userId()));
         row.setCourse(em.getReference(CourseJpaEntity.class, e.courseId()));
-        row.setEnrolledAt(e.enrolledAt()); row.setStatus(e.status());
+        row.setEnrolledAt(e.enrolledAt());
+        row.setStatus(row.getStatus() == EnrollmentStatus.COMPLETED && e.status() == EnrollmentStatus.ACTIVE
+                ? EnrollmentStatus.COMPLETED
+                : e.status());
         row.setLastAccessedLessonId(e.lastAccessedLessonId()); row.setLastAccessedAt(e.lastAccessedAt());
         return EnrollmentMapper.toDomain(repository.saveAndFlush(row));
     }
     public int completedLessons(Long id) { return repository.completedLessons(id); }
+    public int completedLessonsByUser(Long userId) { return repository.completedLessonsByUserId(userId); }
     public void resetLessonProgress(Long id) { repository.resetLessonProgress(id); }
 }

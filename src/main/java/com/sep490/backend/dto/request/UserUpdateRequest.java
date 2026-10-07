@@ -12,6 +12,7 @@ public class UserUpdateRequest {
     String fullName;
     String phoneNumber;
     String avatarUrl;
+    String country;
     String nativeLanguage;
     String learningGoal;
     String targetLevel;

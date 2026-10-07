@@ -1,5 +1,6 @@
 package com.sep490.backend.config;
 
+import com.sep490.backend.repository.jpa.UserJpaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,9 +11,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -33,6 +36,7 @@ public class SecurityConfig {
             "/api/auth/introspect",
             "/api/auth/logout",
             "/api/auth/refresh",
+            "/api/auth/verify-email/resend",
             "/api/auth/forgot-password/initiate",
             "/api/auth/forgot-password/verify-otp",
             "/api/auth/forgot-password/reset-password",
@@ -77,9 +81,34 @@ public class SecurityConfig {
                         .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
 
-        httpSecurity.csrf(AbstractHttpConfigurer::disable);
+        httpSecurity.formLogin(form -> form
+                .loginProcessingUrl("/api/login")
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .successHandler((request, response, authentication) -> response.setStatus(204))
+                .failureHandler((request, response, exception) -> response.setStatus(401)));
+
+        httpSecurity.logout(logout -> logout
+                .logoutUrl("/api/logout")
+                .logoutSuccessHandler((request, response, authentication) -> response.setStatus(204)));
+
+        httpSecurity.csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .ignoringRequestMatchers("/api/auth/**", "/api/users/register"));
 
         return httpSecurity.build();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService(UserJpaRepository users) {
+        return username -> users.findByEmail(username)
+                .map(user -> new LearnerPrincipal(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getPasswordHash(),
+                        user.isEnabled(),
+                        user.getRole()))
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(username));
     }
 
     @Bean

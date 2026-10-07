@@ -23,6 +23,11 @@ public class Role extends BaseEntity {
     @Column(name = "description", length = 255)
     private String description;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "role_permissions", joinColumns = @JoinColumn(name = "role_id"))
+    @Column(name = "permission", length = 100, nullable = false)
+    private Set<String> permissions = new LinkedHashSet<>();
+
     @ManyToMany(mappedBy = "roles")
     private Set<User> users = new LinkedHashSet<>();
 }
