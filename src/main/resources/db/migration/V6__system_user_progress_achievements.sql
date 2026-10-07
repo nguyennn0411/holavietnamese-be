@@ -1,19 +1,19 @@
 -- Additional columns for user authentication, onboarding, settings, and streak
-ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verification_token VARCHAR(100);
-ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token_expiry TIMESTAMP;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_otp VARCHAR(10);
-ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_otp_expiry TIMESTAMP;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS country VARCHAR(100);
-ALTER TABLE users ADD COLUMN IF NOT EXISTS daily_learning_goal_minutes INT DEFAULT 15;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS audio_speed DOUBLE DEFAULT 1.0;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS pronunciation_hints_enabled BOOLEAN DEFAULT TRUE;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS auto_translate_enabled BOOLEAN DEFAULT TRUE;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN DEFAULT TRUE;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT FALSE;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS streak_count INT DEFAULT 0;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS last_activity_date DATE;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS total_xp INT DEFAULT 0;
+ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN email_verification_token VARCHAR(100);
+ALTER TABLE users ADD COLUMN verification_token_expiry TIMESTAMP;
+ALTER TABLE users ADD COLUMN reset_password_otp VARCHAR(10);
+ALTER TABLE users ADD COLUMN reset_password_otp_expiry TIMESTAMP;
+ALTER TABLE users ADD COLUMN country VARCHAR(100);
+ALTER TABLE users ADD COLUMN daily_learning_goal_minutes INT DEFAULT 15;
+ALTER TABLE users ADD COLUMN audio_speed DOUBLE DEFAULT 1.0;
+ALTER TABLE users ADD COLUMN pronunciation_hints_enabled BOOLEAN DEFAULT TRUE;
+ALTER TABLE users ADD COLUMN auto_translate_enabled BOOLEAN DEFAULT TRUE;
+ALTER TABLE users ADD COLUMN notifications_enabled BOOLEAN DEFAULT TRUE;
+ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN streak_count INT DEFAULT 0;
+ALTER TABLE users ADD COLUMN last_activity_date DATE;
+ALTER TABLE users ADD COLUMN total_xp INT DEFAULT 0;
 
 -- Badges table
 CREATE TABLE IF NOT EXISTS badges (

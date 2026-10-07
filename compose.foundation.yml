@@ -1,0 +1,4 @@
+services:
+  backend:
+    environment:
+      APP_FOUNDATION_SEED_ENABLED: "true"

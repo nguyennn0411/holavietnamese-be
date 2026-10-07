@@ -43,7 +43,7 @@ class LearnerFeaturesIntegrationTests {
             if (!url.startsWith("jdbc:h2:mem:hola-tests") && !url.matches("jdbc:mysql://[^/]+/hola_features_test(\\?.*)?") && !isolatedSqlServer)
                 throw new IllegalStateException("Integration tests require the isolated hola_features_test database.");
         }
-        for (String table : List.of("exercise_options", "exercises", "sentence_drills", "dialogue_lines", "dialogues", "course_vocabulary", "lesson_blocks", "vocabulary_entries", "lesson_progress", "enrollments", "lessons", "course_units", "courses", "users"))
+        for (String table : List.of("exercise_options", "exercises", "sentence_drills", "dialogue_lines", "dialogues", "course_vocabulary", "lesson_blocks", "vocabulary_entries", "lesson_progress", "enrollments", "lessons", "course_units", "courses", "users_roles", "users"))
             jdbc.update("delete from " + table);
         fixtureInsert("users", "insert into users(id,username,email,password_hash) values(1,?,?,?)", "learner@example.test", "learner@example.test", passwords.encode("Test-password-123"));
         fixtureInsert("users", "insert into users(id,username,email,password_hash) values(2,?,?,?)", "other@example.test", "other@example.test", passwords.encode("Other-password-123"));
@@ -103,10 +103,11 @@ class LearnerFeaturesIntegrationTests {
         mvc.perform(post("/api/logout").session(session).header("X-CSRF-TOKEN", newToken)).andExpect(status().isNoContent());
         mvc.perform(get("/api/me/courses")).andExpect(status().isUnauthorized());
     }
-    @Test void enrollmentAppearsInMyCoursesAndRejectsDuplicates() throws Exception {
+    @Test void enrollmentAppearsInMyCoursesAndIsIdempotent() throws Exception {
         mvc.perform(get("/api/courses/10/enrollment-status").with(user(learner))).andExpect(status().isNoContent());
         enroll().andExpect(status().isCreated()).andExpect(jsonPath("$.progressPercentage").value(0)).andExpect(jsonPath("$.enrolledAt").exists());
-        enroll().andExpect(status().isConflict()).andExpect(jsonPath("$.message").value("You are already enrolled in this course."));
+        enroll().andExpect(status().isCreated());
+        assertThat(jdbc.queryForObject("select count(*) from enrollments", Integer.class)).isEqualTo(1);
         mvc.perform(get("/api/me/courses").with(user(learner))).andExpect(jsonPath("$[0].courseId").value(10)).andExpect(jsonPath("$[0].completedLessons").value(0));
         mvc.perform(get("/api/me/courses").with(user(other))).andExpect(jsonPath("$.length()").value(0));
     }
@@ -123,7 +124,7 @@ class LearnerFeaturesIntegrationTests {
         complete(102); complete(103);
         mvc.perform(get("/api/me/courses/10/progress").with(user(learner))).andExpect(jsonPath("$.progressPercentage").value(100)).andExpect(jsonPath("$.status").value("COMPLETED"));
         mvc.perform(get("/api/me/courses").with(user(learner))).andExpect(jsonPath("$[0].completedLessons").value(3)).andExpect(jsonPath("$[0].status").value("COMPLETED"));
-        enroll().andExpect(status().isConflict());
+        enroll().andExpect(status().isCreated());
     }
     @Test void emptyCourseHasZeroProgressAndNoLessons() throws Exception {
         mvc.perform(post("/api/courses/30/enroll").with(user(learner)).with(csrf())).andExpect(status().isCreated());
@@ -139,11 +140,11 @@ class LearnerFeaturesIntegrationTests {
         jdbc.update("update enrollments set status='CANCELLED' where user_id=1");
         mvc.perform(get("/api/lessons/101").with(user(learner))).andExpect(status().isForbidden());
     }
-    @Test void cancelledEnrollmentCanRestartWithCleanProgress() throws Exception {
+    @Test void cancelledEnrollmentResumesWithoutErasingHistory() throws Exception {
         enroll(); complete(101);
         jdbc.update("update enrollments set status='CANCELLED' where user_id=1");
-        enroll().andExpect(status().isCreated()).andExpect(jsonPath("$.progressPercentage").value(0));
-        mvc.perform(get("/api/me/courses/10/progress").with(user(learner))).andExpect(jsonPath("$.lastAccessedLessonId").isEmpty()).andExpect(jsonPath("$.lessons[0].status").value("NOT_STARTED"));
+        enroll().andExpect(status().isCreated()).andExpect(jsonPath("$.progressPercentage").value(33)).andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+        mvc.perform(get("/api/me/courses/10/progress").with(user(learner))).andExpect(jsonPath("$.lastAccessedLessonId").value(101)).andExpect(jsonPath("$.lessons[0].status").value("COMPLETED"));
         assertThat(jdbc.queryForObject("select count(*) from enrollments", Integer.class)).isEqualTo(1);
     }
     @Test void vocabularyCrudSearchFiltersAndOwnership() throws Exception {
@@ -188,7 +189,7 @@ class LearnerFeaturesIntegrationTests {
             var results = pool.invokeAll(List.of(task, task));
             int successes = 0;
             for (var result : results) if (result.get(10, TimeUnit.SECONDS)) successes++;
-            assertThat(successes).isEqualTo(1);
+            assertThat(successes).isEqualTo(2);
         }
         assertThat(jdbc.queryForObject("select count(*) from enrollments", Integer.class)).isEqualTo(1);
     }

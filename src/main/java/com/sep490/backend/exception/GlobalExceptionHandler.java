@@ -24,6 +24,11 @@ import java.time.Instant;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    public record ContentError(String code, String message, int status) {}
+    @ExceptionHandler(com.sep490.backend.learning.shared.ContentException.class)
+    ResponseEntity<ContentError> content(com.sep490.backend.learning.shared.ContentException e) {
+        return ResponseEntity.status(e.status).body(new ContentError(e.code,e.getMessage(),e.status.value()));
+    }
 
     // --- Course Import Exception Handlers ---
 
@@ -65,7 +70,7 @@ public class GlobalExceptionHandler {
     // --- Auth & General Exception Handlers ---
 
     @ExceptionHandler({org.springframework.http.converter.HttpMessageNotReadableException.class,
-            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class, java.time.format.DateTimeParseException.class})
     public ResponseEntity<ApiResponse<Void>> handleMalformedRequest(Exception exception) {
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error(400, "Dữ liệu yêu cầu không đúng định dạng"));

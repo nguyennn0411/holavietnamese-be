@@ -1,150 +1,60 @@
 package com.sep490.backend.config;
 
-import com.sep490.backend.repository.jpa.UserJpaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.time.Clock;
+import java.util.List;
+import org.springframework.context.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.time.Clock;
-import java.util.Arrays;
-import java.util.List;
+import org.springframework.web.cors.*;
 
 @Configuration
-@EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
-    private final String[] PUBLIC_POST_ENDPOINTS = {
-            "/api/auth/token",
-            "/api/auth/google",
-            "/api/auth/register",
-            "/api/auth/introspect",
-            "/api/auth/logout",
-            "/api/auth/refresh",
-            "/api/auth/verify-email/resend",
-            "/api/auth/forgot-password/initiate",
-            "/api/auth/forgot-password/verify-otp",
-            "/api/auth/forgot-password/reset-password",
-            "/api/users/register",
-            "/api/login",
-    };
-
-    private final String[] PUBLIC_GET_ENDPOINTS = {
-            "/api/auth/verify-email",
-            "/api/lessons/public/**",
-            "/api/topics/public/**",
-            "/api/courses/**",
-            "/api/lessons/**",
-            "/api/vocabulary/**",
-            "/api/csrf",
-            "/error",
-    };
-
-    @Autowired
-    private CustomJwtDecoder customJwtDecoder;
-
-    @Bean
-    public Clock clock() {
-        return Clock.systemUTC();
+    @Bean Clock clock() { return Clock.systemUTC(); }
+    @Bean PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(10); }
+    @Bean SecurityFilterChain filterChain(HttpSecurity http, CustomJwtDecoder decoder,
+            LearningJwtAuthenticationConverter converter) throws Exception {
+        return http.cors(c -> {}).authorizeHttpRequests(a -> a
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .requestMatchers("/api/auth/**", "/api/users/register", "/api/login", "/error",
+                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+            .requestMatchers(HttpMethod.GET, "/media/foundation/**", "/api/csrf", "/api/courses", "/api/courses/{id}",
+                "/api/grammar", "/api/grammar/{id}", "/api/lessons/public/**", "/api/topics/public/**").permitAll()
+            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+            .anyRequest().authenticated())
+            // JWT clients send an explicit Authorization header; legacy session clients keep CSRF.
+            .csrf(c -> c.ignoringRequestMatchers("/api/auth/**", "/api/users/register")
+                .ignoringRequestMatchers(r -> r.getHeader("Authorization") != null
+                    && r.getHeader("Authorization").startsWith("Bearer ")))
+            .oauth2ResourceServer(o -> o.jwt(j -> j.decoder(decoder).jwtAuthenticationConverter(converter))
+                .authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
+            .formLogin(f -> f.loginProcessingUrl("/api/login")
+                .successHandler((req,res,auth) -> res.setStatus(204))
+                .failureHandler((req,res,ex) -> error(res,401,"Invalid email or password.")))
+            .logout(l -> l.logoutUrl("/api/logout").logoutSuccessHandler((req,res,auth) -> res.setStatus(204)))
+            .exceptionHandling(e -> e
+                .authenticationEntryPoint((req,res,ex) -> error(res,401,"Please sign in to continue."))
+                .accessDeniedHandler((req,res,ex) -> error(res,403,"Access denied or session expired.")))
+            .build();
     }
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(request -> request
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .anyRequest().authenticated()
-                );
-
-        httpSecurity.oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwtConfigurer -> jwtConfigurer
-                        .decoder(customJwtDecoder)
-                        .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
-
-        httpSecurity.formLogin(form -> form
-                .loginProcessingUrl("/api/login")
-                .usernameParameter("username")
-                .passwordParameter("password")
-                .successHandler((request, response, authentication) -> response.setStatus(204))
-                .failureHandler((request, response, exception) -> response.setStatus(401)));
-
-        httpSecurity.logout(logout -> logout
-                .logoutUrl("/api/logout")
-                .logoutSuccessHandler((request, response, authentication) -> response.setStatus(204)));
-
-        httpSecurity.csrf(csrf -> csrf
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/api/auth/**", "/api/users/register"));
-
-        return httpSecurity.build();
+    private static void error(jakarta.servlet.http.HttpServletResponse response,int status,String message) throws java.io.IOException {
+        response.setStatus(status); response.setContentType("application/json");
+        response.getWriter().write("{\"status\":"+status+",\"message\":\""+message+"\"}");
     }
-
-    @Bean
-    public UserDetailsService userDetailsService(UserJpaRepository users) {
-        return username -> users.findByEmail(username)
-                .map(user -> new LearnerPrincipal(
-                        user.getId(),
-                        user.getEmail(),
-                        user.getPasswordHash(),
-                        Boolean.TRUE.equals(user.getEnabled()),
-                        user.getRole()))
-                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(username));
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "https://holavietnamese.vercel.app",
-                "https://holavietnamese-*.vercel.app"
-        ));
-        corsConfiguration.setAllowedHeaders(Arrays.asList(
-                "Authorization", "Content-Type", "Accept", "X-Requested-With", "X-CSRF-TOKEN"
-        ));
-        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        corsConfiguration.setAllowCredentials(true);
-        corsConfiguration.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfiguration);
-        return source;
-    }
-
-    @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
-
-        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
-
-        return jwtAuthenticationConverter;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
+    @Bean CorsConfigurationSource corsConfigurationSource(@Value("${app.frontend-origin:http://localhost:5173}") String origin) {
+        CorsConfiguration c=new CorsConfiguration();
+        c.setAllowedOriginPatterns(List.of(origin,"http://localhost:5173","http://127.0.0.1:5173",
+            "http://localhost:3000","https://holavietnamese.vercel.app","https://holavietnamese-*.vercel.app"));
+        c.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+        c.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","X-Requested-With","X-CSRF-TOKEN"));
+        c.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source=new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**",c);return source;
     }
 }

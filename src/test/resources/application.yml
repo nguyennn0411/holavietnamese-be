@@ -1,6 +1,8 @@
 spring:
   application:
     name: holavietnamese-be-test
+  mail:
+    host: localhost
   datasource:
     url: jdbc:h2:mem:hola-tests;MODE=MySQL;DB_CLOSE_DELAY=-1
     username: sa
@@ -25,3 +27,7 @@ jwt:
 
 google:
   client-id: ""
+
+app:
+  mail:
+    enabled: false

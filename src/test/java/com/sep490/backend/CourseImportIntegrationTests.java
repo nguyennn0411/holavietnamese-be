@@ -49,7 +49,7 @@ class CourseImportIntegrationTests {
                 throw new IllegalStateException("Refusing to modify a non-test database.");
         }
         for (String table : List.of("exercise_options","exercises","sentence_drills","dialogue_lines","dialogues",
-                "course_vocabulary","lesson_blocks","vocabulary_entries","lesson_progress","enrollments","lessons","course_units","courses","users"))
+                "course_vocabulary","lesson_blocks","vocabulary_entries","lesson_progress","enrollments","lessons","course_units","courses","users_roles","users"))
             jdbc.update("delete from " + table);
     }
     private CourseImportPreview preview(byte[] bytes) { return validator.validate(bytes, "course.xlsx", ImportMode.CREATE_ONLY); }

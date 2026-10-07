@@ -25,13 +25,17 @@ services:
   backend:
     build: .
     environment:
+      SERVER_PORT: 8080
       DB_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-hola_vietnamese}?connectionTimeZone=UTC&allowPublicKeyRetrieval=true&useSSL=false
       DB_USERNAME: ${MYSQL_USER:-hola}
       DB_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env.mysql}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-local-development-only-change-this-hola-vietnamese-signing-key}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      APP_FOUNDATION_SEED_ENABLED: ${APP_FOUNDATION_SEED_ENABLED:-false}
     ports:
-      - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
+      - "127.0.0.1:${DOCKER_BACKEND_PORT:-18080}:8080"
     depends_on:
       mysql:
         condition: service_healthy
