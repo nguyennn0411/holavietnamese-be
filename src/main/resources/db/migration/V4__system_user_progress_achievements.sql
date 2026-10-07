@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS badges (
 -- User Badges table
 CREATE TABLE IF NOT EXISTS user_badges (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    user_id BIGINT NOT NULL,
     badge_id BIGINT NOT NULL,
     unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     badge_level INT DEFAULT 1,
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS user_badges (
 -- XP Transactions table
 CREATE TABLE IF NOT EXISTS xp_transactions (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    user_id BIGINT NOT NULL,
     amount INT NOT NULL,
     event_type VARCHAR(50) NOT NULL,
     description VARCHAR(255),
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS xp_transactions (
 -- Notifications table
 CREATE TABLE IF NOT EXISTS notifications (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    user_id BIGINT NOT NULL,
     title VARCHAR(200) NOT NULL,
     message TEXT NOT NULL,
     type VARCHAR(50) DEFAULT 'SYSTEM',

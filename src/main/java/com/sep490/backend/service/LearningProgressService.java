@@ -9,6 +9,7 @@ import com.sep490.backend.service.LearningProgressService;
 import com.sep490.backend.repository.*;
 import com.sep490.backend.dto.response.LearningProgressResponse;
 import com.sep490.backend.dto.model.*;
+import com.sep490.backend.entity.enums.EnrollmentStatus;
 import com.sep490.backend.entity.enums.LessonStatus;
 @Service @RequiredArgsConstructor @Transactional(readOnly = true)
 public class LearningProgressService {
@@ -23,6 +24,7 @@ public class LearningProgressService {
             return new LearningProgressResponse.LessonState(l.id(), p == null ? LessonStatus.NOT_STARTED : p.status(), p == null ? null : p.startedAt(), p == null ? null : p.completedAt());
         }).toList();
         var summary = new LearningProgress(list.size(), (int) list.stream().filter(l -> l.status() == LessonStatus.COMPLETED).count());
-        return new LearningProgressResponse(courseId, summary.totalLessons(), summary.completedLessons(), summary.percentage(), e.lastAccessedLessonId(), e.lastAccessedAt(), e.status(), list);
+        var status = summary.isComplete() ? EnrollmentStatus.COMPLETED : e.status();
+        return new LearningProgressResponse(courseId, summary.totalLessons(), summary.completedLessons(), summary.percentage(), e.lastAccessedLessonId(), e.lastAccessedAt(), status, list);
     }
 }

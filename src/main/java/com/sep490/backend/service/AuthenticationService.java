@@ -46,6 +46,7 @@ public class AuthenticationService {
     UserRepository userRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
+    EmailService emailService;
 
     Set<String> invalidatedTokens = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -140,6 +141,8 @@ public class AuthenticationService {
             newUser.setEmailVerified(true);
             newUser.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
             newUser.setStatus("ACTIVE");
+            newUser.setEnabled(true);
+            newUser.setRole("LEARNER");
             newUser.setRoles(new HashSet<>(Set.of(learnerRole)));
             return userRepository.save(newUser);
         });
@@ -181,6 +184,24 @@ public class AuthenticationService {
     }
 
     @Transactional
+    public String resendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (Boolean.TRUE.equals(user.getEmailVerified())) {
+            return null;
+        }
+
+        String token = UUID.randomUUID().toString();
+        user.setEmailVerificationToken(token);
+        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
+        userRepository.save(user);
+
+        log.info("ÄÃ£ táº¡o láº¡i token xÃ¡c minh email cho [{}]", email);
+        return token; // Returning token for development/testing until email delivery is configured.
+    }
+
+    @Transactional
     public String initiateForgotPassword(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -190,8 +211,13 @@ public class AuthenticationService {
         user.setResetPasswordOtpExpiry(LocalDateTime.now().plusMinutes(15));
         userRepository.save(user);
 
-        log.info("Đã tạo mã OTP khôi phục mật khẩu cho email [{}]: {}", email, otp);
-        return otp; // Returning OTP for development/testing
+        boolean sent = emailService.sendPasswordResetOtp(user.getEmail(), otp);
+        if (sent) {
+            log.info("Đã gửi mã OTP khôi phục mật khẩu cho email [{}]", email);
+        } else {
+            log.info("Đã tạo mã OTP khôi phục mật khẩu cho email [{}]: {}", email, otp);
+        }
+        return sent ? null : otp; // Only expose OTP when email delivery is not configured.
     }
 
     @Transactional

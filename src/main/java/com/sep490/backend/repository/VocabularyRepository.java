@@ -15,6 +15,7 @@ public class VocabularyRepository {
     private final EntityManager em;
     public List<VocabularyEntry> search(Long userId, String search, Long courseId, Long lessonId) { return repository.search(userId, search, courseId, lessonId).stream().map(VocabularyMapper::toDomain).toList(); }
     public Optional<VocabularyEntry> findOwned(Long id, Long userId) { return repository.findByIdAndUserId(id, userId).map(VocabularyMapper::toDomain); }
+    public int countByUser(Long userId) { return repository.countByUserId(userId); }
     public VocabularyEntry save(VocabularyEntry e) {
         var row = e.id() == null ? new VocabularyJpaEntity() : repository.findByIdAndUserId(e.id(), e.userId()).orElseThrow();
         row.setUser(em.getReference(User.class, e.userId()));

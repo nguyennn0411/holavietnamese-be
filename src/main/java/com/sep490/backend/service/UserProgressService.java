@@ -9,7 +9,9 @@ import com.sep490.backend.entity.XpRule;
 import com.sep490.backend.entity.XpTransaction;
 import com.sep490.backend.exception.AppException;
 import com.sep490.backend.exception.ErrorCode;
+import com.sep490.backend.repository.EnrollmentRepository;
 import com.sep490.backend.repository.UserRepository;
+import com.sep490.backend.repository.VocabularyRepository;
 import com.sep490.backend.repository.XpRuleRepository;
 import com.sep490.backend.repository.XpTransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,8 @@ public class UserProgressService {
     private final UserRepository userRepository;
     private final XpTransactionRepository xpTransactionRepository;
     private final XpRuleRepository xpRuleRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final VocabularyRepository vocabularyRepository;
 
     @Transactional
     public UserResponse completeOnboarding(OnboardingRequest request) {
@@ -93,8 +97,8 @@ public class UserProgressService {
                 .totalXp(user.getTotalXp() != null ? user.getTotalXp() : 0)
                 .dailyGoalMinutes(user.getDailyLearningGoalMinutes() != null ? user.getDailyLearningGoalMinutes() : 15)
                 .lastActivityDate(user.getLastActivityDate())
-                .completedLessonsCount(0) // Default snapshot, integrated with Lesson service
-                .learnedVocabulariesCount(0)
+                .completedLessonsCount(enrollmentRepository.completedLessonsByUser(user.getId()))
+                .learnedVocabulariesCount(vocabularyRepository.countByUser(user.getId()))
                 .recentXpTransactions(recentItems)
                 .build();
     }
@@ -149,9 +153,20 @@ public class UserProgressService {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .avatarUrl(user.getAvatarUrl())
+                .country(user.getCountry())
                 .nativeLanguage(user.getNativeLanguage())
                 .learningGoal(user.getLearningGoal())
                 .targetLevel(user.getTargetLevel())
+                .dailyLearningGoalMinutes(user.getDailyLearningGoalMinutes())
+                .audioSpeed(user.getAudioSpeed())
+                .pronunciationHintsEnabled(user.getPronunciationHintsEnabled())
+                .autoTranslateEnabled(user.getAutoTranslateEnabled())
+                .notificationsEnabled(user.getNotificationsEnabled())
+                .onboardingCompleted(user.getOnboardingCompleted())
+                .emailVerified(user.getEmailVerified())
+                .streakCount(user.getStreakCount())
+                .totalXp(user.getTotalXp())
+                .status(user.getStatus())
                 .roles(user.getRoles().stream().map(r -> r.getName()).collect(Collectors.toSet()))
                 .build();
     }

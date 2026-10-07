@@ -8,9 +8,11 @@ import com.sep490.backend.exception.ErrorCode;
 import com.sep490.backend.repository.NotificationRepository;
 import com.sep490.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,8 +38,15 @@ public class NotificationService {
 
     @Transactional
     public void markAsRead(Long notificationId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Thông báo không tồn tại"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification not found"));
+        if (!notification.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification not found");
+        }
         notification.setIsRead(true);
         notificationRepository.save(notification);
     }

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.*;
 import com.sep490.backend.entity.VocabularyJpaEntity;
 public interface VocabularyJpaRepository extends JpaRepository<VocabularyJpaEntity, Long> {
     Optional<VocabularyJpaEntity> findByIdAndUserId(Long id, Long userId);
+    int countByUserId(Long userId);
     @Query("""
         select v from VocabularyJpaEntity v left join v.lesson l
         where v.user.id = :userId
