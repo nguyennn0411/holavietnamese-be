@@ -33,7 +33,7 @@ public class UserProgressService {
     @Transactional
     public UserResponse completeOnboarding(OnboardingRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findActiveByUsernameWithRoles(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         user.setNativeLanguage(request.getNativeLanguage());
@@ -57,7 +57,7 @@ public class UserProgressService {
     @Transactional
     public UserResponse updateUserSettings(UserSettingsRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findActiveByUsernameWithRoles(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         if (request.getAudioSpeed() != null) user.setAudioSpeed(request.getAudioSpeed());
@@ -73,7 +73,7 @@ public class UserProgressService {
     @Transactional(readOnly = true)
     public UserProgressResponse getUserProgress() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findActiveByUsernameWithRoles(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         List<XpTransaction> transactions = xpTransactionRepository.findByUserIdOrderByCreatedAtDesc(user.getId());

@@ -21,6 +21,9 @@ public class LessonService {
     private final CourseRepository courses;
     private final LearnerAccess access;
     private final Clock clock;
+    private final com.sep490.backend.learning.shared.ContentStore contentStore;
+    private final com.sep490.backend.learning.progress.ActivityProgressService activityProgress;
+    private final com.sep490.backend.learning.course.CourseContentService contentCourses;
     public List<LessonResponse> lessons(Long userId, Long courseId) {
         Enrollment e = access.requireEnrollment(userId, courseId, false);
         List<Lesson> list = lessons.findPublishedByCourse(courseId);
@@ -30,6 +33,7 @@ public class LessonService {
         return result;
     }
     public LessonResponse lesson(Long userId, Long lessonId) {
+        requireUnlocked(userId,lessonId);
         Lesson l = published(lessonId);
         Enrollment e = access.requireEnrollment(userId, l.courseId(), false);
         return detail(l, progress.find(e.id(), l.id()).orElse(null));
@@ -39,6 +43,13 @@ public class LessonService {
     @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
     public LessonResponse complete(Long userId, Long lessonId) { return update(userId, lessonId, true); }
     private LessonResponse update(Long userId, Long lessonId, boolean complete) {
+        requireUnlocked(userId,lessonId);
+        if(contentStore.count("SELECT count(*) FROM lesson_activities WHERE lesson_id=?",lessonId)>0) {
+            activityProgress.startLesson(userId,lessonId);
+            if(complete&&!Boolean.TRUE.equals(activityProgress.evaluate(userId,lessonId).get("completed")))
+                throw com.sep490.backend.learning.shared.ContentException.conflict("LESSON_INCOMPLETE","Complete all required activities and pass the required quizzes first.");
+            return lesson(userId,lessonId);
+        }
         Lesson l = published(lessonId);
         // Every progress mutation locks the parent enrollment, serializing concurrent lesson completions.
         Enrollment e = access.requireEnrollment(userId, l.courseId(), true);
@@ -54,6 +65,9 @@ public class LessonService {
     }
     private Lesson published(Long id) {
         return lessons.findById(id).filter(Lesson::published).orElseThrow(() -> LearningException.notFound("Lesson"));
+    }
+    private void requireUnlocked(Long userId,Long lessonId) {
+        if(contentCourses.locked(userId,lessonId)) throw com.sep490.backend.learning.shared.ContentException.forbidden("LESSON_LOCKED","Complete prerequisite lesson first.");
     }
     private LessonResponse detail(Lesson lesson, LessonProgress p) {
         List<Lesson> list = lessons.findPublishedByCourse(lesson.courseId());

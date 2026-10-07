@@ -178,7 +178,7 @@ public class CourseImportRepository {
             + String.join(",", Collections.nCopies(columns.size(), "?")) + ")";
         var keys = new GeneratedKeyHolder();
         jdbc.update(connection -> {
-            var statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            var statement = connection.prepareStatement(sql, new String[]{"id"});
             int i = 1;
             for (Object value : columns.values()) statement.setObject(i++, value);
             return statement;

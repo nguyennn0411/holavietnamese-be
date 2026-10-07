@@ -156,6 +156,7 @@ public class UserService {
     /**
      * Lấy danh sách tất cả học viên (dành cho Admin).
      */
+    @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
                 .filter(u -> !Boolean.TRUE.equals(u.getIsRemoved()))
@@ -164,7 +165,7 @@ public class UserService {
     }
 
     private UserResponse toUserResponse(User user) {
-        Set<String> roleNames = user.getRoles() == null ? Set.of() :
+        Set<String> roleNames = user.getRoles() == null || user.getRoles().isEmpty() ? Set.of(user.getRole()) :
                 user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
 
         return UserResponse.builder()

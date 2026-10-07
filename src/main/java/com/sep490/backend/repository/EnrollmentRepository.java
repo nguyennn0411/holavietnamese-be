@@ -15,7 +15,13 @@ public class EnrollmentRepository {
     private final EntityManager em;
     public List<Enrollment> findByUser(Long userId) { return repository.findByUserIdOrderByEnrolledAtDesc(userId).stream().map(EnrollmentMapper::toDomain).toList(); }
     public Optional<Enrollment> find(Long user, Long course) { return repository.findByUserIdAndCourseId(user, course).map(EnrollmentMapper::toDomain); }
-    public Optional<Enrollment> findForUpdate(Long user, Long course) { return repository.findForUpdate(user, course).map(EnrollmentMapper::toDomain); }
+    public Optional<Enrollment> findForUpdate(Long user, Long course) {
+        return repository.findForUpdate(user, course).map(row -> {
+            // Activity Engine writes through JDBC; refresh a previously managed JPA row under the lock.
+            em.refresh(row, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+            return EnrollmentMapper.toDomain(row);
+        });
+    }
     public Enrollment save(Enrollment e) {
         EnrollmentJpaEntity row = e.id() == null ? new EnrollmentJpaEntity() : repository.findById(e.id()).orElseThrow();
         row.setUser(em.getReference(UserJpaEntity.class, e.userId()));

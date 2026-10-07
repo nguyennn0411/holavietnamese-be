@@ -19,18 +19,18 @@ public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Integer id;
+    private Long id;
 
     @Column(name = "full_name", length = 100)
     private String fullName;
 
-    @Column(name = "username", length = 50, unique = true, nullable = false)
+    @Column(name = "username", length = 254, unique = true)
     private String username;
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "email", length = 100, unique = true, nullable = false)
+    @Column(name = "email", length = 254, unique = true, nullable = false)
     private String email;
 
     @Column(name = "phone_number", length = 20)
@@ -105,6 +105,12 @@ public class User extends BaseEntity {
     @ColumnDefault("'ACTIVE'")
     @Column(name = "status", length = 20)
     private String status = "ACTIVE";
+
+    @Column(nullable = false)
+    private boolean enabled = true;
+
+    @Column(nullable = false, length = 20)
+    private String role = "LEARNER";
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

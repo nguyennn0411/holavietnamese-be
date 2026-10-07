@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
+@org.springframework.context.annotation.Profile("dev-demo")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
@@ -36,6 +37,7 @@ public class DataInitializer implements CommandLineRunner {
             if (!userRepository.existsByUsername("admin")) {
                 User admin = new User();
                 admin.setUsername("admin");
+                admin.setRole("ADMIN");
                 admin.setPasswordHash(passwordEncoder.encode("admin123"));
                 admin.setEmail("admin@holavietnamese.com");
                 admin.setFullName("System Administrator");

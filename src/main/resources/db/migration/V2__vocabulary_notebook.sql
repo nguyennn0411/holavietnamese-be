@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS vocabulary_entries (
+CREATE TABLE vocabulary_entries (
  id BIGINT AUTO_INCREMENT PRIMARY KEY, user_id BIGINT NOT NULL, lesson_id BIGINT,
  word VARCHAR(200) NOT NULL, meaning VARCHAR(1000) NOT NULL, pronunciation VARCHAR(200),
  example_sentence VARCHAR(2000), note VARCHAR(2000), created_at TIMESTAMP(6) NOT NULL,

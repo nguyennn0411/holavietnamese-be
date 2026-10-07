@@ -73,7 +73,7 @@ public class AuthenticationService {
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
         if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
-        if (!"ACTIVE".equals(user.getStatus())) throw new AppException(ErrorCode.USER_DEACTIVATED);
+        if (!user.isEnabled() || !"ACTIVE".equals(user.getStatus())) throw new AppException(ErrorCode.USER_DEACTIVATED);
 
         String token = generateToken(user);
         log.info("User [{}] đã đăng nhập thành công", request.getUsername());
@@ -92,6 +92,9 @@ public class AuthenticationService {
 
     @Transactional
     public AuthenticationResponse authenticateGoogle(GoogleLoginRequest request) {
+        if (GOOGLE_CLIENT_ID == null || GOOGLE_CLIENT_ID.isBlank() || GOOGLE_CLIENT_ID.contains("your-google-client-id")) {
+            throw new AppException(ErrorCode.INVALID_GOOGLE_TOKEN);
+        }
         GoogleIdTokenVerifier.Builder verifierBuilder = new GoogleIdTokenVerifier.Builder(
                 new NetHttpTransport(), GsonFactory.getDefaultInstance());
 
@@ -144,7 +147,7 @@ public class AuthenticationService {
             return userRepository.save(newUser);
         });
 
-        if (!"ACTIVE".equals(user.getStatus())) {
+        if (!user.isEnabled() || !"ACTIVE".equals(user.getStatus())) {
             throw new AppException(ErrorCode.USER_DEACTIVATED);
         }
 
@@ -291,7 +294,7 @@ public class AuthenticationService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getUsername())
+                .subject(user.getUsername() == null ? user.getEmail() : user.getUsername())
                 .issuer("holavietnamese.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
@@ -346,12 +349,12 @@ public class AuthenticationService {
         Set<String> scopes = java.util.Collections.newSetFromMap(new ConcurrentHashMap<>());
         if (!CollectionUtils.isEmpty(user.getRoles())) {
             user.getRoles().forEach(role -> scopes.add("ROLE_" + role.getName()));
-        }
+        } else { scopes.add("ROLE_" + user.getRole()); }
         return scopes.toArray(new String[0]);
     }
 
     private Set<String> extractRoleNames(User user) {
-        if (user.getRoles() == null) return Set.of();
+        if (user.getRoles() == null || user.getRoles().isEmpty()) return Set.of(user.getRole());
         return user.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.toSet());
