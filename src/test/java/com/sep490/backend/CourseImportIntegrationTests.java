@@ -2,7 +2,8 @@ package com.sep490.backend;
 import com.sep490.backend.exception.CourseImportRejected;
 
 import com.sep490.backend.repository.CourseImportRepository;
-import com.sep490.backend.entity.UserJpaEntity;
+import com.sep490.backend.entity.User;
+import com.sep490.backend.repository.RoleRepository;
 import com.sep490.backend.repository.jpa.UserJpaRepository;
 import com.sep490.backend.dto.courseimport.*;
 import com.sep490.backend.service.*;
@@ -36,6 +37,7 @@ class CourseImportIntegrationTests {
     @Autowired JdbcTemplate jdbc;
     @Autowired MockMvc mvc;
     @Autowired UserJpaRepository users;
+    @Autowired RoleRepository roles;
     @Autowired PasswordEncoder passwords;
     @MockitoSpyBean CourseImportRepository persistence;
 
@@ -133,7 +135,7 @@ class CourseImportIntegrationTests {
         create(workbook(w -> {}));
         long course = jdbc.queryForObject("select id from courses",Long.class);
         long lesson = jdbc.queryForObject("select id from lessons",Long.class);
-        UserJpaEntity user = new UserJpaEntity(); user.setEmail("learner@test.local"); user.setPasswordHash("unused"); users.saveAndFlush(user);
+        User user = new User(); user.setUsername("learner@test.local"); user.setEmail("learner@test.local"); user.setPasswordHash("unused"); users.saveAndFlush(user);
         jdbc.update("insert into enrollments(user_id,course_id,enrolled_at,status) values(?,?,CURRENT_TIMESTAMP,'ACTIVE')",user.getId(),course);
         long enrollment = jdbc.queryForObject("select id from enrollments",Long.class);
         jdbc.update("insert into lesson_progress(enrollment_id,lesson_id,status) values(?,?,'COMPLETED')",enrollment,lesson);
@@ -218,7 +220,7 @@ class CourseImportIntegrationTests {
             .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors[0].column").value("code"));
     }
     @Test void actualLoginLoadsPersistedAdminRole() throws Exception {
-        var admin = new UserJpaEntity(); admin.setEmail("admin@test.local"); admin.setPasswordHash(passwords.encode("Test-password-123")); admin.setRole("ADMIN"); users.saveAndFlush(admin);
+        var admin = new User(); admin.setUsername("admin@test.local"); admin.setEmail("admin@test.local"); admin.setPasswordHash(passwords.encode("Test-password-123")); admin.setRoles(Set.of(roles.findByName("ADMIN").orElseThrow())); users.saveAndFlush(admin);
         var login = mvc.perform(post("/api/login").param("username",admin.getEmail()).param("password","Test-password-123").with(csrf()))
             .andExpect(status().isNoContent()).andReturn();
         mvc.perform(multipart("/api/admin/courses/import/validate").file(file(workbook(w -> {})))

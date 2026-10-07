@@ -54,6 +54,12 @@ Yêu cầu Java 21 và Maven. Cache dependency dùng mặc định `%USERPROFILE
 - Tài khoản demo chỉ được tạo khi bật profile `dev-demo`. Dùng `./start-demo.ps1` cho môi trường demo.
 - Kiểm tra tích hợp JWT bằng `HuyAuthenticationIntegrationTests`; chạy cả `mvn test` và `./test-mysql.ps1`.
 
+## Đồng bộ origin/main (07/10/2026)
+
+- Giữ nguyên lịch sử Flyway V1–V9 của nhánh học tập. Master Vocabulary và Role Permissions từ main được nối tiếp bằng V10 và V11; các cột profile đã có từ V5 nên không tạo lại.
+- Script chuẩn hóa ID cho database cũ từ main được lưu tại `src/main/resources/db/manual/normalize_legacy_user_schema.sql`, không chạy tự động: schema học tập đã dùng BIGINT và vẫn cần `enabled`/`role` cùng các khóa ngoại học tập.
+- Cấu hình JWT, Google và email được hợp nhất trong `application.yml`; Flyway tiếp tục bật và Hibernate dùng `validate`.
+
 ## Tài liệu
 
 - [LEARNER_FEATURES.md](LEARNER_FEATURES.md): API học viên và kiểm thử.

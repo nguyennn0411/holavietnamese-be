@@ -8,7 +8,7 @@ import com.sep490.backend.entity.enums.EnrollmentStatus;
 @Getter @Setter @NoArgsConstructor
 public class EnrollmentJpaEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
-    @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "user_id") private UserJpaEntity user;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "user_id") private User user;
     @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "course_id") private CourseJpaEntity course;
     @Column(nullable = false) private Instant enrolledAt;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 20) private EnrollmentStatus status;

@@ -4,12 +4,14 @@ package com.sep490.backend.controller;
 import com.sep490.backend.dto.courseimport.*;
 import com.sep490.backend.service.*;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/admin/courses/import")
+@PreAuthorize("hasRole('ADMIN')")
 public class CourseImportController {
     private final CourseImportService service;
     public CourseImportController(CourseImportService service) {

@@ -45,8 +45,8 @@ class LearnerFeaturesIntegrationTests {
         }
         for (String table : List.of("exercise_options", "exercises", "sentence_drills", "dialogue_lines", "dialogues", "course_vocabulary", "lesson_blocks", "vocabulary_entries", "lesson_progress", "enrollments", "lessons", "course_units", "courses", "users_roles", "users"))
             jdbc.update("delete from " + table);
-        fixtureInsert("users", "insert into users(id,email,password_hash,enabled) values(1,?,?,?)", "learner@example.test", passwords.encode("Test-password-123"), true);
-        fixtureInsert("users", "insert into users(id,email,password_hash,enabled) values(2,?,?,?)", "other@example.test", passwords.encode("Other-password-123"), true);
+        fixtureInsert("users", "insert into users(id,username,email,password_hash) values(1,?,?,?)", "learner@example.test", "learner@example.test", passwords.encode("Test-password-123"));
+        fixtureInsert("users", "insert into users(id,username,email,password_hash) values(2,?,?,?)", "other@example.test", "other@example.test", passwords.encode("Other-password-123"));
         fixtureInsert("courses", "insert into courses(id,title,description,level,estimated_duration,status) values(10,'Beginner Vietnamese','Start here','BEGINNER',30,'PUBLISHED'),(20,'Draft course','Hidden','BEGINNER',10,'DRAFT'),(30,'Empty course','Coming soon','BEGINNER',0,'PUBLISHED')");
         for (int i = 1; i <= 3; i++) fixtureInsert("lessons", "insert into lessons(id,course_id,title,description,lesson_order,content,estimated_duration,published) values(?,10,?,'Description',?,?,10,?)", 100 + i, "Lesson " + i, i, "Xin chào", true);
         fixtureInsert("lessons", "insert into lessons(id,course_id,title,lesson_order,content,estimated_duration,published) values(104,10,'Hidden lesson',4,'Hidden',10,?)", false);

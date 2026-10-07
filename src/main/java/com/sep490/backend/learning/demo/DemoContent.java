@@ -1,6 +1,6 @@
 package com.sep490.backend.learning.demo;
 
-import com.sep490.backend.entity.UserJpaEntity;
+import com.sep490.backend.entity.User;
 import com.sep490.backend.learning.course.CourseContentService;
 import com.sep490.backend.learning.grammar.GrammarService;
 import com.sep490.backend.learning.lesson.ActivityService;
@@ -328,7 +328,8 @@ public class DemoContent implements CommandLineRunner {
         .findByEmail(email)
         .orElseGet(
             () -> {
-              var u = new UserJpaEntity();
+              var u = new User();
+              u.setUsername(email);
               u.setEmail(email);
               u.setPasswordHash(passwords.encode(password));
               u.setRole(role);

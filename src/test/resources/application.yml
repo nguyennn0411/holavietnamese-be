@@ -1,15 +1,33 @@
 spring:
+  application:
+    name: holavietnamese-be-test
+  mail:
+    host: localhost
   datasource:
     url: jdbc:h2:mem:hola-tests;MODE=MySQL;DB_CLOSE_DELAY=-1
     username: sa
-    password:
+    password: ""
     driver-class-name: org.h2.Driver
   jpa:
     open-in-view: false
     hibernate:
       ddl-auto: validate
     properties:
-      hibernate.dialect: org.hibernate.dialect.MySQLDialect
       hibernate.jdbc.time_zone: UTC
   flyway:
     enabled: true
+
+server:
+  port: 0
+
+jwt:
+  secretKey: holaVietnameseTestSecretKey2026holaVietnameseTestSecretKey2026
+  expiration: 86400000
+  refresh-duration: 604800000
+
+google:
+  client-id: ""
+
+app:
+  mail:
+    enabled: false
