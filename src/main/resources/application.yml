@@ -1,6 +1,6 @@
 spring:
   config:
-    import: "optional:file:./.env.mysql[.properties]"
+    import: "optional:file:./.env[.properties],optional:file:./.env.mysql[.properties]"
 
   application:
     name: holavietnamese-be
@@ -13,6 +13,15 @@ spring:
 
   flyway:
     enabled: false
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
   jpa:
     open-in-view: false
@@ -55,6 +64,8 @@ google:
 
 app:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+  mail:
+    enabled: ${MAIL_ENABLED:false}
 
 logging:
   level:
