@@ -106,7 +106,7 @@ public class SecurityConfig {
                         user.getId(),
                         user.getEmail(),
                         user.getPasswordHash(),
-                        user.isEnabled(),
+                        Boolean.TRUE.equals(user.getEnabled()),
                         user.getRole()))
                 .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(username));
     }
