@@ -29,7 +29,7 @@ public class AchievementService {
     @Transactional(readOnly = true)
     public List<BadgeResponse> getUserBadges() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findActiveByUsernameWithRoles(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         List<Badge> allBadges = badgeRepository.findByStatus("ACTIVE");

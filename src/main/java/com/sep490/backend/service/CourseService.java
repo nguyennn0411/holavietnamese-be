@@ -19,27 +19,33 @@ public class CourseService {
     private final CourseRepository courses;
     private final EnrollmentRepository enrollments;
     private final Clock clock;
+    private final com.sep490.backend.learning.shared.ContentStore contentStore;
     public List<CourseResponse> availableCourses() {
         return courses.findAvailable().stream().map(this::response).toList();
     }
     public CourseResponse course(Long courseId) { return response(available(courseId)); }
     private Course available(Long id) {
-        return courses.findById(id).filter(c -> c.status() == CourseStatus.PUBLISHED)
+        if(contentStore.count("SELECT count(*) FROM courses WHERE id=? AND status='PUBLISHED'",id)==0)
+            throw LearningException.notFound("Available course");
+        return courses.findById(id)
             .orElseThrow(() -> LearningException.notFound("Available course"));
     }
     private CourseResponse response(Course c) { return CourseResponse.from(c, courses.countPublishedLessons(c.id())); }
     @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
     public EnrollmentResponse enroll(Long userId, Long courseId) {
+        contentStore.one("SELECT id FROM users WHERE id=? FOR UPDATE",userId);
         Course c = available(courseId);
         Enrollment existing = enrollments.findForUpdate(userId, courseId).orElse(null);
-        if (existing != null && existing.status() != EnrollmentStatus.CANCELLED)
-            throw new LearningException(CONFLICT, "You are already enrolled in this course.");
+        if (existing != null && existing.status() != EnrollmentStatus.CANCELLED && existing.status() != EnrollmentStatus.DROPPED)
+            return toResponse(existing,c);
         Enrollment enrollment;
         if (existing != null) {
-            enrollments.resetLessonProgress(existing.id());
-            enrollment = existing.resume(clock.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS));
+            boolean finished = new LearningProgress(courses.countPublishedLessons(courseId), enrollments.completedLessons(existing.id())).isComplete();
+            enrollment = new Enrollment(existing.id(),existing.userId(),existing.courseId(),existing.enrolledAt(),
+                finished ? EnrollmentStatus.COMPLETED : EnrollmentStatus.IN_PROGRESS,existing.lastAccessedLessonId(),existing.lastAccessedAt());
         } else {
-            enrollment = new Enrollment(null, userId, courseId, clock.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS), EnrollmentStatus.ACTIVE, null, null);
+            boolean modern=contentStore.count("SELECT count(*) FROM courses WHERE id=? AND slug IS NOT NULL",courseId)>0;
+            enrollment = new Enrollment(null, userId, courseId, clock.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS), modern?EnrollmentStatus.NOT_STARTED:EnrollmentStatus.ACTIVE, null, null);
         }
         return toResponse(enrollments.save(enrollment), c);
     }

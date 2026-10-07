@@ -27,7 +27,7 @@ public class NotificationService {
     @Transactional(readOnly = true)
     public List<NotificationResponse> getUserNotifications() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findActiveByUsernameWithRoles(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(user.getId())
@@ -54,7 +54,7 @@ public class NotificationService {
     @Transactional
     public void markAllAsRead() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findActiveByUsernameWithRoles(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         List<Notification> notifications = notificationRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
