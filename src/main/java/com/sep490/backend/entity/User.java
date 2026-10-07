@@ -30,6 +30,18 @@ public class User extends BaseEntity {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @ColumnDefault("true")
+    @Column(name = "enabled", nullable = false)
+    private Boolean enabled = true;
+
+    public boolean isEnabled() {
+        return Boolean.TRUE.equals(this.enabled);
+    }
+
+    @ColumnDefault("'LEARNER'")
+    @Column(name = "role", nullable = false, length = 20)
+    private String role = "LEARNER";
+
     @Column(name = "email", length = 254, unique = true, nullable = false)
     private String email;
 
@@ -105,12 +117,6 @@ public class User extends BaseEntity {
     @ColumnDefault("'ACTIVE'")
     @Column(name = "status", length = 20)
     private String status = "ACTIVE";
-
-    @Column(nullable = false)
-    private boolean enabled = true;
-
-    @Column(nullable = false, length = 20)
-    private String role = "LEARNER";
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
