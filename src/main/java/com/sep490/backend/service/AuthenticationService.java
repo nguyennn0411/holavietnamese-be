@@ -46,6 +46,7 @@ public class AuthenticationService {
     UserRepository userRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
+    EmailService emailService;
 
     Set<String> invalidatedTokens = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -73,7 +74,7 @@ public class AuthenticationService {
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
         if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
-        if (!"ACTIVE".equals(user.getStatus())) throw new AppException(ErrorCode.USER_DEACTIVATED);
+        if (!user.isEnabled() || !"ACTIVE".equals(user.getStatus())) throw new AppException(ErrorCode.USER_DEACTIVATED);
 
         String token = generateToken(user);
         log.info("User [{}] đã đăng nhập thành công", request.getUsername());
@@ -92,6 +93,9 @@ public class AuthenticationService {
 
     @Transactional
     public AuthenticationResponse authenticateGoogle(GoogleLoginRequest request) {
+        if (GOOGLE_CLIENT_ID == null || GOOGLE_CLIENT_ID.isBlank() || GOOGLE_CLIENT_ID.contains("your-google-client-id")) {
+            throw new AppException(ErrorCode.INVALID_GOOGLE_TOKEN);
+        }
         GoogleIdTokenVerifier.Builder verifierBuilder = new GoogleIdTokenVerifier.Builder(
                 new NetHttpTransport(), GsonFactory.getDefaultInstance());
 
@@ -140,11 +144,13 @@ public class AuthenticationService {
             newUser.setEmailVerified(true);
             newUser.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
             newUser.setStatus("ACTIVE");
+            newUser.setEnabled(true);
+            newUser.setRole("LEARNER");
             newUser.setRoles(new HashSet<>(Set.of(learnerRole)));
             return userRepository.save(newUser);
         });
 
-        if (!"ACTIVE".equals(user.getStatus())) {
+        if (!user.isEnabled() || !"ACTIVE".equals(user.getStatus())) {
             throw new AppException(ErrorCode.USER_DEACTIVATED);
         }
 
@@ -181,6 +187,24 @@ public class AuthenticationService {
     }
 
     @Transactional
+    public String resendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (Boolean.TRUE.equals(user.getEmailVerified())) {
+            return null;
+        }
+
+        String token = UUID.randomUUID().toString();
+        user.setEmailVerificationToken(token);
+        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
+        userRepository.save(user);
+
+        log.info("ÄÃ£ táº¡o láº¡i token xÃ¡c minh email cho [{}]", email);
+        return token; // Returning token for development/testing until email delivery is configured.
+    }
+
+    @Transactional
     public String initiateForgotPassword(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -190,8 +214,13 @@ public class AuthenticationService {
         user.setResetPasswordOtpExpiry(LocalDateTime.now().plusMinutes(15));
         userRepository.save(user);
 
-        log.info("Đã tạo mã OTP khôi phục mật khẩu cho email [{}]: {}", email, otp);
-        return otp; // Returning OTP for development/testing
+        boolean sent = emailService.sendPasswordResetOtp(user.getEmail(), otp);
+        if (sent) {
+            log.info("Đã gửi mã OTP khôi phục mật khẩu cho email [{}]", email);
+        } else {
+            log.info("Đã tạo mã OTP khôi phục mật khẩu cho email [{}]: {}", email, otp);
+        }
+        return sent ? null : otp; // Only expose OTP when email delivery is not configured.
     }
 
     @Transactional
@@ -291,7 +320,7 @@ public class AuthenticationService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getUsername())
+                .subject(user.getUsername() == null ? user.getEmail() : user.getUsername())
                 .issuer("holavietnamese.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
@@ -346,12 +375,12 @@ public class AuthenticationService {
         Set<String> scopes = java.util.Collections.newSetFromMap(new ConcurrentHashMap<>());
         if (!CollectionUtils.isEmpty(user.getRoles())) {
             user.getRoles().forEach(role -> scopes.add("ROLE_" + role.getName()));
-        }
+        } else { scopes.add("ROLE_" + user.getRole()); }
         return scopes.toArray(new String[0]);
     }
 
     private Set<String> extractRoleNames(User user) {
-        if (user.getRoles() == null) return Set.of();
+        if (user.getRoles() == null || user.getRoles().isEmpty()) return Set.of(user.getRole());
         return user.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.toSet());

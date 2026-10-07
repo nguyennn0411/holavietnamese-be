@@ -1,0 +1,418 @@
+[
+  {
+    "key": "lesson-1",
+    "text": "Tôi học tiếng Việt ở nhà. Tôi nghe, rồi tôi nói. Tôi chưa hiểu. Xin nói chậm hơn."
+  },
+  {
+    "key": "dictation-1",
+    "text": "đọc"
+  },
+  {
+    "key": "lesson-2",
+    "text": "Tôi đọc: a, ă, â. Tôi viết: o, ô, ơ. d và đ là hai chữ khác nhau."
+  },
+  {
+    "key": "dictation-2",
+    "text": "cá"
+  },
+  {
+    "key": "lesson-3",
+    "text": "Ma, má, mà: giữ nguyên âm a. Mả, mã, mạ: chú ý dấu và độ cao. Đọc chậm: má gọi tôi."
+  },
+  {
+    "key": "dictation-3",
+    "text": "mả"
+  },
+  {
+    "key": "lesson-4",
+    "text": "b + a → ba. Ba đọc. c + a + sắc → cá. Cá bơi. m + e + nặng → mẹ. Mẹ cười."
+  },
+  {
+    "key": "dictation-4",
+    "text": "ca"
+  },
+  {
+    "key": "lesson-5",
+    "text": "Nhà bà có gà. Bà chỉ cho tôi một chiếc lá. Tôi nói: “Lá này to.”"
+  },
+  {
+    "key": "dictation-5",
+    "text": "ta"
+  },
+  {
+    "key": "lesson-6",
+    "text": "Bố có một cái ô to. Cô ăn một tô phở. Cô nói: “Tôi no rồi.”"
+  },
+  {
+    "key": "dictation-6",
+    "text": "tô"
+  },
+  {
+    "key": "lesson-7",
+    "text": "Tôi và vợ đi chợ. Vợ mua bơ, tôi mua phở. Chúng tôi về nhà."
+  },
+  {
+    "key": "dictation-7",
+    "text": "bơ"
+  },
+  {
+    "key": "lesson-8",
+    "text": "Em ngồi trên ghế. Mẹ cho em một quả lê. Em nói: “Lê ngọt quá!”"
+  },
+  {
+    "key": "dictation-8",
+    "text": "mê"
+  },
+  {
+    "key": "lesson-9",
+    "text": "Đây là thìa của tôi. Kia là bát của bạn. Tôi chia chè với bạn."
+  },
+  {
+    "key": "dictation-9",
+    "text": "đây"
+  },
+  {
+    "key": "lesson-10",
+    "text": "Tôi lấy cốc đá. Bạn chỉ vào da tay. Tôi đọc rõ: da, đá."
+  },
+  {
+    "key": "dictation-10",
+    "text": "dê"
+  },
+  {
+    "key": "lesson-11",
+    "text": "Gần ga có một hồ nhỏ. Hai bên hồ có hoa. Tôi ngồi trên ghế gỗ."
+  },
+  {
+    "key": "dictation-11",
+    "text": "gỗ"
+  },
+  {
+    "key": "lesson-12",
+    "text": "Lan đi ghe qua hồ. Lan ghé nhà tôi. Tôi ghi tên Lan vào vở."
+  },
+  {
+    "key": "dictation-12",
+    "text": "ghê"
+  },
+  {
+    "key": "lesson-13",
+    "text": "Cái giỏ này bao nhiêu tiền? Hai mươi nghìn đồng. Cảm ơn. Tôi lấy cái giỏ này."
+  },
+  {
+    "key": "dictation-13",
+    "text": "kì"
+  },
+  {
+    "key": "lesson-14",
+    "text": "Mẹ mua khế ở chợ. Tôi đội mũ rồi đi cùng mẹ. Tôi nói: “Âm kh hơi khó.”"
+  },
+  {
+    "key": "dictation-14",
+    "text": "khó"
+  },
+  {
+    "key": "lesson-15",
+    "text": "Nhà tôi nhỏ nhưng sáng. Trên bàn có nho và na. Đi xa, tôi nhớ nhà."
+  },
+  {
+    "key": "dictation-15",
+    "text": "na"
+  },
+  {
+    "key": "lesson-16",
+    "text": "Tôi nghe cô đọc. Sau bài học, tôi nghỉ một chút. Nhà cô ở trong ngõ."
+  },
+  {
+    "key": "dictation-16",
+    "text": "ngõ"
+  },
+  {
+    "key": "lesson-17",
+    "text": "Tôi đi phà vào phố. Tôi gọi phở và cà phê. Cà phê nóng, tôi uống chậm."
+  },
+  {
+    "key": "dictation-17",
+    "text": "phí"
+  },
+  {
+    "key": "lesson-18",
+    "text": "Tôi về quê thăm mẹ. Quà của tôi là một rổ rau. Mẹ cười và nhận quà."
+  },
+  {
+    "key": "dictation-18",
+    "text": "rổ"
+  },
+  {
+    "key": "lesson-19",
+    "text": "Xe của tôi ở ngoài sân. Bên xe có một cái xô. Tôi ghi số nhà vào vở."
+  },
+  {
+    "key": "dictation-19",
+    "text": "xô"
+  },
+  {
+    "key": "lesson-20",
+    "text": "Chị pha trà cho tôi. Chó nằm dưới bụi tre. Thỏ ăn rau ở bên sân."
+  },
+  {
+    "key": "dictation-20",
+    "text": "chó"
+  },
+  {
+    "key": "lesson-21",
+    "text": "Thứ tư, chú gửi thư. Tôi để thư trên tủ. Mùa thu, tôi về thăm chú."
+  },
+  {
+    "key": "dictation-21",
+    "text": "sư tử"
+  },
+  {
+    "key": "lesson-22",
+    "text": "Buổi trưa, trời mưa. Tôi ở nhà uống sữa. Mẹ chia dưa cho cả nhà."
+  },
+  {
+    "key": "dictation-22",
+    "text": "sữa"
+  },
+  {
+    "key": "lesson-23",
+    "text": "Tôi tên là Vy. Tôi là y tá ở Huế. Bạn tôi tên là Anna."
+  },
+  {
+    "key": "dictation-23",
+    "text": "Việt Nam"
+  },
+  {
+    "key": "lesson-24",
+    "text": "Đây là gia đình tôi. Đây là mẹ tôi, còn đây là anh trai tôi. Anh tôi nấu cơm cho cả nhà."
+  },
+  {
+    "key": "dictation-24",
+    "text": "gia đình"
+  },
+  {
+    "key": "lesson-25",
+    "text": "Ai là giáo viên của lớp? Cô Mai là giáo viên. Đây là bàn và ghế của tôi."
+  },
+  {
+    "key": "dictation-25",
+    "text": "bút"
+  },
+  {
+    "key": "lesson-26",
+    "text": "Xin chào, tôi tên là Mai. Bạn tên là gì? Tôi tên là Ben. Rất vui được gặp bạn. Tôi cũng rất vui được gặp bạn."
+  },
+  {
+    "key": "dictation-26",
+    "text": "tôi"
+  },
+  {
+    "key": "lesson-27",
+    "text": "Tôi là sinh viên, còn Lan là kĩ sư. Hôm nay tôi hơi mệt. Lan hỏi: “Lớp của bạn ở đâu?”"
+  },
+  {
+    "key": "dictation-27",
+    "text": "mệt"
+  },
+  {
+    "key": "lesson-28",
+    "text": "Buổi sáng, tôi ăn sáng ở nhà. Tôi đi học rồi đọc sách. Bây giờ tôi muốn uống nước."
+  },
+  {
+    "key": "dictation-28",
+    "text": "nước"
+  },
+  {
+    "key": "lesson-29",
+    "text": "Tôi đạp xe ra chợ. Sạp của cô Lan bán cam. Tôi mua cam rồi về làm bài."
+  },
+  {
+    "key": "dictation-29",
+    "text": "sạp"
+  },
+  {
+    "key": "lesson-30",
+    "text": "Tôi thăm bà vào thứ năm. Bà gắp rau cho tôi. Ăn xong, bà nằm nghỉ."
+  },
+  {
+    "key": "dictation-30",
+    "text": "năm"
+  },
+  {
+    "key": "lesson-31",
+    "text": "Tôi cầm cốc nước ấm. Tôi tập nói chậm rãi. Trong bếp, mẹ đang nấu nấm."
+  },
+  {
+    "key": "dictation-31",
+    "text": "mập"
+  },
+  {
+    "key": "lesson-32",
+    "text": "Em xem đôi dép mới. Em nói: “Đôi dép đẹp.” Sau đó, em ăn kem dừa."
+  },
+  {
+    "key": "dictation-32",
+    "text": "xem"
+  },
+  {
+    "key": "lesson-33",
+    "text": "Ban đêm, bếp vẫn sáng. Tôi xếp bát, mẹ nấu cơm nếp. Bà muốn thêm một bát."
+  },
+  {
+    "key": "dictation-33",
+    "text": "xếp"
+  },
+  {
+    "key": "lesson-34",
+    "text": "Tôi tìm chiếc kim trong hộp. Ngoài cửa, chim hót theo nhịp. Tôi đến lớp kịp giờ."
+  },
+  {
+    "key": "dictation-34",
+    "text": "kịp"
+  },
+  {
+    "key": "lesson-35",
+    "text": "Tôi viết thiếp cho mẹ. Bên cạnh có bé đang đeo yếm. Viết xong, tôi đọc tiếp một trang sách."
+  },
+  {
+    "key": "dictation-35",
+    "text": "thiếp"
+  },
+  {
+    "key": "lesson-36",
+    "text": "Sáng nay, nhóm tôi họp ở xóm. Chúng tôi gom lá trong sân. Hàng xóm mang nước cho cả nhóm."
+  },
+  {
+    "key": "dictation-36",
+    "text": "gom"
+  },
+  {
+    "key": "lesson-37",
+    "text": "Hôm nay mẹ mua tôm. Tôi cất tôm vào hộp. Em bé chạy tới ôm mẹ."
+  },
+  {
+    "key": "dictation-37",
+    "text": "lốp"
+  },
+  {
+    "key": "lesson-38",
+    "text": "Tôi đến lớp sớm. Sân trường rợp bóng cây. Buổi trưa, tôi ăn cơm thơm."
+  },
+  {
+    "key": "dictation-38",
+    "text": "sớm"
+  },
+  {
+    "key": "lesson-39",
+    "text": "Tôi muốn chụp ảnh chùm nho. Bạn có thể giúp tôi không? Bạn đặt chùm nho cạnh chum."
+  },
+  {
+    "key": "dictation-39",
+    "text": "búp"
+  },
+  {
+    "key": "lesson-40",
+    "text": "Trên sông có thuyền buồm. Cánh buồm trắng căng trong gió. Bên bờ có một cây muỗm."
+  },
+  {
+    "key": "dictation-40",
+    "text": "cánh buồm"
+  },
+  {
+    "key": "lesson-41",
+    "text": "Bướm bay quanh giàn mướp. Tôi hái mướp để nấu canh. Mẹ ướp cá trong bếp."
+  },
+  {
+    "key": "dictation-41",
+    "text": "ươm"
+  },
+  {
+    "key": "lesson-42",
+    "text": "Trên bàn có nhãn và một cái bát. Tôi bật quạt cho mát. Bạn vừa xếp bát vừa hát."
+  },
+  {
+    "key": "dictation-42",
+    "text": "chén"
+  },
+  {
+    "key": "lesson-43",
+    "text": "Sáng nay tôi rửa mặt. Tôi lấy khăn rồi gấp chăn. Sau đó tôi ăn phở."
+  },
+  {
+    "key": "dictation-43",
+    "text": "khăn"
+  },
+  {
+    "key": "lesson-44",
+    "text": "Nhà tôi ở gần một vườn rau. Tôi bước trên đất bằng chân trần. Về nhà, tôi cất giày cạnh cửa."
+  },
+  {
+    "key": "dictation-44",
+    "text": "đất"
+  },
+  {
+    "key": "lesson-45",
+    "text": "Tôi viết bằng bút đen. Cô khen nét chữ của tôi. Tôi hơi mệt nên nghỉ một chút."
+  },
+  {
+    "key": "dictation-45",
+    "text": "vẹt"
+  },
+  {
+    "key": "lesson-46",
+    "text": "Trong thôn có bốn ngôi nhà mới. Một con chim hót trên cột. Tôi ăn nhãn ngọt ở ngoài sân."
+  },
+  {
+    "key": "dictation-46",
+    "text": "ngon"
+  },
+  {
+    "key": "lesson-47",
+    "text": "Tết này, tôi mang mứt về quê. Cún chạy ra cửa đón tôi. Tôi rút bút để viết thiếp cho bà."
+  },
+  {
+    "key": "dictation-47",
+    "text": "run"
+  },
+  {
+    "key": "lesson-48",
+    "text": "Tôi tên là Linh. Tôi là sinh viên ở Huế. Buổi sáng, tôi ăn phở rồi đi học tiếng Việt cùng Ben. Buổi chiều, tôi đọc sách ở nhà. Ben đến và mang một hộp sữa. Tôi nói: “Cảm ơn bạn. Ngày mai tôi muốn đi chợ mua vở.” Ben hỏi: “Chợ ở đâu?” Tôi đáp: “Chợ ở gần trường.”"
+  },
+  {
+    "key": "dictation-48",
+    "text": "văn hóa"
+  },
+  {
+    "key": "tone-0",
+    "text": "má"
+  },
+  {
+    "key": "tone-1",
+    "text": "mà"
+  },
+  {
+    "key": "tone-2",
+    "text": "mả"
+  },
+  {
+    "key": "tone-3",
+    "text": "mã"
+  },
+  {
+    "key": "final-listening-1",
+    "text": "Tôi muốn uống nước."
+  },
+  {
+    "key": "final-listening-2",
+    "text": "Tôi tên là Mai."
+  },
+  {
+    "key": "final-listening-3",
+    "text": "Tôi có bốn cái bút."
+  },
+  {
+    "key": "final-listening-4",
+    "text": "Nhà tôi ở gần chợ."
+  }
+]

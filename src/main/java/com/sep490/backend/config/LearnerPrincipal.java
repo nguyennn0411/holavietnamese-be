@@ -5,6 +5,9 @@ import org.springframework.security.core.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 public record LearnerPrincipal(Long id, String email, String passwordHash, boolean enabled, String role) implements UserDetails {
+    public LearnerPrincipal(Integer id, String email, String passwordHash, boolean enabled) {
+        this(id == null ? null : id.longValue(), email, passwordHash, enabled, "LEARNER");
+    }
     public LearnerPrincipal(Long id, String email, String passwordHash, boolean enabled) {
         this(id, email, passwordHash, enabled, "LEARNER");
     }

@@ -1,27 +1,52 @@
 spring:
   config:
-    import: "optional:file:./.env.mysql[.properties]"
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 11MB
+    import: "optional:file:./.env[.properties],optional:file:./.env.mysql[.properties]"
+
   application:
-    name: sep490-backend
+    name: holavietnamese-be
+
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:${MYSQL_PORT:3307}/${MYSQL_DATABASE:hola_vietnamese}?connectionTimeZone=UTC&allowPublicKeyRetrieval=true&useSSL=false}
     username: ${DB_USERNAME:${MYSQL_USER:hola}}
     password: ${DB_PASSWORD:${MYSQL_PASSWORD:}}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
   flyway:
-    enabled: false
+    enabled: true
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
   jpa:
     open-in-view: false
+    show-sql: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
-      hibernate.jdbc.time_zone: UTC
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
+
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 server:
-  port: 8080
+  port: ${PORT:${BACKEND_PORT:8080}}
+
   servlet:
     session:
       cookie:
@@ -29,5 +54,20 @@ server:
         same-site: lax
         secure: ${SESSION_COOKIE_SECURE:false}
 
+jwt:
+  secretKey: ${JWT_SECRET_KEY:local-development-only-change-this-hola-vietnamese-signing-key}
+  expiration: ${JWT_EXPIRATION:86400000}
+  refresh-duration: ${JWT_REFRESH_DURATION:604800000}
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID:}
+
 app:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+
+logging:
+  level:
+    com.sep490.backend: INFO
+    org.springframework.security: INFO

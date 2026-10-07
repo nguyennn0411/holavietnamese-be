@@ -70,12 +70,17 @@ public class UserController {
                 .build();
     }
 
-    @GetMapping("/progress")
+    @GetMapping("/progress/summary")
     public ApiResponse<UserProgressResponse> getUserProgress() {
         UserProgressResponse response = userProgressService.getUserProgress();
         return ApiResponse.<UserProgressResponse>builder()
                 .result(response)
                 .build();
+    }
+
+    @GetMapping("/learning-overview")
+    public ApiResponse<UserProgressResponse> getLearningOverview() {
+        return getUserProgress();
     }
 
     @GetMapping("/achievements")

@@ -11,8 +11,11 @@ import java.util.List;
 
 @Repository
 public interface XpTransactionRepository extends JpaRepository<XpTransaction, Long> {
-    List<XpTransaction> findByUserIdOrderByCreatedAtDesc(Integer userId);
+    List<XpTransaction> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     @Query("SELECT COALESCE(SUM(x.amount), 0) FROM XpTransaction x WHERE x.user.id = :userId AND x.eventType = :eventType AND x.createdAt >= :since")
-    int sumAmountByUserIdAndEventTypeSince(@Param("userId") Integer userId, @Param("eventType") String eventType, @Param("since") LocalDateTime since);
+    int sumAmountByUserIdAndEventTypeSince(@Param("userId") Long userId, @Param("eventType") String eventType, @Param("since") LocalDateTime since);
+
+    @Query("SELECT COALESCE(SUM(x.amount), 0) FROM XpTransaction x")
+    long sumTotalAmount();
 }
