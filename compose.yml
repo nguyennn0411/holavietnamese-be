@@ -25,6 +25,9 @@ services:
   backend:
     build: .
     environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-hola_vietnamese}?createDatabaseIfNotExist=true&connectionTimeZone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-hola}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env.mysql}
       DB_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-hola_vietnamese}?connectionTimeZone=UTC&allowPublicKeyRetrieval=true&useSSL=false
       DB_USERNAME: ${MYSQL_USER:-hola}
       DB_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env.mysql}

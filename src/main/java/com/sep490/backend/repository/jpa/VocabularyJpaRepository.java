@@ -4,7 +4,7 @@ import java.util.*;
 import org.springframework.data.jpa.repository.*;
 import com.sep490.backend.entity.VocabularyJpaEntity;
 public interface VocabularyJpaRepository extends JpaRepository<VocabularyJpaEntity, Long> {
-    Optional<VocabularyJpaEntity> findByIdAndUserId(Long id, Long userId);
+    Optional<VocabularyJpaEntity> findByIdAndUserId(Long id, Integer userId);
     @Query("""
         select v from VocabularyJpaEntity v left join v.lesson l
         where v.user.id = :userId
@@ -13,5 +13,5 @@ public interface VocabularyJpaRepository extends JpaRepository<VocabularyJpaEnti
         and (:search = '' or locate(lower(:search), lower(v.word)) > 0 or locate(lower(:search), lower(v.meaning)) > 0)
         order by v.createdAt desc, v.id desc
         """)
-    List<VocabularyJpaEntity> search(Long userId, String search, Long courseId, Long lessonId);
+    List<VocabularyJpaEntity> search(Integer userId, String search, Long courseId, Long lessonId);
 }

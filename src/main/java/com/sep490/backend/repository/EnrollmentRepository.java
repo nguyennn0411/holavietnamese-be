@@ -13,12 +13,12 @@ import com.sep490.backend.dto.model.Enrollment;
 public class EnrollmentRepository {
     private final EnrollmentJpaRepository repository;
     private final EntityManager em;
-    public List<Enrollment> findByUser(Long userId) { return repository.findByUserIdOrderByEnrolledAtDesc(userId).stream().map(EnrollmentMapper::toDomain).toList(); }
-    public Optional<Enrollment> find(Long user, Long course) { return repository.findByUserIdAndCourseId(user, course).map(EnrollmentMapper::toDomain); }
-    public Optional<Enrollment> findForUpdate(Long user, Long course) { return repository.findForUpdate(user, course).map(EnrollmentMapper::toDomain); }
+    public List<Enrollment> findByUser(Long userId) { return repository.findByUserIdOrderByEnrolledAtDesc(Math.toIntExact(userId)).stream().map(EnrollmentMapper::toDomain).toList(); }
+    public Optional<Enrollment> find(Long user, Long course) { return repository.findByUserIdAndCourseId(Math.toIntExact(user), course).map(EnrollmentMapper::toDomain); }
+    public Optional<Enrollment> findForUpdate(Long user, Long course) { return repository.findForUpdate(Math.toIntExact(user), course).map(EnrollmentMapper::toDomain); }
     public Enrollment save(Enrollment e) {
         EnrollmentJpaEntity row = e.id() == null ? new EnrollmentJpaEntity() : repository.findById(e.id()).orElseThrow();
-        row.setUser(em.getReference(UserJpaEntity.class, e.userId()));
+        row.setUser(em.getReference(UserJpaEntity.class, Math.toIntExact(e.userId())));
         row.setCourse(em.getReference(CourseJpaEntity.class, e.courseId()));
         row.setEnrolledAt(e.enrolledAt()); row.setStatus(e.status());
         row.setLastAccessedLessonId(e.lastAccessedLessonId()); row.setLastAccessedAt(e.lastAccessedAt());
