@@ -34,6 +34,10 @@ public class User extends BaseEntity {
     @Column(name = "enabled", nullable = false)
     private Boolean enabled = true;
 
+    public boolean isEnabled() {
+        return Boolean.TRUE.equals(this.enabled);
+    }
+
     @ColumnDefault("'LEARNER'")
     @Column(name = "role", nullable = false, length = 20)
     private String role = "LEARNER";
