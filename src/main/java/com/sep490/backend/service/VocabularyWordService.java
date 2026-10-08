@@ -219,4 +219,34 @@ public class VocabularyWordService {
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
     }
+
+    public List<VocabularyWordResponse> searchPublished(
+            String keyword,
+            String cefrLevel,
+            String partOfSpeech,
+            Long topicId
+    ) {
+        return repository.search(
+                        keyword,
+                        VocabularyStatus.PUBLISHED,
+                        cefrLevel,
+                        partOfSpeech,
+                        topicId
+                )
+                .stream()
+                .map(VocabularyWordResponseMapper::toResponse)
+                .toList();
+    }
+
+    public VocabularyWordResponse findPublishedById(Long id) {
+        VocabularyWord word = repository.findById(id)
+                .filter(item ->
+                        item.status() == VocabularyStatus.PUBLISHED
+                )
+                .orElseThrow(() ->
+                        LearningException.notFound("Vocabulary")
+                );
+
+        return VocabularyWordResponseMapper.toResponse(word);
+    }
 }
