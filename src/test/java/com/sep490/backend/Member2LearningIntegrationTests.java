@@ -198,13 +198,33 @@ class Member2LearningIntegrationTests {
   }
 
   @Test
-  void prerequisitesAreEnforcedByEveryLearningEntry() {
-    assertThat(courses.locked(user, next)).isTrue();
-    assertThatThrownBy(() -> progress.startLesson(user, next))
-        .isInstanceOf(ContentException.class)
-        .hasMessageContaining("prerequisite");
-    assertThatThrownBy(() -> activities.lesson(next, user, false))
-        .isInstanceOf(ContentException.class);
+  void lessonsCanBeStudiedOutOfOrderWithoutCompletingPrerequisites() throws Exception {
+    mvc.perform(get("/api/courses/" + course).with(user(principal)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.modules[0].lessons[1].isLocked").value(false));
+    mvc.perform(get("/api/lessons/" + next).with(user(principal)))
+        .andExpect(status().isOk());
+    progress.startLesson(user, next);
+    legacy.start(user, next);
+    assertThat(activities.lesson(next, user, false)).containsEntry("id", next);
+    long nextActivity = db.count("SELECT id FROM lesson_activities WHERE lesson_id=?", next);
+    assertThat(activities.interact(user, nextActivity, null, true).get("activityCompleted"))
+        .isEqualTo(true);
+    assertThat(progress.lessonProgress(user, next).get("completed")).isEqualTo(true);
+    assertThat(progress.lessonProgress(user, lesson).get("completed")).isEqualTo(false);
+    assertThat(progress.courseProgress(user, course).get("completedLessons")).isEqualTo(1L);
+    assertThat(progress.courseProgress(user, course).get("status")).isEqualTo("IN_PROGRESS");
+  }
+
+  @Test
+  void openLessonsStillRequireEnrollmentAndPublication() throws Exception {
+    var unenrolled = new LearnerPrincipal(other, "other@test", "", true);
+    mvc.perform(get("/api/lessons/" + next).with(user(unenrolled)))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value("ENROLLMENT_REQUIRED"));
+    courses.lessonStatus(next, "DRAFT");
+    mvc.perform(get("/api/lessons/" + next).with(user(principal)))
+        .andExpect(status().isNotFound());
   }
 
   @Test
@@ -399,7 +419,7 @@ class Member2LearningIntegrationTests {
   }
 
   @Test
-  void completeLessonUnlocksNextAndCourseRewardsAreOnce() {
+  void completeLessonsAndCourseRewardsAreOnce() {
     activities.interact(user, text, null, true);
     long id = start();
     quizzes.save(user, id, question, answer("a"));

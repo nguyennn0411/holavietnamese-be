@@ -76,7 +76,7 @@ class BilingualCourseIntegrationTests {
       .andExpect(jsonPath("$.titleEn").value("Vietnamese for Beginners A1"))
       .andExpect(jsonPath("$.modules[0].titleVi").value("Làm quen với tiếng Việt"))
       .andExpect(jsonPath("$.modules[0].lessons[0].isLocked").value(false))
-      .andExpect(jsonPath("$.modules[0].lessons[1].isLocked").value(true));
+      .andExpect(jsonPath("$.modules[0].lessons[1].isLocked").value(false));
     mvc.perform(get("/api/courses").param("q","Tiếng Việt cơ bản A1").param("page","0"))
       .andExpect(jsonPath("$.content[0].titleVi").value("Tiếng Việt cơ bản A1"));
   }
@@ -105,7 +105,7 @@ class BilingualCourseIntegrationTests {
     assertThat(snapshot).contains(q.get("promptVi").toString()).doesNotContain("Câu hỏi mới","New English question","correctAnswer","explanationVi","explanationEn","isCorrect");
   }
 
-  @Test void failedSixtyPercentRetainsActivitiesThenRetryPassUnlocksNext() throws Exception {
+  @Test void failedSixtyPercentRetainsActivitiesAndNextLessonRemainsOpen() throws Exception {
     completeNonQuiz(lesson);
     long quiz=ContentStore.id(db.one("SELECT quiz_id FROM lesson_activities WHERE lesson_id=? AND activity_type='QUIZ'",lesson),"quizId");
     long attempt=ContentStore.id(quizzes.start(user,quiz),"id");
@@ -115,7 +115,7 @@ class BilingualCourseIntegrationTests {
     assertThat(failed.get("passed")).isEqualTo(false);
     assertThat(failed.get("percentage").toString()).isEqualTo("60.00");
     assertThat(progress.lessonProgress(user,lesson).get("completed")).isEqualTo(false);
-    assertThat(courses.locked(user,next)).isTrue();
+    assertThat(courses.locked(user,next)).isFalse();
     assertThat(db.count("SELECT count(*) FROM activity_progress p JOIN lesson_activities a ON a.id=p.activity_id WHERE p.user_id=? AND a.lesson_id=? AND p.status='COMPLETED'",user,lesson)).isEqualTo(5);
     mvc.perform(post("/api/lessons/"+lesson+"/complete").with(user(learner)).with(csrf())).andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("LESSON_INCOMPLETE"));
     long retry=ContentStore.id(quizzes.start(user,quiz),"id");
@@ -131,8 +131,8 @@ class BilingualCourseIntegrationTests {
     assertThat(db.count("SELECT count(*) FROM quiz_attempts WHERE user_id=?",user)).isEqualTo(2);
   }
 
-  @Test void lockedUrlsForeignAttemptsAdminApisDraftEnrollmentAndAnswerLeaksAreBlocked() throws Exception {
-    mvc.perform(get("/api/lessons/"+next).with(user(learner))).andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("LESSON_LOCKED"));
+  @Test void openLessonUrlsPreserveOtherAccessControlsAndAnswerProtection() throws Exception {
+    mvc.perform(get("/api/lessons/"+next).with(user(learner))).andExpect(status().isOk());
     mvc.perform(get("/api/admin/courses").with(user(learner))).andExpect(status().isForbidden());
     courses.status(course,"DRAFT");
     var otherPrincipal=new LearnerPrincipal(other,"other@a1.test","",true);
@@ -151,6 +151,14 @@ class BilingualCourseIntegrationTests {
     assertThat(db.encode(activities.activities(lesson,user,false))).doesNotContain("secret","metadata","correctAnswer");
     quizzes.submit(user,attempt);
     mvc.perform(post("/api/quiz-attempts/"+attempt+"/submit").with(user(learner)).with(csrf())).andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("ATTEMPT_ALREADY_SUBMITTED"));
+  }
+
+  @Test void laterLessonQuizCanStartBeforeEarlierLessonsAreCompleted() {
+    long quiz=ContentStore.id(db.one("SELECT quiz_id FROM lesson_activities WHERE lesson_id=? AND activity_type='QUIZ'",next),"quizId");
+    long attempt=ContentStore.id(quizzes.start(user,quiz),"id");
+    answerCorrect(attempt,100);
+    assertThat(quizzes.submit(user,attempt).get("passed")).isEqualTo(true);
+    assertThat(progress.lessonProgress(user,lesson).get("completed")).isEqualTo(false);
   }
 
   @Test void wholeA1CourseCompletesOnlyAfterAllLessonQuizzesAndModuleCheckpoints() {
