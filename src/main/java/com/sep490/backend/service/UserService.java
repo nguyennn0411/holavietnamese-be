@@ -1,8 +1,10 @@
 package com.sep490.backend.service;
 
+import com.sep490.backend.dto.request.AvatarUrlRequest;
 import com.sep490.backend.dto.request.ChangePasswordRequest;
 import com.sep490.backend.dto.request.UserRegisterRequest;
 import com.sep490.backend.dto.request.UserUpdateRequest;
+import com.sep490.backend.dto.response.CloudinaryUploadSignatureResponse;
 import com.sep490.backend.dto.response.UserResponse;
 import com.sep490.backend.entity.Role;
 import com.sep490.backend.entity.User;
@@ -16,8 +18,10 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.List;
@@ -36,6 +40,7 @@ public class UserService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     AuthenticationService authenticationService;
+    CloudinarySignatureService cloudinarySignatureService;
 
     /**
      * Đăng ký tài khoản mới cho học viên nước ngoài học tiếng Việt.
@@ -121,6 +126,9 @@ public class UserService {
             user.setPhoneNumber(request.getPhoneNumber());
         }
         if (request.getAvatarUrl() != null) {
+            if (!cloudinarySignatureService.isAllowedAvatarUrl(request.getAvatarUrl())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Avatar URL must be a Cloudinary image from the configured cloud.");
+            }
             user.setAvatarUrl(request.getAvatarUrl());
         }
         if (request.getCountry() != null) {
@@ -138,6 +146,31 @@ public class UserService {
 
         User updatedUser = userRepository.save(user);
         log.info("Người dùng [{}] cập nhật thông tin cá nhân thành công", username);
+        return toUserResponse(updatedUser);
+    }
+
+    public CloudinaryUploadSignatureResponse createProfileAvatarUploadSignature() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findActiveByUsernameWithRoles(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        return cloudinarySignatureService.createAvatarSignature(user.getId());
+    }
+
+    @Transactional
+    public UserResponse updateProfileAvatarUrl(AvatarUrlRequest request) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findActiveByUsernameWithRoles(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (!cloudinarySignatureService.isAllowedAvatarUrl(request.getAvatarUrl())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Avatar URL must be a Cloudinary image from the configured cloud.");
+        }
+
+        user.setAvatarUrl(request.getAvatarUrl());
+
+        User updatedUser = userRepository.save(user);
+        log.info("Người dùng [{}] cập nhật ảnh đại diện thành công", username);
         return toUserResponse(updatedUser);
     }
 

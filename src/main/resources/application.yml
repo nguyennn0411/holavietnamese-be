@@ -62,6 +62,12 @@ jwt:
 google:
   client-id: ${GOOGLE_CLIENT_ID:}
 
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+  avatar-folder: ${CLOUDINARY_AVATAR_FOLDER:hola-vietnamese/avatars}
+
 app:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
   mail:

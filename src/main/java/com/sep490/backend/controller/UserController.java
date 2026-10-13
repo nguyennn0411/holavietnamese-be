@@ -52,6 +52,23 @@ public class UserController {
                 .build();
     }
 
+    @PostMapping("/me/avatar/signature")
+    public ApiResponse<CloudinaryUploadSignatureResponse> createProfileAvatarUploadSignature() {
+        CloudinaryUploadSignatureResponse response = userService.createProfileAvatarUploadSignature();
+        return ApiResponse.<CloudinaryUploadSignatureResponse>builder()
+                .result(response)
+                .build();
+    }
+
+    @PutMapping("/me/avatar")
+    public ApiResponse<UserResponse> updateProfileAvatarUrl(@Valid @RequestBody AvatarUrlRequest request) {
+        UserResponse response = userService.updateProfileAvatarUrl(request);
+        return ApiResponse.<UserResponse>builder()
+                .result(response)
+                .message("Cập nhật ảnh đại diện thành công")
+                .build();
+    }
+
     @PostMapping("/onboarding")
     public ApiResponse<UserResponse> completeOnboarding(@Valid @RequestBody OnboardingRequest request) {
         UserResponse response = userProgressService.completeOnboarding(request);
