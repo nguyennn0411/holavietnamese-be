@@ -4,6 +4,9 @@ import com.sep490.backend.dto.response.ApiResponse;
 import com.sep490.backend.dto.response.DestinationResponse;
 import com.sep490.backend.entity.enums.VietnamRegion;
 import com.sep490.backend.service.DestinationService;
+import com.sep490.backend.service.JourneyService;
+import com.sep490.backend.config.LearnerPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +18,7 @@ import java.util.List;
 public class DestinationController {
 
     private final DestinationService service;
+    private final JourneyService journey;
 
     @GetMapping
     public ApiResponse<List<DestinationResponse>> search(
@@ -28,10 +32,12 @@ public class DestinationController {
 
     @GetMapping("/{id}")
     public ApiResponse<DestinationResponse> findById(
-            @PathVariable Long id
+            @PathVariable Long id, @AuthenticationPrincipal LearnerPrincipal user
     ) {
+        var destination = service.findPublishedById(id);
+        journey.assertDestinationAccess(user == null ? null : user.id(), id);
         return ApiResponse.<DestinationResponse>builder()
-                .result(service.findPublishedById(id))
+                .result(destination)
                 .build();
     }
 }

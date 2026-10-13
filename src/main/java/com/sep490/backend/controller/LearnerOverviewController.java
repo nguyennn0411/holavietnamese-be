@@ -17,6 +17,7 @@ public class LearnerOverviewController {
     private final MyCoursesService courses;
     private final ContentStore db;
     private final com.sep490.backend.service.UserProgressService userProgress;
+    private final com.sep490.backend.service.JourneyService journey;
 
     @GetMapping("/api/users/progress")
     @Transactional(readOnly = true)
@@ -36,9 +37,16 @@ public class LearnerOverviewController {
         result.put("quizHistory", db.rows("SELECT id,quiz_title AS quiz_name,percentage AS score,submitted_at AS date,passed FROM quiz_attempts WHERE user_id=? AND submitted_at IS NOT NULL ORDER BY submitted_at DESC,id DESC LIMIT 50", user.id()));
         result.put("currentLesson", null);
         // These metrics belong to other integrations and have not been measured yet.
-        for (String key : List.of("totalTimeMinutes", "masteredWords", "currentStreak", "longestStreak", "totalXp", "todayMinutes", "journeyProgress")) result.put(key, null);
+        for (String key : List.of("totalTimeMinutes", "masteredWords", "currentStreak", "longestStreak", "totalXp", "todayMinutes")) result.put(key, null);
         result.put("level", "Chưa có đánh giá"); result.put("nextLevelXp", 600);
-        result.put("dailyGoalMinutes", 15); result.put("journeyCity", "Chưa có dữ liệu");
+        result.put("dailyGoalMinutes", 15);
+        var journeySummary = journey.journey(user.id(), null, null);
+        result.put("journeyProgress", journeySummary.progressPercent());
+        result.put("journeyCity", journeySummary.stops().stream()
+                .filter(s -> s.destination().id().equals(journeySummary.currentDestinationId()))
+                .map(s -> s.destination().nameVi()).findFirst().orElse(
+                        journeySummary.totalStops() > 0 && journeySummary.completedStops() == journeySummary.totalStops()
+                                ? "Đã hoàn thành hành trình" : "Chưa bắt đầu hành trình"));
         result.put("weeklyActivity", List.of()); result.put("recentActivities", List.of());
         var summary = userProgress.getUserProgress();
         result.put("currentStreak", summary.getStreakCount());
