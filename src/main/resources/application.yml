@@ -67,6 +67,7 @@ cloudinary:
   api-key: ${CLOUDINARY_API_KEY:}
   api-secret: ${CLOUDINARY_API_SECRET:}
   avatar-folder: ${CLOUDINARY_AVATAR_FOLDER:hola-vietnamese/avatars}
+  audio-folder: ${CLOUDINARY_AUDIO_FOLDER:hola-vietnamese/audio}
 
 app:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
