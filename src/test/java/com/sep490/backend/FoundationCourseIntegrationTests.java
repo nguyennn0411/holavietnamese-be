@@ -38,7 +38,7 @@ class FoundationCourseIntegrationTests {
   @Autowired QuizService quizzes;
   @Autowired MockMvc mvc;
 
-  @Test void entirePersistedCurriculumGradesResumesUnlocksAndRequiresFinal() throws Exception {
+  @Test void entirePersistedCurriculumGradesResumesAndRequiresFinal() throws Exception {
     long user = db.insert("INSERT INTO users(email,password_hash,enabled) VALUES(?,'test',true)", UUID.randomUUID()+"@foundation.test");
     var principal = new LearnerPrincipal(user, "foundation@test.local", "", true);
     long course = seed.seed(user);
@@ -55,7 +55,7 @@ class FoundationCourseIntegrationTests {
     var lessons = db.rows("SELECT * FROM lessons WHERE course_id=? ORDER BY lesson_order", course);
     assertThat(lessons).hasSize(48);
     long first = ContentStore.id(lessons.getFirst(), "id"), second = ContentStore.id(lessons.get(1), "id");
-    mvc.perform(get("/api/lessons/"+second).with(user(principal))).andExpect(status().isForbidden());
+    mvc.perform(get("/api/lessons/"+second).with(user(principal))).andExpect(status().isOk());
     mvc.perform(get("/api/courses/"+course).with(user(principal)))
         .andExpect(jsonPath("$.titleVi").value("Tiếng Việt nền tảng A0–A1"))
         .andExpect(jsonPath("$.modules.length()").value(10))
@@ -101,7 +101,7 @@ class FoundationCourseIntegrationTests {
           assertThat(progress.lessonProgress(user,lid).get("completed")).isEqualTo(false);
           assertThat(progress.courseProgress(user,course).get("status")).isEqualTo("IN_PROGRESS");
           if(lid==first) {
-            assertThat(courses.locked(user,second)).isTrue();
+            assertThat(courses.locked(user,second)).isFalse();
             mvc.perform(post("/api/lessons/"+first+"/complete").with(user(principal)).with(csrf())).andExpect(status().isConflict());
             assertThat(seed.seed(user)).isEqualTo(course);
             assertThat(progress.lessonProgress(user,lid).get("completedActivities")).isEqualTo(5L);
@@ -116,7 +116,7 @@ class FoundationCourseIntegrationTests {
       }
       if (lid == first) {
         assertThat(progress.lessonProgress(user,lid).get("completed")).isEqualTo(false);
-        assertThat(courses.locked(user,second)).isTrue();
+        assertThat(courses.locked(user,second)).isFalse();
         long introduction=ContentStore.id(authored.getFirst(),"id");
         activities.interact(user,introduction,json.createObjectNode(),true);
       }

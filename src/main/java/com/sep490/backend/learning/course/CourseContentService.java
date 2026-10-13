@@ -113,16 +113,9 @@ public class CourseContentService {
   }
 
   public boolean locked(Long user, long lesson) {
-    return db.count(
-                "SELECT count(*) FROM lesson_prerequisites r WHERE r.lesson_id=? AND NOT EXISTS"
-                    + " (SELECT 1 FROM lesson_progress p JOIN enrollments e ON e.id=p.enrollment_id"
-                    + " WHERE p.lesson_id=r.prerequisite_lesson_id AND e.user_id=? AND"
-                    + " p.status='COMPLETED')",
-                lesson,
-                user)
-            == 0
-        ? false
-        : true;
+    // Lessons can be studied in any order. Keep prerequisite metadata for authors,
+    // but do not use it to restrict learning access or mark curriculum rows as locked.
+    return false;
   }
 
   @Transactional
