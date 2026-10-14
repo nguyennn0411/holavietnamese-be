@@ -24,6 +24,24 @@ public class AiTutorController {
     AiTutorService aiTutorService;
     AiRoleplayService aiRoleplayService;
 
+    @GetMapping("/status")
+    public ApiResponse<Map<String, Object>> getStatus() {
+        Map<String, Object> status = aiTutorService.getAiStatus();
+        return ApiResponse.<Map<String, Object>>builder()
+                .result(status)
+                .build();
+    }
+
+    @PostMapping("/configure-key")
+    public ApiResponse<Map<String, Object>> configureApiKey(@RequestBody Map<String, String> request) {
+        String apiKey = request.get("apiKey");
+        Map<String, Object> res = aiTutorService.configureApiKey(apiKey);
+        return ApiResponse.<Map<String, Object>>builder()
+                .result(res)
+                .message((String) res.get("message"))
+                .build();
+    }
+
     // --- AI TUTOR (UC-099, UC-100, UC-101, UC-102, UC-103) ---
 
     @PostMapping("/sessions")

@@ -89,6 +89,15 @@ public class AdminAiService {
                 "historyPrivacyStrict", true
         );
 
+        String maskedKey = null;
+        String rawKey = setting.getApiKey() != null && !setting.getApiKey().isBlank() ? setting.getApiKey() : geminiApiClient.getEffectiveApiKey();
+        if (rawKey != null && rawKey.length() > 8) {
+            maskedKey = rawKey.substring(0, 6) + "..." + rawKey.substring(rawKey.length() - 4);
+            if (setting.getApiKey() != null && !setting.getApiKey().isBlank()) {
+                geminiApiClient.setRuntimeApiKey(setting.getApiKey());
+            }
+        }
+
         return AiSettingResponse.builder()
                 .activeModel(setting.getActiveModel())
                 .allowedModels(allowedModels)
@@ -97,7 +106,8 @@ public class AdminAiService {
                 .limits(limits)
                 .security(security)
                 .enabledModes(enabledModes)
-                .apiKeyConfigured(setting.getApiKeyConfigured())
+                .apiKeyConfigured(geminiApiClient.isApiKeyAvailable())
+                .apiKeyMasked(maskedKey)
                 .build();
     }
 
@@ -120,6 +130,10 @@ public class AdminAiService {
         setting.setCostAlertThresholdPercent(request.getCostAlertThresholdPercent());
         if (request.getEnabledModes() != null) {
             setting.setEnabledModes(request.getEnabledModes());
+        }
+        if (request.getApiKey() != null && !request.getApiKey().isBlank()) {
+            setting.setApiKey(request.getApiKey().trim());
+            geminiApiClient.setRuntimeApiKey(request.getApiKey().trim());
         }
         setting.setApiKeyConfigured(geminiApiClient.isApiKeyAvailable());
 
