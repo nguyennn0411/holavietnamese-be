@@ -73,6 +73,9 @@ app:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
   mail:
     enabled: ${MAIL_ENABLED:false}
+  ai:
+    gemini-api-key: ${GEMINI_API_KEY:${GOOGLE_AI_API_KEY:}}
+    default-model: ${AI_DEFAULT_MODEL:gemini-1.5-flash}
 
 logging:
   level:
