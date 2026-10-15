@@ -24,12 +24,12 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .requestMatchers("/api/auth/**", "/api/users/register", "/api/login", "/error",
                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-            .requestMatchers(HttpMethod.GET, "/media/foundation/**", "/media/pronunciation/**", "/api/csrf", "/api/courses", "/api/courses/{id}",
-                "/api/grammar", "/api/grammar/{id}", "/api/lessons/public/**", "/api/topics/public/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/media/**", "/api/csrf", "/api/courses", "/api/courses/{id}",
+                "/api/grammar", "/api/grammar/{id}", "/api/lessons/public/**", "/api/topics/public/**", "/api/notifications/stream").permitAll()
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated())
             // JWT clients send an explicit Authorization header; legacy session clients keep CSRF.
-            .csrf(c -> c.ignoringRequestMatchers("/api/auth/**", "/api/users/register")
+            .csrf(c -> c.ignoringRequestMatchers("/api/auth/**", "/api/users/register", "/api/notifications/**")
                 .ignoringRequestMatchers(r -> r.getHeader("Authorization") != null
                     && r.getHeader("Authorization").startsWith("Bearer ")))
             .oauth2ResourceServer(o -> o.jwt(j -> j.decoder(decoder).jwtAuthenticationConverter(converter))

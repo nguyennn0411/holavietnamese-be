@@ -37,9 +37,8 @@ public class LearnerOverviewController {
         result.put("quizHistory", db.rows("SELECT id,quiz_title AS quiz_name,percentage AS score,submitted_at AS date,passed FROM quiz_attempts WHERE user_id=? AND submitted_at IS NOT NULL ORDER BY submitted_at DESC,id DESC LIMIT 50", user.id()));
         result.put("currentLesson", null);
         // These metrics belong to other integrations and have not been measured yet.
-        for (String key : List.of("totalTimeMinutes", "masteredWords", "currentStreak", "longestStreak", "totalXp", "todayMinutes")) result.put(key, null);
+        for (String key : List.of("totalTimeMinutes", "masteredWords", "longestStreak", "todayMinutes")) result.put(key, null);
         result.put("level", "Chưa có đánh giá"); result.put("nextLevelXp", 600);
-        result.put("dailyGoalMinutes", 15);
         var journeySummary = journey.journey(user.id(), null, null);
         result.put("journeyProgress", journeySummary.progressPercent());
         result.put("journeyCity", journeySummary.stops().stream()
@@ -47,16 +46,18 @@ public class LearnerOverviewController {
                 .map(s -> s.destination().nameVi()).findFirst().orElse(
                         journeySummary.totalStops() > 0 && journeySummary.completedStops() == journeySummary.totalStops()
                                 ? "Đã hoàn thành hành trình" : "Chưa bắt đầu hành trình"));
-        result.put("weeklyActivity", List.of()); result.put("recentActivities", List.of());
+        result.put("weeklyActivity", List.of());
         var summary = userProgress.getUserProgress();
         result.put("currentStreak", summary.getStreakCount());
         result.put("streakCount", summary.getStreakCount());
         result.put("totalXp", summary.getTotalXp());
         result.put("dailyGoalMinutes", summary.getDailyGoalMinutes());
+        result.put("recentActivities", summary.getRecentXpTransactions());
         result.put("lastActivityDate", summary.getLastActivityDate());
         result.put("recentXpTransactions", summary.getRecentXpTransactions());
         result.put("completedLessonsCount", result.get("completedLessons"));
         result.put("learnedVocabulariesCount", result.get("savedVocabCount"));
+
         return ApiResponse.<Map<String, Object>>builder().result(result).build();
     }
 }

@@ -168,6 +168,36 @@ class JourneyIntegrationTests {
         assertThat(overview.path("journeyCity").asText()).isEqualTo("Learning");
         assertThat(overview.path("journeyProgress").asInt()).isZero();
     }
+    @Test void overviewCombinesJourneyNotebookAndXpWithoutInventedMetrics() throws Exception {
+        long id = destination("Overview", VietnamRegion.NORTH, DestinationStatus.PUBLISHED);
+        configure(List.of(stop(id, "PUBLISHED"))).andExpect(status().isOk());
+        jdbc.update("INSERT INTO vocabulary_entries(user_id,word,meaning,created_at) VALUES(?,'xin chào','hello',CURRENT_TIMESTAMP)", learner.id());
+        jdbc.update("INSERT INTO vocabulary_entries(user_id,word,meaning,created_at) VALUES(?,'private','other learner',CURRENT_TIMESTAMP)", other.id());
+        jdbc.update("UPDATE users SET total_xp=35,streak_count=2,daily_learning_goal_minutes=25 WHERE id=?", learner.id());
+        jdbc.update("INSERT INTO xp_transactions(user_id,amount,event_type,description) VALUES(?,35,'LESSON_COMPLETE','Completed a lesson')", learner.id());
+        em.clear();
+
+        mvc.perform(get("/api/users/progress").with(user(learner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.journeyCity").value("Overview"))
+                .andExpect(jsonPath("$.result.journeyProgress").value(0))
+                .andExpect(jsonPath("$.result.savedVocabCount").value(1))
+                .andExpect(jsonPath("$.result.learnedVocabulariesCount").value(1))
+                .andExpect(jsonPath("$.result.recentVocab[0].vi").value("xin chào"))
+                .andExpect(jsonPath("$.result.completedLessonsCount").value(0))
+                .andExpect(jsonPath("$.result.currentStreak").value(2))
+                .andExpect(jsonPath("$.result.streakCount").value(2))
+                .andExpect(jsonPath("$.result.totalXp").value(35))
+                .andExpect(jsonPath("$.result.dailyGoalMinutes").value(25))
+                .andExpect(jsonPath("$.result.recentActivities[0].amount").value(35))
+                .andExpect(jsonPath("$.result.recentXpTransactions[0].description").value("Completed a lesson"))
+                .andExpect(jsonPath("$.result.masteredWords").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.result.totalTimeMinutes").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.result.weeklyActivity").isEmpty());
+        mvc.perform(get("/api/users/progress").with(user(other)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.result.totalXp").value(0))
+                .andExpect(jsonPath("$.result.recentActivities").isEmpty());
+    }
     @Test void lockedStopsRejectDirectReadsAndWritesAndStartPersistsOnlyCurrentUser() throws Exception {
         long first = destination("First", VietnamRegion.NORTH, DestinationStatus.PUBLISHED);
         long next = destination("Next", VietnamRegion.SOUTH, DestinationStatus.PUBLISHED);
