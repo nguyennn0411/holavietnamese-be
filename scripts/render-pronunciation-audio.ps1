@@ -11,11 +11,18 @@ $voice.Rate = -2
 foreach ($item in $manifest) {
     $stream = New-Object -ComObject SAPI.SpFileStream
     $file = Join-Path $directory ($item.key + '.wav')
+    $tempFile = Join-Path $directory ($item.key + '.rendering.wav')
     try {
-        $stream.Open($file, 3, $false)
+        $stream.Open($tempFile, 3, $false)
         $voice.AudioOutputStream = $stream
         [void]$voice.Speak($item.text)
-    } finally { $stream.Close() }
-    if ((Get-Item -LiteralPath $file).Length -lt 1000) { throw "Empty audio: $file" }
+        $stream.Close()
+        if ((Get-Item -LiteralPath $tempFile).Length -lt 1000) { throw "Empty audio: $tempFile" }
+        Move-Item -LiteralPath $tempFile -Destination $file -Force
+    } catch {
+        try { $stream.Close() } catch { }
+        if (Test-Path -LiteralPath $tempFile) { Remove-Item -LiteralPath $tempFile }
+        throw
+    }
 }
 Write-Output "Rendered $($manifest.Count) Vietnamese recordings."

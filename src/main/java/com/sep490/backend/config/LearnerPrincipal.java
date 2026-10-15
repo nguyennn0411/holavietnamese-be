@@ -12,9 +12,11 @@ public record LearnerPrincipal(Long id, String email, String passwordHash, boole
         this(id, email, passwordHash, enabled, "LEARNER");
     }
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return "ADMIN".equals(role)
-            ? List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_LEARNER"))
-            : List.of(new SimpleGrantedAuthority("ROLE_LEARNER"));
+        if ("ADMIN".equals(role))
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_LEARNER"));
+        if ("CONTENT_MANAGER".equals(role))
+            return List.of(new SimpleGrantedAuthority("ROLE_CONTENT_MANAGER"), new SimpleGrantedAuthority("ROLE_LEARNER"));
+        return List.of(new SimpleGrantedAuthority("ROLE_LEARNER"));
     }
     public String getPassword() { return passwordHash; }
     public String getUsername() { return email; }

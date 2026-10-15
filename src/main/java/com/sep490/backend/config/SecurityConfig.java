@@ -26,6 +26,9 @@ public class SecurityConfig {
                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
             .requestMatchers(HttpMethod.GET, "/media/**", "/api/csrf", "/api/courses", "/api/courses/{id}",
                 "/api/grammar", "/api/grammar/{id}", "/api/lessons/public/**", "/api/topics/public/**", "/api/notifications/stream").permitAll()
+            .requestMatchers("/api/admin/courses/**", "/api/admin/modules/**",
+                "/api/admin/lessons/**", "/api/admin/activities/**")
+                .hasAnyRole("ADMIN", "CONTENT_MANAGER")
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated())
             // JWT clients send an explicit Authorization header; legacy session clients keep CSRF.

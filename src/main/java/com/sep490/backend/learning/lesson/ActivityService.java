@@ -49,8 +49,9 @@ public class ActivityService {
             ? "Lessons"
             : db.one("SELECT title_en AS title FROM course_units WHERE id=?", l.get("unitId"))
                 .get("title"));
-    var course = db.one("SELECT title,title_vi FROM courses WHERE id=?",l.get("courseId"));
+    var course = db.one("SELECT title,title_vi,status FROM courses WHERE id=?",l.get("courseId"));
     l.put("courseTitleVi",course.get("titleVi")); l.put("courseTitleEn",course.get("titleEn"));
+    l.put("courseStatus",course.get("status"));
     var module = l.get("unitId")==null ? Map.<String,Object>of("titleVi","Bài học","titleEn","Lessons")
         : db.one("SELECT title_vi,title_en FROM course_units WHERE id=?",l.get("unitId"));
     l.put("moduleTitleVi",module.get("titleVi")); l.put("moduleTitleEn",module.get("titleEn"));

@@ -6,7 +6,7 @@ public final class ContentRules {
   private ContentRules() {}
 
   public static final Set<String> LEVELS = Set.of("A0", "A1", "A2", "B1", "B2", "C1");
-  public static final Set<String> STATUSES = Set.of("DRAFT", "REVIEW", "PUBLISHED", "ARCHIVED");
+  public static final Set<String> STATUSES = Set.of("DRAFT", "REVIEW", "REJECTED", "PUBLISHED", "ARCHIVED");
   public static final Set<String> LESSON_TYPES =
       Set.of("NORMAL", "VOCABULARY", "GRAMMAR", "CONVERSATION", "CULTURE", "REVIEW");
   public static final Set<String> ACTIVITIES =

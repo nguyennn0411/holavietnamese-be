@@ -1,6 +1,10 @@
 package com.sep490.backend.learning.shared;
 
+import com.sep490.backend.config.LearnerPrincipal;
+import com.sep490.backend.learning.course.CourseReviewService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/admin")
 public class ContentDeletionController {
     private final ContentStore db;
+    private final CourseReviewService workflow;
 
     private void requireEmpty(String sql, long id) {
         if (db.count(sql, id) > 0) throw ContentException.conflict("CONTENT_IN_USE",
@@ -17,6 +22,11 @@ public class ContentDeletionController {
     }
 
     @DeleteMapping("/quizzes/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void quizEndpoint(@PathVariable long id) {
+        quiz(id);
+    }
+
     @Transactional
     public void quiz(@PathVariable long id) {
         db.one("SELECT id FROM quizzes WHERE id=? FOR UPDATE", id);
@@ -28,6 +38,11 @@ public class ContentDeletionController {
     }
 
     @DeleteMapping("/lessons/{id}")
+    public void lessonEndpoint(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal actor) {
+        workflow.assertCanEdit(workflow.courseForLesson(id), actor);
+        lesson(id);
+    }
+
     @Transactional
     public void lesson(@PathVariable long id) {
         var lesson = db.one("SELECT course_id FROM lessons WHERE id=?", id);
@@ -49,6 +64,16 @@ public class ContentDeletionController {
     }
 
     @DeleteMapping("/courses/{id}")
+    @Transactional
+    public void courseEndpoint(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal actor) {
+        workflow.assertCanEdit(id, actor);
+        if (!workflow.isAdmin(actor)) {
+            db.update("UPDATE courses SET status='ARCHIVED',updated_at=CURRENT_TIMESTAMP WHERE id=?", id);
+            return;
+        }
+        course(id);
+    }
+
     @Transactional
     public void course(@PathVariable long id) {
         db.one("SELECT id FROM courses WHERE id=? FOR UPDATE", id);

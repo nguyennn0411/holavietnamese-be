@@ -16,16 +16,22 @@ public class CourseContentService {
   private final ContentStore db;
 
   public PageResponse<Map<String, Object>> list(Map<String, String> p, boolean admin) {
+    return listForEditor(p, null, admin);
+  }
+
+  public PageResponse<Map<String, Object>> listForEditor(
+      Map<String, String> p, Long author, boolean admin) {
+    boolean includeDraftContent = admin || author != null;
     return ContentList.query(
         db,
         "SELECT c.*, c.estimated_duration AS estimated_minutes, (SELECT count(*) FROM course_units"
             + " m WHERE m.course_id=c.id"
-            + (admin ? "" : " AND m.status='PUBLISHED'")
+            + (includeDraftContent ? "" : " AND m.status='PUBLISHED'")
             + ") AS module_count, (SELECT count(*) FROM lessons l WHERE l.course_id=c.id"
-            + (admin ? "" : " AND l.published=true")
+            + (includeDraftContent ? "" : " AND l.published=true")
             + ") AS lesson_count",
         "FROM courses c",
-        admin ? "1=1" : "c.status='PUBLISHED'",
+        admin ? "1=1" : author == null ? "c.status='PUBLISHED'" : "c.created_by=" + author + " AND c.status<>'ARCHIVED'",
         "c.title,c.title_vi,c.description,c.description_vi",
         Map.of("level", "c.level", "status", "c.status"),
         Map.of("id", "c.id", "title", "c.title", "updatedAt", "c.updated_at"),
@@ -242,6 +248,11 @@ public class CourseContentService {
   }
 
   public PageResponse<Map<String, Object>> lessons(Map<String, String> p) {
+    return lessonsForEditor(p, null, true);
+  }
+
+  public PageResponse<Map<String, Object>> lessonsForEditor(
+      Map<String, String> p, Long author, boolean admin) {
     return ContentList.query(
         db,
         "SELECT l.*,l.unit_id AS module_id,l.estimated_duration AS estimated_minutes,c.title AS"
@@ -249,7 +260,7 @@ public class CourseContentService {
             + " WHERE a.lesson_id=l.id) AS activity_count",
         "FROM lessons l JOIN courses c ON c.id=l.course_id LEFT JOIN course_units m ON"
             + " m.id=l.unit_id",
-        "1=1",
+        admin || author == null ? "1=1" : "c.created_by=" + author,
         "l.title,l.description",
         Map.of(
             "courseId",

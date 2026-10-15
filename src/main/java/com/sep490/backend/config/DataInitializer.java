@@ -35,6 +35,8 @@ public class DataInitializer implements CommandLineRunner {
                     Set.of("PROFILE_READ", "PROFILE_WRITE", "LEARNING_READ"));
             initRole("TEACHER", "Giáo viên giảng dạy tiếng Việt",
                     Set.of("COURSE_READ", "LESSON_WRITE", "QUIZ_WRITE"));
+            initRole("CONTENT_MANAGER", "Quản lý nội dung khóa học",
+                    Set.of("COURSE_READ", "COURSE_WRITE", "COURSE_SUBMIT"));
 
             // Tạo tài khoản admin mặc định nếu chưa tồn tại
             if (!userRepository.existsByUsername("admin")) {
