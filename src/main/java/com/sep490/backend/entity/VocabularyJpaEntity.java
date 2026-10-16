@@ -9,6 +9,9 @@ public class VocabularyJpaEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "user_id") private User user;
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "lesson_id") private LessonJpaEntity lesson;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "master_vocabulary_id")
+    private VocabularyWordJpaEntity masterVocabulary;
     @Column(nullable = false, length = 200) private String word;
     @Column(nullable = false, length = 1000) private String meaning;
     @Column(length = 200) private String pronunciation;

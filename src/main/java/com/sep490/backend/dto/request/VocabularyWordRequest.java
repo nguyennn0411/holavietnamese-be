@@ -31,10 +31,10 @@ public record VocabularyWordRequest(
 
         VocabularyStatus status,
 
-        Set<Long> topicIds,
+        Set<@jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Positive Long> topicIds,
 
         @Valid
         @NotEmpty
-        List<VocabularyMeaningRequest> meanings
+        List<@jakarta.validation.constraints.NotNull VocabularyMeaningRequest> meanings
 ) {
 }
