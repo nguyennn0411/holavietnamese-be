@@ -22,6 +22,7 @@ public class JourneyService {
     private static final String COMPLETION_RULE = "ALL_LINKED_LESSONS";
     private final JourneyRepository repository;
     private final Clock clock;
+    private final RegionalVocabularyService regionalVocabulary;
 
     public JourneyResponse.Configuration configuration() {
         var stops = repository.stops().stream().map(s -> new JourneyResponse.AdminStop(
@@ -181,7 +182,9 @@ public class JourneyService {
         var words = repository.words(id).stream().map(DestinationVocabularyJpaEntity::getVocabulary)
                 .filter(w -> !publishedOnly || w.getStatus() == VocabularyStatus.PUBLISHED)
                 .map(w -> new DestinationContentResponse.Word(w.getId(), w.getWord(), w.getPronunciation(), w.getStatus().name())).toList();
-        return new DestinationContentResponse(lessons, words, List.of("CULTURE", "AI_PRACTICE"), row, reason);
+        var variants = regionalVocabulary.forDestination(words.stream().map(DestinationContentResponse.Word::id).toList(),
+                repository.destination(id).getRegion(), publishedOnly);
+        return new DestinationContentResponse(lessons, words, List.of("CULTURE", "AI_PRACTICE"), row, reason, variants);
     }
     private void assertAccessible(JourneyResponse.Stop row) { if (row != null && !row.accessible()) throw forbidden(); }
     private static LearningException forbidden() { return new LearningException(LearningException.Kind.FORBIDDEN, "Hoàn thành điểm đến trước để mở khóa điểm đến này."); }
