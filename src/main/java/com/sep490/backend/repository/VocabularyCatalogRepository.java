@@ -148,15 +148,14 @@ public class VocabularyCatalogRepository {
                     List<Predicate> predicates = new ArrayList<>();
 
                     if (keyword != null && !keyword.isBlank()) {
-                        String normalizedKeyword =
-                                "%" + keyword.trim().toLowerCase(Locale.ROOT) + "%";
-
-                        predicates.add(
-                                criteriaBuilder.like(
-                                        criteriaBuilder.lower(root.get("word")),
-                                        normalizedKeyword
-                                )
-                        );
+                        String normalizedKeyword = keyword.trim().toLowerCase(Locale.ROOT);
+                        query.distinct(true);
+                        var meaning = root.join("meanings", JoinType.LEFT);
+                        predicates.add(criteriaBuilder.or(
+                                criteriaBuilder.greaterThan(criteriaBuilder.locate(
+                                        criteriaBuilder.lower(root.get("word")), normalizedKeyword), 0),
+                                criteriaBuilder.greaterThan(criteriaBuilder.locate(
+                                        criteriaBuilder.lower(meaning.get("translationEn")), normalizedKeyword), 0)));
                     }
 
                     if (status != null) {

@@ -21,6 +21,6 @@ public record VocabularyMeaningRequest(
         Integer displayOrder,
 
         @Valid
-        List<VocabularyExampleRequest> examples
+        List<@jakarta.validation.constraints.NotNull VocabularyExampleRequest> examples
 ) {
 }

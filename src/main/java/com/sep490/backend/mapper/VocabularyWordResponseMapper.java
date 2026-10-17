@@ -9,6 +9,14 @@ public final class VocabularyWordResponseMapper {
     }
 
     public static VocabularyWordResponse toResponse(VocabularyWord word) {
+        return toResponse(word, false);
+    }
+
+    public static VocabularyWordResponse toPublishedResponse(VocabularyWord word) {
+        return toResponse(word, true);
+    }
+
+    private static VocabularyWordResponse toResponse(VocabularyWord word, boolean publishedOnly) {
         return new VocabularyWordResponse(
                 word.id(),
                 word.word(),
@@ -19,7 +27,9 @@ public final class VocabularyWordResponseMapper {
                 word.status(),
                 word.publishedAt(),
                 word.archivedAt(),
-                word.topics(),
+                publishedOnly ? word.topics().stream()
+                        .filter(topic -> topic.status() == com.sep490.backend.entity.enums.VocabularyStatus.PUBLISHED)
+                        .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new)) : word.topics(),
                 word.meanings(),
                 word.createdAt(),
                 word.updatedAt()
