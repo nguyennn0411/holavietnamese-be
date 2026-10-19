@@ -22,6 +22,7 @@ public class AiSessionResponse {
     private Integer turnsCount;
     private Integer score;
     private String feedbackSummary;
+    private String contextSummary;
     private List<AiMessageResponse> messages;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

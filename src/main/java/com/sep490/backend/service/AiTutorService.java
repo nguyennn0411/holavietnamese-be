@@ -121,8 +121,7 @@ public class AiTutorService {
      */
     public AiSessionResponse getSessionDetails(String sessionId) {
         User currentUser = getCurrentUser();
-        AiSession session = sessionRepository.findByIdAndUserId(sessionId, currentUser.getId())
-                .or(() -> sessionRepository.findById(sessionId))
+        AiSession session = sessionRepository.findById(sessionId)
                 .orElseGet(() -> {
                     AiSession newSession = AiSession.builder()
                             .id(sessionId)
@@ -134,6 +133,10 @@ public class AiTutorService {
                             .build();
                     return sessionRepository.save(newSession);
                 });
+
+        if (session.getUser() != null && !session.getUser().getId().equals(currentUser.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
 
         List<AiMessage> messages = messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId);
         return toSessionResponse(session, messages);
@@ -147,8 +150,7 @@ public class AiTutorService {
     @Transactional
     public AiMessageResponse sendMessage(String sessionId, AiMessageSendRequest request) {
         User currentUser = getCurrentUser();
-        AiSession session = sessionRepository.findByIdAndUserId(sessionId, currentUser.getId())
-                .or(() -> sessionRepository.findById(sessionId))
+        AiSession session = sessionRepository.findById(sessionId)
                 .orElseGet(() -> {
                     String mode = (request.getMode() != null && !request.getMode().isBlank()) ? request.getMode() : "tutor";
                     String title = "Hội thoại AI (" + getModeTitle(mode) + ")";
@@ -162,6 +164,10 @@ public class AiTutorService {
                             .build();
                     return sessionRepository.save(newSession);
                 });
+
+        if (session.getUser() != null && !session.getUser().getId().equals(currentUser.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
 
         if (!"ACTIVE".equalsIgnoreCase(session.getStatus())) {
             throw new IllegalStateException("Hội thoại này đã kết thúc.");
@@ -190,14 +196,17 @@ public class AiTutorService {
                 .build();
         messageRepository.save(userMessage);
 
-        // 2. Classify intent (Rule-based & context-aware) and build learner profile
+        // 2. Classify intent and build learner profile & working memory
         ConversationIntent intent = intentClassifier.classify(userText, previousMessages);
         String learnerLevel = currentUser.getTargetLevel() != null ? currentUser.getTargetLevel() : "A1";
         String nativeLang = currentUser.getNativeLanguage() != null ? currentUser.getNativeLanguage() : "English";
         String learningGoal = currentUser.getLearningGoal() != null ? currentUser.getLearningGoal() : "Everyday conversations";
         String mode = (request.getMode() != null && !request.getMode().isBlank()) ? request.getMode() : session.getMode();
 
-        String systemPrompt = buildSystemPrompt(mode, learnerLevel, nativeLang, learningGoal, intent);
+        // Update working memory / context summary if needed
+        updateContextSummaryIfNeeded(session, previousMessages, userText);
+
+        String systemPrompt = buildSystemPrompt(mode, learnerLevel, nativeLang, learningGoal, intent, session.getContextSummary());
         List<Map<String, Object>> multiTurnContents = buildMultiTurnContents(previousMessages, userText);
 
         // 3. Invoke Gemini with official systemInstruction & native multi-turn conversation memory
@@ -215,8 +224,8 @@ public class AiTutorService {
             latencyMs = (int) geminiRes.latencyMs();
             aiMessage = parseAndBuildAiMessage(session, geminiRes.text(), mode);
         } else {
-            // High quality fallback responder matching intent and context
-            aiMessage = generateOfflineTutorResponse(session, userText, mode, learnerLevel, intent);
+            // High quality fallback responder matching intent, context, and previous messages
+            aiMessage = generateOfflineTutorResponse(session, userText, mode, learnerLevel, intent, previousMessages);
         }
 
         messageRepository.save(aiMessage);
@@ -443,7 +452,7 @@ public class AiTutorService {
         }
     }
 
-    private String buildSystemPrompt(String mode, String level, String nativeLang, String learningGoal, ConversationIntent intent) {
+    private String buildSystemPrompt(String mode, String level, String nativeLang, String learningGoal, ConversationIntent intent, String contextSummary) {
         String template = loadPromptTemplate();
         String currentTopic = getModeTitle(mode);
         String preferredLanguage = (nativeLang != null && !nativeLang.isBlank()) ? nativeLang : "English";
@@ -451,24 +460,85 @@ public class AiTutorService {
         String goal = (learningGoal != null && !learningGoal.isBlank()) ? learningGoal : "Everyday conversations";
         String detectedIntent = (intent != null) ? intent.name() : "CASUAL_CHAT";
 
+        String contextMemory = (contextSummary != null && !contextSummary.isBlank())
+                ? "Những thông tin người học đã chia sẻ:\n" + contextSummary + "\n(LƯU Ý QUAN TRỌNG: Ghi nhớ các thông tin trên để kết nối hội thoại tự nhiên, tuyệt đối KHÔNG hỏi lại những điều người học đã nói)."
+                : "Chưa có thông tin ghi nhớ trước đó. Hãy lắng nghe và ghi nhớ chi tiết khi người học chia sẻ.";
+
         return template
                 .replace("{{level}}", learnerLevel)
                 .replace("{{preferredLanguage}}", preferredLanguage)
                 .replace("{{currentTopic}}", currentTopic)
                 .replace("{{learningGoal}}", goal)
-                .replace("{{detectedIntent}}", detectedIntent);
+                .replace("{{detectedIntent}}", detectedIntent)
+                .replace("{{contextMemory}}", contextMemory);
+    }
+
+    /**
+     * Periodically update conversation working memory / context summary.
+     * Ensures long-term facts (e.g. user moved to Hanoi for university) survive beyond the sliding window.
+     */
+    private void updateContextSummaryIfNeeded(AiSession session, List<AiMessage> previousMessages, String userText) {
+        int totalMessages = (previousMessages != null ? previousMessages.size() : 0) + 1;
+        boolean shouldUpdate = (totalMessages >= 4) && (session.getContextSummary() == null || session.getTurnsCount() % 4 == 0);
+        if (!shouldUpdate) {
+            return;
+        }
+
+        try {
+            // Build recent dialogue for summarization
+            StringBuilder historyText = new StringBuilder();
+            if (previousMessages != null) {
+                int start = Math.max(0, previousMessages.size() - 8);
+                for (int i = start; i < previousMessages.size(); i++) {
+                    AiMessage m = previousMessages.get(i);
+                    historyText.append("user".equalsIgnoreCase(m.getSender()) ? "Người học: " : "AI: ")
+                            .append(m.getText()).append("\n");
+                }
+            }
+            historyText.append("Người học: ").append(userText);
+
+            AiSetting settings = getOrInitSettings();
+            String model = settings.getActiveModel();
+            if (aiProviderService.isApiKeyAvailable(model)) {
+                String summaryPrompt = "Dưới đây là đoạn hội thoại giữa người học tiếng Việt và AI:\n"
+                        + historyText + "\n\n"
+                        + "Hãy tóm tắt ngắn gọn trong 1-2 câu các thông tin cá nhân và ngữ cảnh quan trọng mà người học đã chia sẻ (ví dụ: đang ở đâu, làm gì, lý do chuyển đến, sở thích, trường học, nghề nghiệp...). Không thêm lời dẫn, chỉ ghi thông tin tóm tắt:";
+                GeminiApiClient.GeminiResponse res = aiProviderService.generateContent(
+                        "Bạn là trợ lý trích xuất ngữ cảnh học viên tiếng Việt.", summaryPrompt, model);
+                if (res != null && res.text() != null && !res.text().isBlank()) {
+                    session.setContextSummary(res.text().trim());
+                    return;
+                }
+            }
+
+            // Fallback heuristic extraction
+            String current = session.getContextSummary() != null ? session.getContextSummary() : "";
+            String lower = userText.toLowerCase();
+            if (lower.contains("chuyển đến") || lower.contains("ở hà nội") || lower.contains("ở sài gòn") || lower.contains("ở đà nẵng")) {
+                current += (current.isEmpty() ? "" : "; ") + "Người học: " + userText.trim();
+            } else if (lower.contains("học đại học") || lower.contains("sinh viên") || lower.contains("đi làm") || lower.contains("du lịch")) {
+                current += (current.isEmpty() ? "" : "; ") + "Mục đích/Hoạt động: " + userText.trim();
+            }
+            if (!current.isEmpty()) {
+                session.setContextSummary(current);
+            }
+        } catch (Exception e) {
+            log.warn("Could not update context summary for session {}: {}", session.getId(), e.getMessage());
+        }
     }
 
     /**
      * Builds true multi-turn contents according to official Google Gemini API specification.
      * Enforces strictly alternating roles: user -> model -> user -> model -> ... -> user.
+     * Keeps a sliding window of the most recent turns and ensures contents strictly begins with a user turn.
      */
     private List<Map<String, Object>> buildMultiTurnContents(List<AiMessage> previousMessages, String currentUserText) {
         List<Map<String, Object>> contents = new ArrayList<>();
 
         if (previousMessages != null && !previousMessages.isEmpty()) {
-            // Take the most recent 16 messages for strong conversational memory
-            int start = Math.max(0, previousMessages.size() - 16);
+            // Keep the most recent 12 messages for strong contextual memory without bloating tokens
+            int windowSize = 12;
+            int start = Math.max(0, previousMessages.size() - windowSize);
             String lastRole = null;
             StringBuilder currentText = new StringBuilder();
 
@@ -481,8 +551,8 @@ public class AiTutorService {
                 String role = "user".equalsIgnoreCase(msg.getSender()) ? "user" : "model";
 
                 // Compact very long past AI turns slightly to keep token usage optimal
-                if ("model".equals(role) && text.length() > 400) {
-                    text = text.substring(0, 400) + "...";
+                if ("model".equals(role) && text.length() > 300) {
+                    text = text.substring(0, 300) + "...";
                 }
 
                 if (role.equals(lastRole)) {
@@ -499,10 +569,18 @@ public class AiTutorService {
                 }
             }
 
+            // Gemini API requirement: contents must begin with a user turn
+            while (!contents.isEmpty() && "model".equals(contents.get(0).get("role"))) {
+                contents.remove(0);
+            }
+
             // Append current user message
-            if ("user".equals(lastRole) && !contents.isEmpty()) {
-                currentText.append("\n").append(currentUserText);
-                contents.get(contents.size() - 1).put("parts", List.of(Map.of("text", currentText.toString())));
+            if (!contents.isEmpty() && "user".equals(contents.get(contents.size() - 1).get("role"))) {
+                Map<String, Object> lastTurn = contents.get(contents.size() - 1);
+                String merged = lastTurn.get("parts") != null && !((List<?>) lastTurn.get("parts")).isEmpty()
+                        ? ((Map<?, ?>) ((List<?>) lastTurn.get("parts")).get(0)).get("text") + "\n" + currentUserText
+                        : currentUserText;
+                lastTurn.put("parts", List.of(Map.of("text", merged)));
             } else {
                 Map<String, Object> currentTurn = new HashMap<>();
                 currentTurn.put("role", "user");
@@ -573,7 +651,7 @@ public class AiTutorService {
         }
     }
 
-    private AiMessage generateOfflineTutorResponse(AiSession session, String userText, String mode, String level, ConversationIntent intent) {
+    private AiMessage generateOfflineTutorResponse(AiSession session, String userText, String mode, String level, ConversationIntent intent, List<AiMessage> previousMessages) {
         String trimmed = userText.trim();
         String lower = trimmed.toLowerCase();
         String unaccented = removeAccents(lower);
@@ -755,8 +833,32 @@ public class AiTutorService {
                     } else if (intent == ConversationIntent.TRANSLATION) {
                         reply = "Trong tiếng Việt giao tiếp tự nhiên, câu này người bản xứ thường nói ngắn gọn kèm trợ từ tình thái ở cuối cho thân thiện nhé!";
                     } else {
-                        // CASUAL_CHAT
-                        reply = "Nghe thú vị thật đấy! Bạn có thể chia sẻ thêm cho mình về điều này không? 😊";
+                        // CASUAL_CHAT with multi-turn context retention
+                        String historyConcat = "";
+                        if (previousMessages != null) {
+                            historyConcat = previousMessages.stream()
+                                    .map(AiMessage::getText)
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.joining(" "))
+                                    .toLowerCase();
+                        }
+                        if (unaccented.contains("chuyen den ha noi") || (unaccented.contains("ha noi") && unaccented.contains("moi den"))) {
+                            reply = "Ồ, bạn mới chuyển đến Hà Nội à! Chào mừng bạn đến với thủ đô nhé 😄 Bạn chuyển đến để học hay đi làm vậy?";
+                        } else if (unaccented.contains("hoc dai hoc") || unaccented.contains("sinh vien") || unaccented.contains("truong dai hoc")) {
+                            if (historyConcat.contains("hà nội") || historyConcat.contains("ha noi")) {
+                                reply = "Vậy là bạn đang bắt đầu một hành trình mới rồi 😄 Bạn học trường nào thế? Đã quen với cuộc sống sinh viên ở Hà Nội chưa?";
+                            } else {
+                                reply = "Tuyệt vời, vậy là bạn đang bắt đầu quãng đời sinh viên rồi 😄 Bạn đang theo học ngành gì thế?";
+                            }
+                        } else if (unaccented.contains("di lam") || unaccented.contains("cong viec") || unaccented.contains("dong nghiep")) {
+                            reply = "Bắt đầu công việc ở một môi trường mới chắc hẳn có nhiều điều thú vị! Ở chỗ làm bạn có thường xuyên giao tiếp bằng tiếng Việt không?";
+                        } else if (unaccented.contains("chua quen") || unaccented.contains("thoi tiet") || unaccented.contains("khi hau")) {
+                            reply = "Mới chuyển đến nơi ở mới bao giờ cũng cần chút thời gian để thích nghi nè. Bạn thấy nhịp sống ở đây có khác nhiều so với quê nhà không?";
+                        } else if (unaccented.contains("thich an") || unaccented.contains("an uong") || unaccented.contains("mon an")) {
+                            reply = "Ẩm thực Việt Nam ngon và phong phú lắm đấy! Bạn đã có dịp thử phở bò hay bún chả chưa? Thấy khẩu vị thế nào?";
+                        } else {
+                            reply = "Nghe thú vị thật đấy! Bạn có thể chia sẻ thêm cho mình về điều này không? 😊";
+                        }
                     }
                     break;
             }
@@ -858,6 +960,7 @@ public class AiTutorService {
                 .turnsCount(session.getTurnsCount())
                 .score(session.getScore())
                 .feedbackSummary(session.getFeedbackSummary())
+                .contextSummary(session.getContextSummary())
                 .messages(msgResponses)
                 .createdAt(session.getCreatedAt())
                 .updatedAt(session.getUpdatedAt())
