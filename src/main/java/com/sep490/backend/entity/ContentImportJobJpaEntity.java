@@ -18,6 +18,7 @@ public class ContentImportJobJpaEntity {
     @Column(name = "imported_rows", nullable = false) private int importedRows;
     @Column(nullable = false, columnDefinition = "LONGTEXT") private String payload;
     @Column(nullable = false, columnDefinition = "LONGTEXT") private String diagnostics;
+    @Column(columnDefinition = "LONGTEXT") private String summary;
     @Column(name = "created_at", nullable = false) private Instant createdAt;
     @Column(name = "completed_at") private Instant completedAt;
 }

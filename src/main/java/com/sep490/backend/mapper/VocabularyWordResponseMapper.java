@@ -32,7 +32,7 @@ public final class VocabularyWordResponseMapper {
                         .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new)) : word.topics(),
                 word.meanings(),
                 word.createdAt(),
-                word.updatedAt()
+                word.updatedAt(),word.source(),word.lexical()
         );
     }
 }

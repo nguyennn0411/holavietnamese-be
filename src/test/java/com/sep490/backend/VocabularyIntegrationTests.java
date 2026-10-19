@@ -47,8 +47,10 @@ class VocabularyIntegrationTests {
                         Map.of("translationEn", "farewell"))));
     }
     private long master(String status) throws Exception {
+        String payload = word(status, null);
+        if (!"PUBLISHED".equals(status)) payload = payload.replace("tạm biệt", "tạm biệt " + status);
         return body(mvc.perform(post("/api/admin/vocabulary").with(user(admin)).with(csrf())
-                .contentType("application/json").content(word(status, null))).andExpect(status().isCreated()).andReturn()).path("result").path("id").asLong();
+                .contentType("application/json").content(payload)).andExpect(status().isCreated()).andReturn()).path("result").path("id").asLong();
     }
     private String notebook(Long master, String word, String meaning, String note) throws Exception {
         var payload = new LinkedHashMap<String, Object>();

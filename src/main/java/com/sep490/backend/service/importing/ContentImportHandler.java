@@ -9,4 +9,6 @@ public interface ContentImportHandler {
     Type type();
     List<Error> validate(List<Row> rows);
     void write(List<Row> rows);
+    default String lockModule() { return type().id(); }
+    default int importCount(List<Row> rows) { return rows.size(); }
 }

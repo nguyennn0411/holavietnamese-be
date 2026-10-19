@@ -46,7 +46,7 @@ public class VocabularyService {
             boolean validMeaning = masterWord.meanings() != null
                     && masterWord.meanings().stream()
                     .anyMatch(meaning ->
-                            meaning.translationEn().equals(r.meaning().trim())
+                            VocabularyText.notebookMeaning(meaning).equals(r.meaning().trim())
                     );
 
             if (!validWord || !validMeaning) {

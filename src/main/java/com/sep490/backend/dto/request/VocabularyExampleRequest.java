@@ -9,7 +9,6 @@ public record VocabularyExampleRequest(
         @NotBlank
         String exampleVi,
 
-        @NotBlank
         String translationEn,
 
         @Size(max = 2048)

@@ -26,6 +26,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class ContentImportService {
     private final List<ContentImportHandler> handlers;
     private final ContentExcelReader reader;
+    private final DictionaryJsonlReader dictionaryReader;
     private final ContentImportJobJpaRepository jobs;
     private final UserRepository users;
     private final ObjectMapper json;
@@ -34,18 +35,35 @@ public class ContentImportService {
     private final EntityManager em;
     private final Clock clock;
 
-    public List<Type> types() { return handlers.stream().map(ContentImportHandler::type).toList(); }
+    public List<Type> types() { return handlers.stream().map(ContentImportHandler::type).sorted(java.util.Comparator.comparing(t -> !t.id().equals("VOCABULARY"))).toList(); }
     @Transactional public ContentImportResponse preview(String module, byte[] bytes, String filename, LearnerPrincipal actor) {
+        return preview(module,new java.io.ByteArrayInputStream(bytes),filename,actor);
+    }
+    @Transactional public ContentImportResponse preview(String module, java.io.InputStream input, String filename, LearnerPrincipal actor) {
         long owner = actorId(actor); var handler = handler(module);
-        var workbook = reader.read(bytes,filename,handler.type());
-        var errors = new ArrayList<>(workbook.errors());
-        errors.addAll(handler.validate(workbook.rows()));
+        List<Row> rows; List<Error> inputErrors; Map<String,Object> summary=Map.of();
+        if ("jsonl".equals(handler.type().format())) {
+            var parsed=dictionaryReader.read(input,filename); rows=parsed.rows(); inputErrors=parsed.errors(); summary=parsed.summary();
+        } else {
+            try {
+                byte[] bytes=input.readNBytes((int)ExcelCourseParser.MAX_BYTES+1);
+                var parsed=reader.read(bytes,filename,handler.type()); rows=parsed.rows(); inputErrors=parsed.errors();
+            } catch(java.io.IOException failure) { throw new LearningException(LearningException.Kind.INVALID,"Không đọc được file upload."); }
+        }
+        var errors = new ArrayList<>(inputErrors);
+        errors.addAll(handler.validate(rows));
         var user = users.findById(owner).orElseThrow(() -> LearningException.notFound("User"));
         var job = new ContentImportJobJpaEntity();
         job.setId(UUID.randomUUID().toString()); job.setModule(module); job.setFilename(safeFilename(filename));
         job.setActorId(owner); job.setActorName(user.getFullName() == null || user.getFullName().isBlank() ? user.getUsername() : user.getFullName());
-        job.setCreatedAt(clock.instant()); job.setTotalRows(workbook.rows().size());
-        job.setPayload(encode(workbook.rows())); setErrors(job,errors);
+        job.setCreatedAt(clock.instant()); job.setTotalRows(rows.size());
+        if ("DICTIONARY_JSONL".equals(module)) {
+            var acceptedLines=rows.stream().map(Row::rowNumber).collect(java.util.stream.Collectors.toSet());
+            job.setTotalRows(rows.size()+(int)inputErrors.stream().map(Error::row).filter(r -> r>0&&!acceptedLines.contains(r)).distinct().count());
+            summary=new LinkedHashMap<>(summary);
+            summary.put("skippedExisting",rows.stream().filter(r -> "SKIP_EXISTING".equals(r.values().get("action"))).count());
+        }
+        job.setSummary(encode(summary)); job.setPayload(encode(rows)); setErrors(job,errors);
         job.setStatus(errors.isEmpty() ? "READY" : "VALIDATION_FAILED");
         return response(jobs.saveAndFlush(job),true);
     }
@@ -55,19 +73,25 @@ public class ContentImportService {
         String module = jobs.findById(id).orElseThrow(() -> LearningException.notFound("Import")).getModule();
         try {
             return new TransactionTemplate(transactions).execute(tx -> {
-                jdbc.queryForObject("SELECT module FROM content_import_locks WHERE module=? FOR UPDATE",String.class,module);
+                jdbc.queryForObject("SELECT module FROM content_import_locks WHERE module=? FOR UPDATE",String.class,handler(module).lockModule());
                 var job = jobs.lockById(id).orElseThrow(() -> LearningException.notFound("Import"));
                 if (!job.getActorId().equals(owner)) throw new LearningException(LearningException.Kind.FORBIDDEN,"Chỉ người đã preview mới được xác nhận lần import này.");
                 if ("IMPORTED".equals(job.getStatus())) return response(job,true);
                 if (!"READY".equals(job.getStatus())) throw new LearningException(LearningException.Kind.CONFLICT,"Hãy sửa file và tạo preview mới trước khi xác nhận.");
                 var handler = handler(module); var rows = rows(job); var errors = handler.validate(rows);
+                job.setPayload(encode(rows));
+                if ("DICTIONARY_JSONL".equals(module)) {
+                    var summary=summary(job);
+                    summary.put("skippedExisting",rows.stream().filter(r -> "SKIP_EXISTING".equals(r.values().get("action"))).count());
+                    job.setSummary(encode(summary));
+                }
                 if (!errors.isEmpty()) {
                     setErrors(job,errors); job.setStatus("VALIDATION_FAILED"); job.setCompletedAt(clock.instant());
                     return response(jobs.saveAndFlush(job),true);
                 }
                 try { handler.write(rows); em.flush(); }
                 catch (RuntimeException failure) { throw new ImportWriteFailed(failure); }
-                job.setImportedRows(job.getTotalRows()); job.setStatus("IMPORTED"); job.setCompletedAt(clock.instant());
+                job.setImportedRows(handler.importCount(rows)); job.setStatus("IMPORTED"); job.setCompletedAt(clock.instant());
                 return response(jobs.saveAndFlush(job),true);
             });
         } catch (ImportWriteFailed failure) {
@@ -94,8 +118,9 @@ public class ContentImportService {
     }
     private void setErrors(ContentImportJobJpaEntity job,List<Error> errors) {
         job.setDiagnostics(encode(errors));
-        long invalidRows = errors.stream().filter(e -> e.row() > 1).map(Error::row).distinct().count();
-        boolean fileError = errors.stream().anyMatch(e -> e.row() <= 1);
+        int firstDataRow="DICTIONARY_JSONL".equals(job.getModule()) ? 1 : 2;
+        long invalidRows = errors.stream().filter(e -> e.row() >= firstDataRow).map(Error::row).distinct().count();
+        boolean fileError = errors.stream().anyMatch(e -> e.row() < firstDataRow);
         job.setErrorRows(fileError ? job.getTotalRows() : (int)invalidRows);
         job.setValidRows(job.getTotalRows()-job.getErrorRows());
     }
@@ -105,7 +130,12 @@ public class ContentImportService {
                 job.getTotalRows(),job.getValidRows(),job.getErrorRows(),job.getImportedRows(),
                 "FAILED".equals(job.getStatus()) ? job.getTotalRows() : job.getErrorRows(),
                 "READY".equals(job.getStatus()),done,job.getCreatedAt(),job.getCompletedAt(),
-                includeData ? rows(job) : List.of(),includeData ? decode(job.getDiagnostics(),new TypeReference<List<Error>>() {}) : List.of());
+                includeData ? rows(job) : List.of(),includeData ? decode(job.getDiagnostics(),new TypeReference<List<Error>>() {}) : List.of(),summary(job));
+    }
+    private Map<String,Object> summary(ContentImportJobJpaEntity job) {
+        var data=new LinkedHashMap<String,Object>();
+        if(job.getSummary()!=null) data.putAll(decode(job.getSummary(),new TypeReference<Map<String,Object>>() {}));
+        return data;
     }
     private List<Row> rows(ContentImportJobJpaEntity job) { return decode(job.getPayload(),new TypeReference<List<Row>>() {}); }
     private String encode(Object value) { try { return json.writeValueAsString(value); } catch (Exception e) { throw new IllegalStateException("Cannot serialize import data",e); } }

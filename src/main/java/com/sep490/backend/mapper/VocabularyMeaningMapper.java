@@ -22,7 +22,9 @@ public final class VocabularyMeaningMapper {
                         : entity.getExamples()
                           .stream()
                           .map(VocabularyExampleMapper::toDomain)
-                          .toList()
+                          .toList(),
+                entity.getDefinitionVi(),
+                com.sep490.backend.dto.model.DictionaryMetadata.labels(entity.getLabels())
         );
     }
 }

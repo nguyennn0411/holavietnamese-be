@@ -1,0 +1,6 @@
+Dictionary pilot lexical text: CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/
+Copyright: Vietnamese Wiktionary contributors. Each entry is attributed through its original page and history.
+Extraction: Wiktextract / Kaikki.org. Snapshot and hashes: source-manifest.json.
+Selection/normalization and omitted media/quoted examples: see modifications in the manifest.
+Redistributed adaptations of this lexical content must retain attribution, change notices and CC BY-SA 4.0.
+The pilot has NOT received human editorial approval. Application source licensing is unchanged.

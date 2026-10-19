@@ -56,8 +56,13 @@ public class VocabularyWordJpaEntity {
     @Column(name = "part_of_speech", nullable = false, length = 40)
     private String partOfSpeech;
 
-    @Column(name = "cefr_level", nullable = false, length = 10)
+    @Column(name = "cefr_level", length = 10)
     private String cefrLevel;
+
+    @Column(name = "search_word", length = 200) private String searchWord;
+    @Column(name = "source_metadata", columnDefinition = "LONGTEXT") private String sourceMetadata;
+    @Column(name = "source_raw", columnDefinition = "LONGTEXT") private String sourceRaw;
+    @Column(name = "lexical_data", columnDefinition = "LONGTEXT") private String lexicalData;
 
     @Column(name = "audio_url", length = 2048)
     private String audioUrl;

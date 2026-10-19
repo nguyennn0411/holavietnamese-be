@@ -1,0 +1,38 @@
+{
+  "id": "viwiktionary-2026-10-02",
+  "name": "Wiktionary tiếng Việt · Kaikki/Wiktextract",
+  "edition": "viwiktionary",
+  "languageCode": "vi",
+  "glossLanguage": "vi",
+  "downloadUrl": "https://kaikki.org/viwiktionary/raw-wiktextract-data.jsonl.gz",
+  "catalogUrl": "https://kaikki.org/viwiktionary/rawdata.html",
+  "dumpDate": "2026-10-02",
+  "extractedAt": "2026-10-17",
+  "retrievedAt": "2026-10-18T12:06:03.067015+00:00",
+  "rawArchiveSha256": "7d803b15648fdec9be8eb2debfc507e12a2b17685ec383526fd02fe7e45e780f",
+  "acceptedFiles": [
+    {
+      "filename": "viwiktionary-20261002.pilot.jsonl",
+      "sha256": "de5f2a8239220c85266ef2dbb714b7fd60ea4cd87b28d2d7fcc9409517b36271"
+    }
+  ],
+  "license": "CC-BY-SA-4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "copyrightUrl": "https://vi.wiktionary.org/wiki/Wiktionary:Quy%E1%BB%81n_t%C3%A1c_gi%E1%BA%A3",
+  "attribution": "Wiktionary tiếng Việt contributors; extracted by Wiktextract and distributed by Kaikki.org. Each entry links to its original page and contributor history.",
+  "modifications": "Vietnamese pilot selection; non-lexical metadata omitted; cited/externally attributed examples and audio/images excluded. Import normalizes Unicode NFC/whitespace and groups lemma/POS while retaining all supplied senses. No machine-generated definitions, translations or CEFR labels.",
+  "reviewStatus": "PENDING_REVIEW",
+  "pilotGroups": 200,
+  "pilotRecords": 205,
+  "counts": {
+    "recordsRead": 425353,
+    "vietnameseRecords": 44871,
+    "validRecords": 40018,
+    "otherLanguages": 380482,
+    "missingDefinitions": 206,
+    "missingOrUnsupportedPos": 4647,
+    "mediaOmitted": 12,
+    "quotedExamplesOmitted": 3
+  },
+  "qualityReview": "Structural validation only. Definitions, sense alignment, register and suitability still require human editorial review before publication."
+}

@@ -29,6 +29,8 @@ public class VocabularyWordService {
 
     private final VocabularyCatalogRepository repository;
     private final VocabularyTopicRepository topicRepository;
+    private final com.sep490.backend.repository.jpa.VocabularyWordJpaRepository words;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     public List<VocabularyWordResponse> findAll() {
         return repository.findAll()
@@ -64,6 +66,7 @@ public class VocabularyWordService {
 
     @Transactional
     public VocabularyWordResponse create(VocabularyWordRequest request) {
+        checkIdentity(request,-1L);
         VocabularyStatus status = request.status() == null
                 ? VocabularyStatus.DRAFT
                 : request.status();
@@ -72,10 +75,10 @@ public class VocabularyWordService {
 
         VocabularyWord word = new VocabularyWord(
                 null,
-                request.word().trim(),
+                VocabularyText.normalize(request.word()),
                 trimToNull(request.pronunciation()),
                 request.partOfSpeech().trim(),
-                request.cefrLevel().trim(),
+                trimToNull(request.cefrLevel()),
                 trimToNull(request.audioUrl()),
                 status,
                 status == VocabularyStatus.PUBLISHED ? now : null,
@@ -97,6 +100,7 @@ public class VocabularyWordService {
             VocabularyWordRequest request
     ) {
         VocabularyWord current = findWord(id);
+        checkIdentity(request,id);
 
         VocabularyStatus status = request.status() == null
                 ? current.status()
@@ -119,10 +123,10 @@ public class VocabularyWordService {
 
         VocabularyWord updated = new VocabularyWord(
                 current.id(),
-                request.word().trim(),
+                VocabularyText.normalize(request.word()),
                 trimToNull(request.pronunciation()),
                 request.partOfSpeech().trim(),
-                request.cefrLevel().trim(),
+                trimToNull(request.cefrLevel()),
                 trimToNull(request.audioUrl()),
                 status,
                 publishedAt,
@@ -133,9 +137,10 @@ public class VocabularyWordService {
                 current.updatedAt()
         );
 
-        return VocabularyWordResponseMapper.toResponse(
-                repository.save(updated)
-        );
+        repository.save(updated);
+        var entity = words.findById(id).orElseThrow();
+        if (current.source() != null) entity.setSourceMetadata(com.sep490.backend.dto.model.DictionaryMetadata.encode(current.source().markEdited()));
+        return VocabularyWordResponseMapper.toResponse(com.sep490.backend.mapper.VocabularyWordMapper.toDomain(words.saveAndFlush(entity)));
     }
 
     private VocabularyWord findWord(Long id) {
@@ -187,13 +192,15 @@ public class VocabularyWordService {
 
         return new VocabularyMeaning(
                 null,
-                request.translationEn().trim(),
+                trimToNull(request.translationEn()),
                 trimToNull(request.definitionEn()),
                 trimToNull(request.usageNote()),
                 request.displayOrder() == null
                         ? 0
                         : request.displayOrder(),
-                examples
+                examples,
+                trimToNull(request.definitionVi()),
+                request.labels() == null ? List.of() : request.labels()
         );
     }
 
@@ -203,7 +210,7 @@ public class VocabularyWordService {
         return new VocabularyExample(
                 null,
                 request.exampleVi().trim(),
-                request.translationEn().trim(),
+                trimToNull(request.translationEn()),
                 trimToNull(request.audioUrl()),
                 request.displayOrder() == null
                         ? 0
@@ -248,5 +255,43 @@ public class VocabularyWordService {
                 );
 
         return VocabularyWordResponseMapper.toPublishedResponse(word);
+    }
+
+    private void checkIdentity(VocabularyWordRequest request,Long id) {
+        jdbc.queryForObject("SELECT module FROM content_import_locks WHERE module='VOCABULARY' FOR UPDATE",String.class);
+        if (words.existsByWordIgnoreCaseAndPartOfSpeechIgnoreCaseAndIdNot(VocabularyText.normalize(request.word()),request.partOfSpeech().strip(),id))
+            throw new LearningException(LearningException.Kind.CONFLICT,"Từ và từ loại đã tồn tại. Hãy sửa mục từ hiện có để thêm nghĩa.");
+    }
+    public org.springframework.data.domain.Page<VocabularyWordResponse> searchPage(String keyword,VocabularyStatus status,String level,
+            String part,Long topic,int page,int size,boolean publishedOnly,boolean exact) {
+        if (keyword != null && keyword.length() > 200) throw new LearningException(LearningException.Kind.INVALID,"Từ khóa tối đa 200 ký tự.");
+        return repository.searchPage(keyword,publishedOnly ? VocabularyStatus.PUBLISHED : status,level,part,topic,page,size,exact)
+                .map(w -> publishedOnly ? VocabularyWordResponseMapper.toPublishedResponse(w) : VocabularyWordResponseMapper.toResponse(w));
+    }
+    public java.util.Map<String,Object> filters() {
+        return java.util.Map.of("levels",jdbc.queryForList("SELECT DISTINCT cefr_level FROM vocabularies WHERE status='PUBLISHED' AND cefr_level IS NOT NULL ORDER BY cefr_level",String.class),
+                "partsOfSpeech",jdbc.queryForList("SELECT DISTINCT part_of_speech FROM vocabularies WHERE status='PUBLISHED' ORDER BY part_of_speech",String.class),
+                "topics",topicRepository.findAll().stream().filter(t -> t.status() == VocabularyStatus.PUBLISHED).toList());
+    }
+    public java.util.Map<String,Object> links(Long id) {
+        var word = findWord(id);
+        if (word.status() != VocabularyStatus.PUBLISHED) throw LearningException.notFound("Vocabulary");
+        var family = words.findByWordIgnoreCaseAndStatusOrderByPartOfSpeechAscIdAsc(word.word(),VocabularyStatus.PUBLISHED).stream()
+                .filter(w -> !w.getId().equals(id)).map(w -> java.util.Map.of("id",w.getId(),"word",w.getWord(),"partOfSpeech",w.getPartOfSpeech())).toList();
+        var related = new java.util.ArrayList<java.util.Map<String,Object>>();
+        if (word.lexical() != null && word.lexical().relatedWords() != null) for (var relation : word.lexical().relatedWords()) {
+            var row = new java.util.LinkedHashMap<String,Object>(); row.put("word",relation.word()); row.put("kind",relation.kind()); row.put("sense",relation.sense());
+            var targets = words.findByWordIgnoreCaseAndStatusOrderByPartOfSpeechAscIdAsc(relation.word(),VocabularyStatus.PUBLISHED);
+            row.put("id",targets.isEmpty() ? null : targets.getFirst().getId()); related.add(row);
+        }
+        return java.util.Map.of("otherPartsOfSpeech",family,"relatedWords",related);
+    }
+    @Transactional public VocabularyWordResponse createDictionary(VocabularyWordRequest request,
+            com.sep490.backend.dto.model.DictionaryMetadata.Source source,com.sep490.backend.dto.model.DictionaryMetadata.Lexical lexical,String raw) {
+        var saved = create(request);
+        var entity = words.findById(saved.id()).orElseThrow();
+        entity.setSourceMetadata(com.sep490.backend.dto.model.DictionaryMetadata.encode(source));
+        entity.setLexicalData(com.sep490.backend.dto.model.DictionaryMetadata.encode(lexical)); entity.setSourceRaw(raw);
+        return VocabularyWordResponseMapper.toResponse(com.sep490.backend.mapper.VocabularyWordMapper.toDomain(words.saveAndFlush(entity)));
     }
 }

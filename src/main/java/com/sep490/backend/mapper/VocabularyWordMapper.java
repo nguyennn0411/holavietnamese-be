@@ -36,7 +36,9 @@ public final class VocabularyWordMapper {
                           .map(VocabularyMeaningMapper::toDomain)
                           .toList(),
                 entity.getCreatedAt(),
-                entity.getUpdatedAt()
+                entity.getUpdatedAt(),
+                com.sep490.backend.dto.model.DictionaryMetadata.decode(entity.getSourceMetadata(),com.sep490.backend.dto.model.DictionaryMetadata.Source.class),
+                com.sep490.backend.dto.model.DictionaryMetadata.decode(entity.getLexicalData(),com.sep490.backend.dto.model.DictionaryMetadata.Lexical.class)
         );
     }
 }

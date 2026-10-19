@@ -19,6 +19,13 @@ public record VocabularyWord(
         Set<VocabularyTopic> topics,
         List<VocabularyMeaning> meanings,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        DictionaryMetadata.Source source,
+        DictionaryMetadata.Lexical lexical
 ) {
+    public VocabularyWord(Long id,String word,String pronunciation,String partOfSpeech,String cefrLevel,String audioUrl,
+            VocabularyStatus status,Instant publishedAt,Instant archivedAt,Set<VocabularyTopic> topics,List<VocabularyMeaning> meanings,
+            Instant createdAt,Instant updatedAt) {
+        this(id,word,pronunciation,partOfSpeech,cefrLevel,audioUrl,status,publishedAt,archivedAt,topics,meanings,createdAt,updatedAt,null,null);
+    }
 }

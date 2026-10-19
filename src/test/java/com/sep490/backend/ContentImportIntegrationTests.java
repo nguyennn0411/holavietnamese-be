@@ -97,7 +97,7 @@ class ContentImportIntegrationTests {
     @Test void routesRequireAdminAndTemplateHasTheActualHeaderContract() throws Exception {
         preview(workbook(w -> {}),"valid.xlsx",learner).andExpect(status().isForbidden());
         mvc.perform(get("/api/admin/imports")).andExpect(status().isUnauthorized());
-        mvc.perform(get("/api/admin/imports/types").with(user(admin))).andExpect(jsonPath("$.result.length()").value(1)).andExpect(jsonPath("$.result[0].id").value("VOCABULARY"));
+        mvc.perform(get("/api/admin/imports/types").with(user(admin))).andExpect(jsonPath("$.result.length()").value(2)).andExpect(jsonPath("$.result[0].id").value("VOCABULARY"));
         var file = mvc.perform(get("/api/admin/imports/template").param("module","VOCABULARY").with(user(admin))).andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
         try (var book = new XSSFWorkbook(new ByteArrayInputStream(file))) { assertThat(book.getSheet("VOCABULARY").getRow(0).getCell(0).getStringCellValue()).isEqualTo("word"); }
         mvc.perform(get("/api/admin/imports/template").param("module","USER").with(user(admin))).andExpect(status().isBadRequest());
