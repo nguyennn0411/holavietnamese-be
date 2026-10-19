@@ -234,7 +234,7 @@ public class VocabularyWordService {
                         topicId
                 )
                 .stream()
-                .map(VocabularyWordResponseMapper::toResponse)
+                .map(VocabularyWordResponseMapper::toPublishedResponse)
                 .toList();
     }
 
@@ -247,6 +247,6 @@ public class VocabularyWordService {
                         LearningException.notFound("Vocabulary")
                 );
 
-        return VocabularyWordResponseMapper.toResponse(word);
+        return VocabularyWordResponseMapper.toPublishedResponse(word);
     }
 }
