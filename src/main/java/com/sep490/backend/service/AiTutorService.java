@@ -39,7 +39,7 @@ public class AiTutorService {
     private final AiReviewRepository reviewRepository;
     private final AiUsageLogRepository usageLogRepository;
     private final UserRepository userRepository;
-    private final GeminiApiClient geminiApiClient;
+    private final AiProviderService aiProviderService;
     private final ObjectMapper objectMapper;
     private final IntentClassifier intentClassifier;
 
@@ -201,7 +201,8 @@ public class AiTutorService {
         List<Map<String, Object>> multiTurnContents = buildMultiTurnContents(previousMessages, userText);
 
         // 3. Invoke Gemini with official systemInstruction & native multi-turn conversation memory
-        GeminiApiClient.GeminiResponse geminiRes = geminiApiClient.generateMultiTurn(systemPrompt, multiTurnContents, settings.getActiveModel());
+        GeminiApiClient.GeminiResponse geminiRes = aiProviderService.generateMultiTurn(
+                systemPrompt, multiTurnContents, settings.getActiveModel());
 
         AiMessage aiMessage;
         int tokensIn = 120;
@@ -295,7 +296,7 @@ public class AiTutorService {
     }
 
     private AiSetting getOrInitSettings() {
-        return settingRepository.findById(1L).orElseGet(() -> {
+        AiSetting settings = settingRepository.findById(1L).orElseGet(() -> {
             AiSetting def = AiSetting.builder()
                     .id(1L)
                     .activeModel("gemini-1.5-flash")
@@ -307,11 +308,15 @@ public class AiTutorService {
                     .monthlyBudgetCapUsd(new BigDecimal("150.00"))
                     .currentMonthSpendUsd(BigDecimal.ZERO)
                     .costAlertThresholdPercent(80)
-                    .apiKeyConfigured(geminiApiClient.isApiKeyAvailable())
+                    .apiKeyConfigured(aiProviderService.isApiKeyAvailable("gemini-1.5-flash"))
                     .enabledModes("tutor,grammar,translation,conversation,culture_guide,travel,regional")
                     .build();
             return settingRepository.save(def);
         });
+        if (settings.getApiKey() != null && !settings.getApiKey().isBlank()) {
+            aiProviderService.setRuntimeApiKey(settings.getActiveModel(), settings.getApiKey());
+        }
+        return settings;
     }
 
     private void logUsage(User user, String sessionId, String mode, int in, int out, int latency, int status, String err) {
@@ -333,10 +338,11 @@ public class AiTutorService {
 
     public Map<String, Object> getAiStatus() {
         AiSetting settings = getOrInitSettings();
-        boolean isConfigured = geminiApiClient.isApiKeyAvailable();
+        String activeModel = settings.getActiveModel() != null ? settings.getActiveModel() : "gemini-1.5-flash";
+        boolean isConfigured = aiProviderService.isApiKeyAvailable(activeModel);
         String rawKey = settings.getApiKey() != null && !settings.getApiKey().isBlank()
                 ? settings.getApiKey()
-                : geminiApiClient.getEffectiveApiKey();
+                : aiProviderService.getEffectiveApiKey(activeModel);
         String masked = (rawKey != null && rawKey.length() > 8)
                 ? rawKey.substring(0, 6) + "..." + rawKey.substring(rawKey.length() - 4)
                 : null;
@@ -360,7 +366,7 @@ public class AiTutorService {
         statusMap.put("apiKeyConfigured", isConfigured);
         statusMap.put("activeModel", settings.getActiveModel() != null ? settings.getActiveModel() : "gemini-1.5-flash");
         statusMap.put("apiKeyMasked", masked != null ? masked : "");
-        statusMap.put("provider", "Google Gemini");
+        statusMap.put("provider", aiProviderService.isOpenAiModel(activeModel) ? "OpenAI" : "Google Gemini");
         statusMap.put("dailySessionsRemaining", remaining);
         statusMap.put("dailySessionsCap", dailyCap);
         return statusMap;
@@ -368,18 +374,30 @@ public class AiTutorService {
 
     @Transactional
     public Map<String, Object> configureApiKey(String apiKey) {
+        return configureApiKey(apiKey, null);
+    }
+
+    @Transactional
+    public Map<String, Object> configureApiKey(String apiKey, String requestedModel) {
         if (apiKey == null || apiKey.trim().isEmpty()) {
             throw new IllegalArgumentException("API Key không được để trống.");
         }
-        String cleanKey = apiKey.trim();
-        boolean isValid = geminiApiClient.testApiKey(cleanKey);
-
         AiSetting setting = getOrInitSettings();
+        String cleanKey = apiKey.trim();
+        if (requestedModel != null && !requestedModel.isBlank()) {
+            if (!aiProviderService.isOpenAiModel(requestedModel)
+                    && !requestedModel.toLowerCase().startsWith("gemini-")) {
+                throw new IllegalArgumentException("Model AI không được hỗ trợ.");
+            }
+            setting.setActiveModel(requestedModel.trim());
+        }
+        String activeModel = setting.getActiveModel();
+        boolean isValid = aiProviderService.testApiKey(cleanKey, activeModel);
         setting.setApiKey(cleanKey);
         setting.setApiKeyConfigured(true);
         settingRepository.save(setting);
 
-        geminiApiClient.setRuntimeApiKey(cleanKey);
+        aiProviderService.setRuntimeApiKey(activeModel, cleanKey);
 
         String masked = cleanKey.length() > 8
                 ? cleanKey.substring(0, 6) + "..." + cleanKey.substring(cleanKey.length() - 4)
@@ -388,11 +406,12 @@ public class AiTutorService {
         Map<String, Object> res = new LinkedHashMap<>();
         res.put("success", true);
         res.put("isValidLive", isValid);
-        res.put("activeModel", setting.getActiveModel());
+        res.put("activeModel", activeModel);
+        res.put("provider", aiProviderService.isOpenAiModel(activeModel) ? "OpenAI" : "Google Gemini");
         res.put("apiKeyMasked", masked);
         res.put("message", isValid
-                ? "Đã kết nối thành công với Google Gemini API!"
-                : "Đã lưu API Key. Lưu ý: Thử nghiệm kết nối chưa phản hồi 200, vui lòng kiểm tra quota của Google Cloud.");
+                ? "Đã kết nối thành công với " + (aiProviderService.isOpenAiModel(activeModel) ? "OpenAI" : "Google Gemini") + " API!"
+                : "Đã lưu API Key. Lưu ý: Kiểm tra model, quota và quyền truy cập của nhà cung cấp.");
         return res;
     }
 

@@ -30,7 +30,7 @@ public class AdminAiService {
     private final AiSessionRepository sessionRepository;
     private final AiTutorService aiTutorService;
     private final AiRoleplayService aiRoleplayService;
-    private final GeminiApiClient geminiApiClient;
+    private final AiProviderService aiProviderService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -49,7 +49,7 @@ public class AdminAiService {
                     .monthlyBudgetCapUsd(new BigDecimal("150.00"))
                     .currentMonthSpendUsd(new BigDecimal("42.68"))
                     .costAlertThresholdPercent(80)
-                    .apiKeyConfigured(geminiApiClient.isApiKeyAvailable())
+                    .apiKeyConfigured(aiProviderService.isApiKeyAvailable("gemini-1.5-flash"))
                     .enabledModes("tutor,grammar,translation,conversation,culture_guide,travel,regional")
                     .build();
             return settingRepository.save(def);
@@ -90,11 +90,12 @@ public class AdminAiService {
         );
 
         String maskedKey = null;
-        String rawKey = setting.getApiKey() != null && !setting.getApiKey().isBlank() ? setting.getApiKey() : geminiApiClient.getEffectiveApiKey();
+        String rawKey = setting.getApiKey() != null && !setting.getApiKey().isBlank()
+                ? setting.getApiKey() : aiProviderService.getEffectiveApiKey(setting.getActiveModel());
         if (rawKey != null && rawKey.length() > 8) {
             maskedKey = rawKey.substring(0, 6) + "..." + rawKey.substring(rawKey.length() - 4);
             if (setting.getApiKey() != null && !setting.getApiKey().isBlank()) {
-                geminiApiClient.setRuntimeApiKey(setting.getApiKey());
+                aiProviderService.setRuntimeApiKey(setting.getActiveModel(), setting.getApiKey());
             }
         }
 
@@ -106,7 +107,7 @@ public class AdminAiService {
                 .limits(limits)
                 .security(security)
                 .enabledModes(enabledModes)
-                .apiKeyConfigured(geminiApiClient.isApiKeyAvailable())
+                .apiKeyConfigured(aiProviderService.isApiKeyAvailable(setting.getActiveModel()))
                 .apiKeyMasked(maskedKey)
                 .build();
     }
@@ -133,9 +134,9 @@ public class AdminAiService {
         }
         if (request.getApiKey() != null && !request.getApiKey().isBlank()) {
             setting.setApiKey(request.getApiKey().trim());
-            geminiApiClient.setRuntimeApiKey(request.getApiKey().trim());
+            aiProviderService.setRuntimeApiKey(request.getActiveModel(), request.getApiKey().trim());
         }
-        setting.setApiKeyConfigured(geminiApiClient.isApiKeyAvailable());
+        setting.setApiKeyConfigured(aiProviderService.isApiKeyAvailable(setting.getActiveModel()));
 
         settingRepository.save(setting);
         log.info("Admin updated AI settings: model={}, budgetCap={}", setting.getActiveModel(), setting.getMonthlyBudgetCapUsd());

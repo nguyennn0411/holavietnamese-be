@@ -30,9 +30,10 @@ public class AiRoleplayService {
     private final AiSessionRepository sessionRepository;
     private final AiMessageRepository messageRepository;
     private final AiUsageLogRepository usageLogRepository;
+    private final AiSettingRepository settingRepository;
     private final UserRepository userRepository;
     private final AiTutorService aiTutorService;
-    private final GeminiApiClient geminiApiClient;
+    private final AiProviderService aiProviderService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -157,10 +158,16 @@ public class AiRoleplayService {
                 %s
                 """.formatted(personaName, contextStory, tone, conversationHistory);
 
-        GeminiApiClient.GeminiResponse geminiRes = geminiApiClient.generateContent(
+        AiSetting aiSetting = settingRepository.findById(1L).orElse(null);
+        String activeModel = aiSetting != null && aiSetting.getActiveModel() != null
+                ? aiSetting.getActiveModel() : "gemini-1.5-flash";
+        if (aiSetting != null && aiSetting.getApiKey() != null && !aiSetting.getApiKey().isBlank()) {
+            aiProviderService.setRuntimeApiKey(activeModel, aiSetting.getApiKey());
+        }
+        GeminiApiClient.GeminiResponse geminiRes = aiProviderService.generateContent(
                 systemPrompt,
                 "Người học vừa nói: \"" + userText + "\". Hãy đáp lại tự nhiên theo đúng vai diễn và ngữ cảnh.",
-                "gemini-1.5-flash"
+                activeModel
         );
 
         String replyText;
