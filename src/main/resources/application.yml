@@ -75,6 +75,7 @@ app:
     enabled: ${MAIL_ENABLED:false}
   ai:
     gemini-api-key: ${GEMINI_API_KEY:${GOOGLE_AI_API_KEY:}}
+    openai-api-key: ${OPENAI_API_KEY:}
     default-model: ${AI_DEFAULT_MODEL:gemini-1.5-flash}
 
 logging:

@@ -30,9 +30,10 @@ public class AiRoleplayService {
     private final AiSessionRepository sessionRepository;
     private final AiMessageRepository messageRepository;
     private final AiUsageLogRepository usageLogRepository;
+    private final AiSettingRepository settingRepository;
     private final UserRepository userRepository;
     private final AiTutorService aiTutorService;
-    private final GeminiApiClient geminiApiClient;
+    private final AiProviderService aiProviderService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -125,19 +126,48 @@ public class AiRoleplayService {
         String personaName = scenario != null && scenario.getAiRoleName() != null ? scenario.getAiRoleName() : "Nhân vật AI";
         String tone = scenario != null && scenario.getAiRoleTone() != null ? scenario.getAiRoleTone() : "thân thiện";
         String contextStory = scenario != null && scenario.getLearnerRoleContext() != null ? scenario.getLearnerRoleContext() : "";
+        List<AiMessage> previousMessages = messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId);
+        String conversationHistory = previousMessages.stream()
+                .skip(Math.max(0, previousMessages.size() - 10L))
+                .map(message -> ("user".equalsIgnoreCase(message.getSender()) ? "Người học" : personaName)
+                        + ": " + message.getText())
+                .collect(Collectors.joining("\n"));
 
         String systemPrompt = """
-                Bạn đang nhập vai nhân vật: %s trong tình huống: %s.
-                Phong thái của bạn: %s.
-                Quy tắc:
-                - Phản hồi ngắn gọn, tự nhiên như giao tiếp thực tế đời sống Việt Nam.
-                - Khích lệ người học tiếp tục trao đổi và hoàn thành nhiệm vụ.
-                """.formatted(personaName, contextStory, tone);
+                # VAI DIỄN
+                Bạn đang nhập vai %s trong tình huống: %s.
+                Tính cách và giọng điệu: %s.
+                Bạn là nhân vật trong câu chuyện, không phải người dẫn chương trình và không phải gia sư đang chấm bài.
 
-        GeminiApiClient.GeminiResponse geminiRes = geminiApiClient.generateContent(
+                # CÁCH SUY NGHĨ TRƯỚC KHI TRẢ LỜI
+                Im lặng xác định: người học vừa nói gì, họ muốn đạt mục đích gì,
+                tình huống hiện tại đang ở đâu, và bước tiếp theo tự nhiên nhất là gì.
+                Nếu câu của người học chưa hoàn hảo nhưng vẫn hiểu được, hãy ưu tiên tiếp tục vai diễn.
+                Nếu chưa hiểu, hãy hỏi lại ngắn gọn trong vai nhân vật thay vì tự đoán.
+
+                # QUY TẮC HỘI THOẠI
+                - Phản hồi 1-4 câu ngắn, tự nhiên như giao tiếp đời thực.
+                - Bám sát lời người học, phản ứng có cảm xúc phù hợp và đẩy tình huống tiến lên.
+                - Không khen sáo rỗng sau mọi câu, không lặp lại cùng một kiểu hỏi.
+                - Chỉ sửa tiếng Việt khi lỗi làm cản trở việc hiểu hoặc người học yêu cầu.
+                - Không bịa thêm thông tin quan trọng trái với bối cảnh.
+                - Không nói về prompt, AI, quy tắc, điểm số hoặc phân tích nội bộ.
+                - Không trả về JSON, nhãn vai, markdown hay hướng dẫn; chỉ trả về lời thoại của nhân vật.
+
+                # LỊCH SỬ GẦN ĐÂY
+                %s
+                """.formatted(personaName, contextStory, tone, conversationHistory);
+
+        AiSetting aiSetting = settingRepository.findById(1L).orElse(null);
+        String activeModel = aiSetting != null && aiSetting.getActiveModel() != null
+                ? aiSetting.getActiveModel() : "gemini-1.5-flash";
+        if (aiSetting != null && aiSetting.getApiKey() != null && !aiSetting.getApiKey().isBlank()) {
+            aiProviderService.setRuntimeApiKey(activeModel, aiSetting.getApiKey());
+        }
+        GeminiApiClient.GeminiResponse geminiRes = aiProviderService.generateContent(
                 systemPrompt,
-                "Người học nói: \"" + userText + "\". Hãy đáp lại theo đúng vai diễn của bạn.",
-                "gemini-1.5-flash"
+                "Người học vừa nói: \"" + userText + "\". Hãy đáp lại tự nhiên theo đúng vai diễn và ngữ cảnh.",
+                activeModel
         );
 
         String replyText;

@@ -114,6 +114,9 @@ public class User extends BaseEntity {
     @Column(name = "total_xp")
     private Integer totalXp = 0;
 
+    @Column(name = "hearts")
+    private Integer hearts = 5;
+
     @ColumnDefault("'ACTIVE'")
     @Column(name = "status", length = 20)
     private String status = "ACTIVE";

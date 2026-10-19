@@ -13,6 +13,8 @@ import java.util.List;
 public class UserProgressResponse {
     private Integer streakCount;
     private Integer totalXp;
+    private Integer hearts;
+    private Boolean hasCheckedInToday;
     private Integer dailyGoalMinutes;
     private LocalDate lastActivityDate;
     private Integer completedLessonsCount;

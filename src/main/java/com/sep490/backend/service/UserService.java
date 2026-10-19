@@ -231,6 +231,7 @@ public class UserService {
                 .emailVerified(user.getEmailVerified())
                 .streakCount(user.getStreakCount())
                 .totalXp(user.getTotalXp())
+                .hearts(user.getHearts() != null ? user.getHearts() : 5)
                 .status(user.getStatus())
                 .roles(roleNames)
                 .createdAt(user.getCreatedAt())
