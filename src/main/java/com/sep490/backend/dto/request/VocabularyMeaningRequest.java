@@ -9,7 +9,6 @@ import java.util.List;
 
 public record VocabularyMeaningRequest(
 
-        @NotBlank
         @Size(max = 500)
         String translationEn,
 
@@ -21,6 +20,18 @@ public record VocabularyMeaningRequest(
         Integer displayOrder,
 
         @Valid
-        List<VocabularyExampleRequest> examples
+        List<@jakarta.validation.constraints.NotNull VocabularyExampleRequest> examples,
+
+        @Size(max = 10000) String definitionVi,
+        @Size(max = 100) List<@NotBlank @Size(max = 200) String> labels
 ) {
+    public VocabularyMeaningRequest(String translationEn,String definitionEn,String usageNote,Integer displayOrder,List<VocabularyExampleRequest> examples) {
+        this(translationEn,definitionEn,usageNote,displayOrder,examples,null,List.of());
+    }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @jakarta.validation.constraints.AssertTrue(message="Cần định nghĩa tiếng Việt hoặc nghĩa tiếng Anh.")
+    public boolean isContentPresent() {
+        return (translationEn != null && !translationEn.isBlank()) || (definitionVi != null && !definitionVi.isBlank())
+                || (definitionEn != null && !definitionEn.isBlank());
+    }
 }

@@ -2,6 +2,7 @@ package com.sep490.backend.dto.response;
 
 import com.sep490.backend.dto.model.VocabularyMeaning;
 import com.sep490.backend.dto.model.VocabularyTopic;
+import com.sep490.backend.dto.model.DictionaryMetadata;
 import com.sep490.backend.entity.enums.VocabularyStatus;
 
 import java.time.Instant;
@@ -21,6 +22,8 @@ public record VocabularyWordResponse(
         Set<VocabularyTopic> topics,
         List<VocabularyMeaning> meanings,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        DictionaryMetadata.Source source,
+        DictionaryMetadata.Lexical lexical
 ) {
 }

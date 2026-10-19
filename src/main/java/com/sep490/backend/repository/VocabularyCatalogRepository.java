@@ -56,6 +56,7 @@ public class VocabularyCatalogRepository {
         }
 
         entity.setWord(word.word());
+        entity.setSearchWord(com.sep490.backend.service.VocabularyText.searchKey(word.word()));
         entity.setPronunciation(word.pronunciation());
         entity.setPartOfSpeech(word.partOfSpeech());
         entity.setCefrLevel(word.cefrLevel());
@@ -112,6 +113,8 @@ public class VocabularyCatalogRepository {
 
             meaningEntity.setVocabulary(entity);
             meaningEntity.setTranslationEn(meaning.translationEn());
+            meaningEntity.setDefinitionVi(meaning.definitionVi());
+            meaningEntity.setLabels(com.sep490.backend.dto.model.DictionaryMetadata.encode(meaning.labels()));
             meaningEntity.setDefinitionEn(meaning.definitionEn());
             meaningEntity.setUsageNote(meaning.usageNote());
             meaningEntity.setDisplayOrder(meaning.displayOrder());
@@ -148,15 +151,14 @@ public class VocabularyCatalogRepository {
                     List<Predicate> predicates = new ArrayList<>();
 
                     if (keyword != null && !keyword.isBlank()) {
-                        String normalizedKeyword =
-                                "%" + keyword.trim().toLowerCase(Locale.ROOT) + "%";
-
-                        predicates.add(
-                                criteriaBuilder.like(
-                                        criteriaBuilder.lower(root.get("word")),
-                                        normalizedKeyword
-                                )
-                        );
+                        String normalizedKeyword = keyword.trim().toLowerCase(Locale.ROOT);
+                        query.distinct(true);
+                        var meaning = root.join("meanings", JoinType.LEFT);
+                        predicates.add(criteriaBuilder.or(
+                                criteriaBuilder.greaterThan(criteriaBuilder.locate(
+                                        criteriaBuilder.lower(root.get("word")), normalizedKeyword), 0),
+                                criteriaBuilder.greaterThan(criteriaBuilder.locate(
+                                        criteriaBuilder.lower(meaning.get("translationEn")), normalizedKeyword), 0)));
                     }
 
                     if (status != null) {
@@ -205,13 +207,48 @@ public class VocabularyCatalogRepository {
 
         return repository.findAll(
                         specification,
-                        Sort.by(
+                        org.springframework.data.domain.PageRequest.of(0,500,Sort.by(
                                 Sort.Order.asc("word"),
                                 Sort.Order.asc("id")
-                        )
+                        ))
                 )
+                .getContent()
                 .stream()
                 .map(VocabularyWordMapper::toDomain)
                 .toList();
+    }
+
+    public org.springframework.data.domain.Page<VocabularyWord> searchPage(String keyword,VocabularyStatus status,
+            String level,String part,Long topic,int page,int size,boolean exact) {
+        String text = keyword == null ? "" : com.sep490.backend.service.VocabularyText.normalize(keyword).toLowerCase(Locale.ROOT);
+        String folded = com.sep490.backend.service.VocabularyText.searchKey(text);
+        Specification<VocabularyWordJpaEntity> spec = (root,query,cb) -> {
+            var predicates = new ArrayList<Predicate>();
+            if (status != null) predicates.add(cb.equal(root.get("status"),status));
+            if (level != null && !level.isBlank()) predicates.add(cb.equal(cb.lower(root.get("cefrLevel")),level.toLowerCase(Locale.ROOT)));
+            if (part != null && !part.isBlank()) predicates.add(cb.equal(cb.lower(root.get("partOfSpeech")),part.toLowerCase(Locale.ROOT)));
+            if (topic != null) predicates.add(cb.equal(root.join("topics").get("id"),topic));
+            if (!text.isEmpty()) {
+                if (exact) predicates.add(cb.equal(cb.lower(root.get("word")),text));
+                else {
+                    var senses = query.subquery(Integer.class);
+                    var meaning = senses.from(VocabularyMeaningJpaEntity.class);
+                    senses.select(cb.literal(1)).where(cb.equal(meaning.get("vocabulary"),root),cb.or(
+                            cb.gt(cb.locate(cb.lower(meaning.get("translationEn")),text),0),
+                            cb.gt(cb.locate(cb.lower(meaning.get("definitionEn")),text),0),
+                            cb.gt(cb.locate(cb.lower(meaning.get("definitionVi")),text),0)));
+                    predicates.add(cb.or(cb.gt(cb.locate(cb.lower(root.get("word")),text),0),
+                            cb.gt(cb.locate(root.get("searchWord"),folded),0),cb.exists(senses)));
+                }
+            }
+            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
+                var rank = cb.<Integer>selectCase().when(cb.equal(cb.lower(root.get("word")),text),0)
+                        .when(cb.equal(root.get("searchWord"),folded),1).otherwise(2);
+                query.orderBy(cb.asc(rank),cb.asc(root.get("word")),cb.asc(root.get("partOfSpeech")),cb.asc(root.get("id")));
+            }
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+        return repository.findAll(spec,org.springframework.data.domain.PageRequest.of(Math.max(0,page),Math.max(1,Math.min(size,100))))
+                .map(VocabularyWordMapper::toDomain);
     }
 }

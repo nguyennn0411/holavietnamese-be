@@ -58,6 +58,9 @@ public class AiSetting {
     @Builder.Default
     private Integer costAlertThresholdPercent = 80;
 
+    @Column(name = "api_key", length = 255)
+    private String apiKey;
+
     @Column(name = "api_key_configured", nullable = false)
     @Builder.Default
     private Boolean apiKeyConfigured = false;

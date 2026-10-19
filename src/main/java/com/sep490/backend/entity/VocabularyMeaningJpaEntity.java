@@ -44,8 +44,11 @@ public class VocabularyMeaningJpaEntity {
     )
     private VocabularyWordJpaEntity vocabulary;
 
-    @Column(name = "translation_en", nullable = false, length = 500)
+    @Column(name = "translation_en", length = 500)
     private String translationEn;
+
+    @Column(name = "definition_vi", columnDefinition = "TEXT") private String definitionVi;
+    @Column(name = "labels", columnDefinition = "LONGTEXT") private String labels;
 
     @Column(name = "definition_en", columnDefinition = "TEXT")
     private String definitionEn;

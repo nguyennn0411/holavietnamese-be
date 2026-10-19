@@ -46,4 +46,5 @@ public class AiSettingUpdateRequest {
     private Integer costAlertThresholdPercent;
 
     private String enabledModes;
+    private String apiKey;
 }

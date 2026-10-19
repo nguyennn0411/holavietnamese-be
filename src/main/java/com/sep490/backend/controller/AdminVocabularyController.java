@@ -21,6 +21,13 @@ public class AdminVocabularyController {
 
     private final VocabularyWordService service;
 
+    @GetMapping("/search") public ApiResponse<org.springframework.data.domain.Page<VocabularyWordResponse>> page(
+            @RequestParam(required=false) String keyword,@RequestParam(required=false) VocabularyStatus status,
+            @RequestParam(required=false) String cefrLevel,@RequestParam(required=false) String partOfSpeech,@RequestParam(required=false) Long topicId,
+            @RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size) {
+        return ApiResponse.success(service.searchPage(keyword,status,cefrLevel,partOfSpeech,topicId,page,size,false,false));
+    }
+
     @GetMapping
     public ApiResponse<List<VocabularyWordResponse>> search(
             @RequestParam(required = false) String keyword,

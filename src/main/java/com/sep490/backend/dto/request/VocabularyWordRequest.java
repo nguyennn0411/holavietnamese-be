@@ -22,8 +22,8 @@ public record VocabularyWordRequest(
         @Size(max = 40)
         String partOfSpeech,
 
-        @NotBlank
         @Size(max = 10)
+        @jakarta.validation.constraints.Pattern(regexp="A1|A2|B1|B2|C1|C2|",message="CEFR phải là A1–C2 hoặc để trống khi chưa phân loại.")
         String cefrLevel,
 
         @Size(max = 2048)
@@ -31,10 +31,10 @@ public record VocabularyWordRequest(
 
         VocabularyStatus status,
 
-        Set<Long> topicIds,
+        Set<@jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Positive Long> topicIds,
 
         @Valid
         @NotEmpty
-        List<VocabularyMeaningRequest> meanings
+        List<@jakarta.validation.constraints.NotNull VocabularyMeaningRequest> meanings
 ) {
 }

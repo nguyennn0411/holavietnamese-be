@@ -22,4 +22,5 @@ public class AiSettingResponse {
     private Map<String, Object> security;
     private List<String> enabledModes;
     private Boolean apiKeyConfigured;
+    private String apiKeyMasked;
 }
