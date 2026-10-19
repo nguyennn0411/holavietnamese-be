@@ -92,9 +92,12 @@ public class UserProgressService {
                         .build())
                 .collect(Collectors.toList());
 
+        boolean checkedInToday = user.getLastActivityDate() != null && LocalDate.now().equals(user.getLastActivityDate());
         return UserProgressResponse.builder()
                 .streakCount(user.getStreakCount() != null ? user.getStreakCount() : 0)
                 .totalXp(user.getTotalXp() != null ? user.getTotalXp() : 0)
+                .hearts(user.getHearts() != null ? user.getHearts() : 5)
+                .hasCheckedInToday(checkedInToday)
                 .dailyGoalMinutes(user.getDailyLearningGoalMinutes() != null ? user.getDailyLearningGoalMinutes() : 15)
                 .lastActivityDate(user.getLastActivityDate())
                 .completedLessonsCount(enrollmentRepository.completedLessonsByUser(user.getId()))
@@ -166,6 +169,7 @@ public class UserProgressService {
                 .emailVerified(user.getEmailVerified())
                 .streakCount(user.getStreakCount())
                 .totalXp(user.getTotalXp())
+                .hearts(user.getHearts() != null ? user.getHearts() : 5)
                 .status(user.getStatus())
                 .roles(user.getRoles().stream().map(r -> r.getName()).collect(Collectors.toSet()))
                 .build();

@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AiSessionCreateRequest {
+    private String id; // optional client-provided session id for seamless offline/online sync
+
     @NotBlank(message = "Mode is required")
     private String mode; // tutor, grammar, translation, conversation, culture_guide, travel, regional
 

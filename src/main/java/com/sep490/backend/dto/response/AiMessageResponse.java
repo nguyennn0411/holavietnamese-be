@@ -23,5 +23,6 @@ public class AiMessageResponse {
     private String culturalNote;
     private String grammarCorrection;
     private String feedbackJson;
+    private java.util.List<java.util.Map<String, String>> savedWords;
     private LocalDateTime timestamp;
 }

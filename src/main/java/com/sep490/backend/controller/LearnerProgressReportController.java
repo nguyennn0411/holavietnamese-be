@@ -39,9 +39,10 @@ public class LearnerProgressReportController {
                 SELECT lp.id, lp.lesson_id, l.title, l.title_vi, c.id AS course_id, c.title AS course_title,
                        lp.status, lp.started_at, lp.completed_at
                 FROM lesson_progress lp
+                JOIN enrollments e ON e.id = lp.enrollment_id
                 JOIN lessons l ON l.id = lp.lesson_id
                 JOIN courses c ON c.id = l.course_id
-                WHERE lp.user_id = ?
+                WHERE e.user_id = ?
                 ORDER BY COALESCE(lp.completed_at, lp.started_at) DESC
                 LIMIT 100
                 """;
