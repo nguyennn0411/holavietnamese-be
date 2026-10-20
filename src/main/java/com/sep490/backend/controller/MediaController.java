@@ -14,6 +14,35 @@ public class MediaController {
 
     private final CloudinarySignatureService cloudinarySignatureService;
 
+    @PostMapping("/courses/cover/signature")
+    @PreAuthorize("hasAnyRole('ADMIN','CONTENT_MANAGER')")
+    public ApiResponse<CloudinaryUploadSignatureResponse> createCourseCoverUploadSignature() {
+        return ApiResponse.<CloudinaryUploadSignatureResponse>builder()
+                .code(1000)
+                .result(cloudinarySignatureService.createCourseCoverSignature())
+                .build();
+    }
+
+    @PostMapping("/lessons/signature")
+    @PreAuthorize("hasAnyRole('ADMIN','CONTENT_MANAGER')")
+    public ApiResponse<CloudinaryUploadSignatureResponse> createLessonMediaUploadSignature(
+            @RequestParam String type) {
+        return ApiResponse.<CloudinaryUploadSignatureResponse>builder()
+                .code(1000)
+                .result(cloudinarySignatureService.createLessonMediaSignature(type))
+                .build();
+    }
+
+    @PostMapping("/questions/signature")
+    @PreAuthorize("hasAnyRole('ADMIN','CONTENT_MANAGER')")
+    public ApiResponse<CloudinaryUploadSignatureResponse> createQuestionMediaUploadSignature(
+            @RequestParam String type) {
+        return ApiResponse.<CloudinaryUploadSignatureResponse>builder()
+                .code(1000)
+                .result(cloudinarySignatureService.createQuestionMediaSignature(type))
+                .build();
+    }
+
     /**
      * Tạo signature upload audio lên Cloudinary (lưu vào folder riêng: hola-vietnamese/audio).
      * POST /api/media/audio/signature?prefix=vocab-lesson1

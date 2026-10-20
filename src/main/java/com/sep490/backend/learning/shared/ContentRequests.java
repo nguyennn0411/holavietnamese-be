@@ -68,6 +68,12 @@ public final class ContentRequests {
 
   public record Status(@NotBlank String status) {}
 
+  public record FinalAssessment(@NotNull Long quizId) {}
+
+  public record CourseReview(
+      @NotBlank @Pattern(regexp = "APPROVE|REJECT") String decision,
+      @Size(max = 2000) String note) {}
+
   public record Reorder(@NotNull List<@NotNull Long> ids) {}
 
   public record Example(

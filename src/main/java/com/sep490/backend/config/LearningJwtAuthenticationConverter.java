@@ -22,7 +22,10 @@ public class LearningJwtAuthenticationConverter implements Converter<Jwt, Abstra
         if (!user.isEnabled() || !"ACTIVE".equals(user.getStatus())) throw new DisabledException("Account is disabled.");
         boolean admin=user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()))
             || (user.getRoles().isEmpty() && "ADMIN".equals(user.getRole()));
-        return new LearnerPrincipal(user.getId(),user.getEmail(),user.getPasswordHash(),true,admin?"ADMIN":"LEARNER");
+        boolean contentManager=user.getRoles().stream().anyMatch(role -> "CONTENT_MANAGER".equals(role.getName()))
+            || (user.getRoles().isEmpty() && "CONTENT_MANAGER".equals(user.getRole()));
+        String effectiveRole=admin?"ADMIN":contentManager?"CONTENT_MANAGER":"LEARNER";
+        return new LearnerPrincipal(user.getId(),user.getEmail(),user.getPasswordHash(),true,effectiveRole);
     }
     @Override public AbstractAuthenticationToken convert(Jwt jwt) {
         var principal=loadUserByUsername(jwt.getSubject());

@@ -5,9 +5,11 @@ try {
     if (-not (Test-Path -LiteralPath '.env.mysql')) {
         $appPassword = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(24))
         $rootPassword = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(24))
+        $jwtSecret = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
         $settings = (Get-Content -LiteralPath '.env.mysql.example' -Raw).
             Replace('replace-with-your-app-password', $appPassword).
-            Replace('replace-with-a-different-root-password', $rootPassword)
+            Replace('replace-with-a-different-root-password', $rootPassword).
+            Replace('replace-with-random-jwt-key', $jwtSecret)
         Set-Content -LiteralPath '.env.mysql' -Value $settings -Encoding utf8NoBOM
         Write-Host 'Created .env.mysql with generated local passwords.'
     }

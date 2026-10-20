@@ -71,6 +71,81 @@ public class CloudinarySignatureService {
                 .build();
     }
 
+    public CloudinaryUploadSignatureResponse createCourseCoverSignature() {
+        ensureConfigured();
+
+        long timestamp = Instant.now().getEpochSecond();
+        String folder = normalizeFolder(properties.getCourseCoverFolder());
+        String publicId = "course-cover-" + UUID.randomUUID();
+        String signaturePayload = "folder=" + folder
+                + "&public_id=" + publicId
+                + "&timestamp=" + timestamp
+                + properties.getApiSecret();
+
+        return CloudinaryUploadSignatureResponse.builder()
+                .cloudName(properties.getCloudName())
+                .apiKey(properties.getApiKey())
+                .uploadUrl("https://api.cloudinary.com/v1_1/" + properties.getCloudName() + "/image/upload")
+                .folder(folder)
+                .publicId(publicId)
+                .timestamp(timestamp)
+                .signature(sha1(signaturePayload))
+                .build();
+    }
+
+    public CloudinaryUploadSignatureResponse createLessonMediaSignature(String type) {
+        ensureConfigured();
+        if (!"image".equals(type) && !"video".equals(type)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported lesson media type.");
+        }
+
+        long timestamp = Instant.now().getEpochSecond();
+        String folder = normalizeFolder("image".equals(type)
+                ? properties.getLessonImageFolder() : properties.getLessonVideoFolder());
+        String publicId = "lesson-" + type + "-" + UUID.randomUUID();
+        String signaturePayload = "folder=" + folder
+                + "&public_id=" + publicId
+                + "&timestamp=" + timestamp
+                + properties.getApiSecret();
+
+        return CloudinaryUploadSignatureResponse.builder()
+                .cloudName(properties.getCloudName())
+                .apiKey(properties.getApiKey())
+                .uploadUrl("https://api.cloudinary.com/v1_1/" + properties.getCloudName() + "/" + type + "/upload")
+                .folder(folder)
+                .publicId(publicId)
+                .timestamp(timestamp)
+                .signature(sha1(signaturePayload))
+                .build();
+    }
+
+    public CloudinaryUploadSignatureResponse createQuestionMediaSignature(String type) {
+        ensureConfigured();
+        if (!"image".equals(type) && !"audio".equals(type)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported question media type.");
+        }
+
+        long timestamp = Instant.now().getEpochSecond();
+        String folder = normalizeFolder("image".equals(type)
+                ? properties.getQuestionImageFolder() : properties.getQuestionAudioFolder());
+        String publicId = "question-" + type + "-" + UUID.randomUUID();
+        String signaturePayload = "folder=" + folder
+                + "&public_id=" + publicId
+                + "&timestamp=" + timestamp
+                + properties.getApiSecret();
+
+        return CloudinaryUploadSignatureResponse.builder()
+                .cloudName(properties.getCloudName())
+                .apiKey(properties.getApiKey())
+                .uploadUrl("https://api.cloudinary.com/v1_1/" + properties.getCloudName()
+                        + ("image".equals(type) ? "/image/upload" : "/video/upload"))
+                .folder(folder)
+                .publicId(publicId)
+                .timestamp(timestamp)
+                .signature(sha1(signaturePayload))
+                .build();
+    }
+
     public boolean isAllowedAvatarUrl(String avatarUrl) {
         ensureConfigured();
         if (avatarUrl == null || avatarUrl.isBlank()) {

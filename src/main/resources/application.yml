@@ -1,6 +1,6 @@
 spring:
   config:
-    import: "optional:file:./.env[.properties],optional:file:./.env.mysql[.properties]"
+    import: "optional:file:./.env[.properties],optional:file:./.env.mysql[.properties],optional:file:./.env.cloudinary[.properties]"
 
   application:
     name: holavietnamese-be
@@ -68,6 +68,11 @@ cloudinary:
   api-secret: ${CLOUDINARY_API_SECRET:}
   avatar-folder: ${CLOUDINARY_AVATAR_FOLDER:hola-vietnamese/avatars}
   audio-folder: ${CLOUDINARY_AUDIO_FOLDER:hola-vietnamese/audio}
+  course-cover-folder: ${CLOUDINARY_COURSE_COVER_FOLDER:hola-vietnamese/courses/covers}
+  lesson-image-folder: ${CLOUDINARY_LESSON_IMAGE_FOLDER:hola-vietnamese/lessons/images}
+  lesson-video-folder: ${CLOUDINARY_LESSON_VIDEO_FOLDER:hola-vietnamese/lessons/videos}
+  question-image-folder: ${CLOUDINARY_QUESTION_IMAGE_FOLDER:hola-vietnamese/questions/images}
+  question-audio-folder: ${CLOUDINARY_QUESTION_AUDIO_FOLDER:hola-vietnamese/questions/audio}
 
 app:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
