@@ -85,6 +85,8 @@ Ba bản AI trùng (`V13__align_ai_schema`, `V16__ai_tutor_and_roleplay`, `V17__
 
 Khi ghép sang máy khác, đối chiếu lịch sử Flyway của database đó trước khi dùng thứ tự này. Nếu máy đó đã chạy migration từ nhánh backup với số cũ, không đổi tên file đã chạy hoặc dùng Repair tự động.
 
+Commit AI Tutor mới trên remote bổ sung `context_summary` cho `ai_sessions`. Thay đổi chưa chạy này dùng **V26** để giữ nguyên V1–V25 đã có. Các bản hearts/API key được giữ ở V19/V21 theo lịch sử MySQL cục bộ. `FlywayConfig` sử dụng migrate với validation mặc định, không tự Repair khi khởi động.
+
 ## Kết quả kiểm tra
 
 - Backend đã khởi động với MySQL hiện tại; Flyway validation qua 25 migration và áp dụng thành công 9 migration mới.

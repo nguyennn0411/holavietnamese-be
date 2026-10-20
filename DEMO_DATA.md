@@ -20,6 +20,8 @@ Bộ nạp bật các course A1, nền tảng, phát âm, chương 1–3, TV123,
 
 Khóa liên kết có mã `DEMO-VIETNAM-LINKS`, gồm 6 bài, 18 từ và 7 quiz. Xem [kịch bản tích hợp](INTEGRATION_DEMO.md), [TV123](TV123_COURSES.md) và [gói LMS](TV123_PACKAGE_COURSES.md).
 
+Đã kiểm chứng lệnh bật toàn bộ seed trên MySQL tạm với V1–V26: nạp thành công **16 khóa đã xuất bản, 290 bài học, 18 từ dùng chung và 3 chặng hành trình**. ID giữa các máy có thể khác nhau. Các bản nháp tạo thử riêng trên database của người biên soạn không nằm trong bộ demo này.
+
 Các tài khoản mẫu chỉ được tạo với profile `dev-demo`: `admin / admin123`, `contentmanager / contentmanager123`, `learner / learner123`. Khóa Cloudinary, SMTP, AI và cấu hình riêng phải đặt trong `.env.mysql` hoặc `.env.cloudinary` cục bộ; file mẫu để trống các khóa dịch vụ.
 
 ## Phạm vi dữ liệu được chia sẻ

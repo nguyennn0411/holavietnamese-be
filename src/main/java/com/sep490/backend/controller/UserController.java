@@ -78,6 +78,14 @@ public class UserController {
                 .build();
     }
 
+    @GetMapping("/settings")
+    public ApiResponse<UserResponse> getSettings() {
+        UserResponse response = userService.getMyProfile();
+        return ApiResponse.<UserResponse>builder()
+                .result(response)
+                .build();
+    }
+
     @PutMapping("/settings")
     public ApiResponse<UserResponse> updateSettings(@RequestBody UserSettingsRequest request) {
         UserResponse response = userProgressService.updateUserSettings(request);
