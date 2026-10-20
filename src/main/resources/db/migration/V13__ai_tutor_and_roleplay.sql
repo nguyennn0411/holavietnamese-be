@@ -1,4 +1,4 @@
--- Flyway Migration V12: AI Tutor and Roleplay
+-- Flyway Migration V13: AI Tutor and Roleplay
 -- Maps to UC-099 .. UC-108 in Report 3 (AI Tutor & Roleplay)
 
 CREATE TABLE IF NOT EXISTS ai_settings (
@@ -213,3 +213,4 @@ INSERT INTO ai_scenarios (
     'ACTIVE'
 )
 ON DUPLICATE KEY UPDATE title = VALUES(title);
+

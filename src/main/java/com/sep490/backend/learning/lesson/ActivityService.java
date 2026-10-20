@@ -49,8 +49,9 @@ public class ActivityService {
             ? "Lessons"
             : db.one("SELECT title_en AS title FROM course_units WHERE id=?", l.get("unitId"))
                 .get("title"));
-    var course = db.one("SELECT title,title_vi FROM courses WHERE id=?",l.get("courseId"));
+    var course = db.one("SELECT title,title_vi,status FROM courses WHERE id=?",l.get("courseId"));
     l.put("courseTitleVi",course.get("titleVi")); l.put("courseTitleEn",course.get("titleEn"));
+    l.put("courseStatus",course.get("status"));
     var module = l.get("unitId")==null ? Map.<String,Object>of("titleVi","Bài học","titleEn","Lessons")
         : db.one("SELECT title_vi,title_en FROM course_units WHERE id=?",l.get("unitId"));
     l.put("moduleTitleVi",module.get("titleVi")); l.put("moduleTitleEn",module.get("titleEn"));
@@ -128,6 +129,19 @@ public class ActivityService {
         var out=items.addObject();
         for (String k : List.of("wordVi","meaningEn","pronunciation","wordType","exampleVi","exampleEn","audioUrl","imageUrl"))
           if(item.has(k) && item.get(k).isValueNode()) out.set(k,item.get(k));
+        if (item.path("masterVocabularyId").isIntegralNumber() && item.path("masterVocabularyId").asLong() > 0)
+          out.put("masterVocabularyId", item.path("masterVocabularyId").asLong());
+      }
+    }
+    if (original.path("illustrations").isArray()) {
+      var illustrations = safe.putArray("illustrations");
+      for (var illustration : original.path("illustrations")) {
+        var out = illustrations.addObject();
+        for (String k : List.of("imageUrl", "captionVi", "captionEn"))
+          if (illustration.has(k) && illustration.get(k).isValueNode())
+            out.set(k, illustration.get(k));
+        if (illustration.path("sourcePage").isIntegralNumber())
+          out.put("sourcePage", illustration.path("sourcePage").asInt());
       }
     }
     if (original.has("options"))

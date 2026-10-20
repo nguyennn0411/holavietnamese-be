@@ -346,119 +346,148 @@
                 "items": [
                   {
                     "wordVi": "a",
-                    "meaningEn": "A"
+                    "meaningEn": "A",
+                    "audioUrl": "/media/pronunciation/sound-5.wav"
                   },
                   {
                     "wordVi": "ă",
-                    "meaningEn": "Ă"
+                    "meaningEn": "Ă",
+                    "audioUrl": "/media/pronunciation/sound-6.wav"
                   },
                   {
                     "wordVi": "â",
-                    "meaningEn": "Â"
+                    "meaningEn": "Â",
+                    "audioUrl": "/media/pronunciation/sound-7.wav"
                   },
                   {
                     "wordVi": "b",
-                    "meaningEn": "B"
+                    "meaningEn": "B",
+                    "audioUrl": "/media/pronunciation/sound-142.wav"
                   },
                   {
                     "wordVi": "c",
-                    "meaningEn": "C"
+                    "meaningEn": "C",
+                    "audioUrl": "/media/pronunciation/sound-143.wav"
                   },
                   {
                     "wordVi": "d",
-                    "meaningEn": "D"
+                    "meaningEn": "D",
+                    "audioUrl": "/media/pronunciation/sound-144.wav"
                   },
                   {
                     "wordVi": "đ",
-                    "meaningEn": "Đ"
+                    "meaningEn": "Đ",
+                    "audioUrl": "/media/pronunciation/sound-8.wav"
                   },
                   {
                     "wordVi": "e",
-                    "meaningEn": "E"
+                    "meaningEn": "E",
+                    "audioUrl": "/media/pronunciation/sound-145.wav"
                   },
                   {
                     "wordVi": "ê",
-                    "meaningEn": "Ê"
+                    "meaningEn": "Ê",
+                    "audioUrl": "/media/pronunciation/sound-146.wav"
                   },
                   {
                     "wordVi": "g",
-                    "meaningEn": "G"
+                    "meaningEn": "G",
+                    "audioUrl": "/media/pronunciation/sound-147.wav"
                   },
                   {
                     "wordVi": "h",
-                    "meaningEn": "H"
+                    "meaningEn": "H",
+                    "audioUrl": "/media/pronunciation/sound-148.wav"
                   },
                   {
                     "wordVi": "i",
-                    "meaningEn": "I"
+                    "meaningEn": "I",
+                    "audioUrl": "/media/pronunciation/sound-149.wav"
                   },
                   {
                     "wordVi": "k",
-                    "meaningEn": "K"
+                    "meaningEn": "K",
+                    "audioUrl": "/media/pronunciation/sound-150.wav"
                   },
                   {
                     "wordVi": "l",
-                    "meaningEn": "L"
+                    "meaningEn": "L",
+                    "audioUrl": "/media/pronunciation/sound-151.wav"
                   },
                   {
                     "wordVi": "m",
-                    "meaningEn": "M"
+                    "meaningEn": "M",
+                    "audioUrl": "/media/pronunciation/sound-152.wav"
                   },
                   {
                     "wordVi": "n",
-                    "meaningEn": "N"
+                    "meaningEn": "N",
+                    "audioUrl": "/media/pronunciation/sound-153.wav"
                   },
                   {
                     "wordVi": "o",
-                    "meaningEn": "O"
+                    "meaningEn": "O",
+                    "audioUrl": "/media/pronunciation/sound-154.wav"
                   },
                   {
                     "wordVi": "ô",
-                    "meaningEn": "Ô"
+                    "meaningEn": "Ô",
+                    "audioUrl": "/media/pronunciation/sound-155.wav"
                   },
                   {
                     "wordVi": "ơ",
-                    "meaningEn": "Ơ"
+                    "meaningEn": "Ơ",
+                    "audioUrl": "/media/pronunciation/sound-14.wav"
                   },
                   {
                     "wordVi": "p",
-                    "meaningEn": "P"
+                    "meaningEn": "P",
+                    "audioUrl": "/media/pronunciation/sound-156.wav"
                   },
                   {
                     "wordVi": "q",
-                    "meaningEn": "Q"
+                    "meaningEn": "Q",
+                    "audioUrl": "/media/pronunciation/sound-157.wav"
                   },
                   {
                     "wordVi": "r",
-                    "meaningEn": "R"
+                    "meaningEn": "R",
+                    "audioUrl": "/media/pronunciation/sound-158.wav"
                   },
                   {
                     "wordVi": "s",
-                    "meaningEn": "S"
+                    "meaningEn": "S",
+                    "audioUrl": "/media/pronunciation/sound-159.wav"
                   },
                   {
                     "wordVi": "t",
-                    "meaningEn": "T"
+                    "meaningEn": "T",
+                    "audioUrl": "/media/pronunciation/sound-160.wav"
                   },
                   {
                     "wordVi": "u",
-                    "meaningEn": "U"
+                    "meaningEn": "U",
+                    "audioUrl": "/media/pronunciation/sound-161.wav"
                   },
                   {
                     "wordVi": "ư",
-                    "meaningEn": "Ư"
+                    "meaningEn": "Ư",
+                    "audioUrl": "/media/pronunciation/sound-15.wav"
                   },
                   {
                     "wordVi": "v",
-                    "meaningEn": "V"
+                    "meaningEn": "V",
+                    "audioUrl": "/media/pronunciation/sound-162.wav"
                   },
                   {
                     "wordVi": "x",
-                    "meaningEn": "X"
+                    "meaningEn": "X",
+                    "audioUrl": "/media/pronunciation/sound-163.wav"
                   },
                   {
                     "wordVi": "y",
-                    "meaningEn": "Y"
+                    "meaningEn": "Y",
+                    "audioUrl": "/media/pronunciation/sound-164.wav"
                   }
                 ]
               }
@@ -1061,119 +1090,148 @@
                 "items": [
                   {
                     "wordVi": "a",
-                    "meaningEn": "A"
+                    "meaningEn": "A",
+                    "audioUrl": "/media/pronunciation/sound-5.wav"
                   },
                   {
                     "wordVi": "ă",
-                    "meaningEn": "Ă"
+                    "meaningEn": "Ă",
+                    "audioUrl": "/media/pronunciation/sound-6.wav"
                   },
                   {
                     "wordVi": "â",
-                    "meaningEn": "Â"
+                    "meaningEn": "Â",
+                    "audioUrl": "/media/pronunciation/sound-7.wav"
                   },
                   {
                     "wordVi": "b",
-                    "meaningEn": "B"
+                    "meaningEn": "B",
+                    "audioUrl": "/media/pronunciation/sound-142.wav"
                   },
                   {
                     "wordVi": "c",
-                    "meaningEn": "C"
+                    "meaningEn": "C",
+                    "audioUrl": "/media/pronunciation/sound-143.wav"
                   },
                   {
                     "wordVi": "d",
-                    "meaningEn": "D"
+                    "meaningEn": "D",
+                    "audioUrl": "/media/pronunciation/sound-144.wav"
                   },
                   {
                     "wordVi": "đ",
-                    "meaningEn": "Đ"
+                    "meaningEn": "Đ",
+                    "audioUrl": "/media/pronunciation/sound-8.wav"
                   },
                   {
                     "wordVi": "e",
-                    "meaningEn": "E"
+                    "meaningEn": "E",
+                    "audioUrl": "/media/pronunciation/sound-145.wav"
                   },
                   {
                     "wordVi": "ê",
-                    "meaningEn": "Ê"
+                    "meaningEn": "Ê",
+                    "audioUrl": "/media/pronunciation/sound-146.wav"
                   },
                   {
                     "wordVi": "g",
-                    "meaningEn": "G"
+                    "meaningEn": "G",
+                    "audioUrl": "/media/pronunciation/sound-147.wav"
                   },
                   {
                     "wordVi": "h",
-                    "meaningEn": "H"
+                    "meaningEn": "H",
+                    "audioUrl": "/media/pronunciation/sound-148.wav"
                   },
                   {
                     "wordVi": "i",
-                    "meaningEn": "I"
+                    "meaningEn": "I",
+                    "audioUrl": "/media/pronunciation/sound-149.wav"
                   },
                   {
                     "wordVi": "k",
-                    "meaningEn": "K"
+                    "meaningEn": "K",
+                    "audioUrl": "/media/pronunciation/sound-150.wav"
                   },
                   {
                     "wordVi": "l",
-                    "meaningEn": "L"
+                    "meaningEn": "L",
+                    "audioUrl": "/media/pronunciation/sound-151.wav"
                   },
                   {
                     "wordVi": "m",
-                    "meaningEn": "M"
+                    "meaningEn": "M",
+                    "audioUrl": "/media/pronunciation/sound-152.wav"
                   },
                   {
                     "wordVi": "n",
-                    "meaningEn": "N"
+                    "meaningEn": "N",
+                    "audioUrl": "/media/pronunciation/sound-153.wav"
                   },
                   {
                     "wordVi": "o",
-                    "meaningEn": "O"
+                    "meaningEn": "O",
+                    "audioUrl": "/media/pronunciation/sound-154.wav"
                   },
                   {
                     "wordVi": "ô",
-                    "meaningEn": "Ô"
+                    "meaningEn": "Ô",
+                    "audioUrl": "/media/pronunciation/sound-155.wav"
                   },
                   {
                     "wordVi": "ơ",
-                    "meaningEn": "Ơ"
+                    "meaningEn": "Ơ",
+                    "audioUrl": "/media/pronunciation/sound-14.wav"
                   },
                   {
                     "wordVi": "p",
-                    "meaningEn": "P"
+                    "meaningEn": "P",
+                    "audioUrl": "/media/pronunciation/sound-156.wav"
                   },
                   {
                     "wordVi": "q",
-                    "meaningEn": "Q"
+                    "meaningEn": "Q",
+                    "audioUrl": "/media/pronunciation/sound-157.wav"
                   },
                   {
                     "wordVi": "r",
-                    "meaningEn": "R"
+                    "meaningEn": "R",
+                    "audioUrl": "/media/pronunciation/sound-158.wav"
                   },
                   {
                     "wordVi": "s",
-                    "meaningEn": "S"
+                    "meaningEn": "S",
+                    "audioUrl": "/media/pronunciation/sound-159.wav"
                   },
                   {
                     "wordVi": "t",
-                    "meaningEn": "T"
+                    "meaningEn": "T",
+                    "audioUrl": "/media/pronunciation/sound-160.wav"
                   },
                   {
                     "wordVi": "u",
-                    "meaningEn": "U"
+                    "meaningEn": "U",
+                    "audioUrl": "/media/pronunciation/sound-161.wav"
                   },
                   {
                     "wordVi": "ư",
-                    "meaningEn": "Ư"
+                    "meaningEn": "Ư",
+                    "audioUrl": "/media/pronunciation/sound-15.wav"
                   },
                   {
                     "wordVi": "v",
-                    "meaningEn": "V"
+                    "meaningEn": "V",
+                    "audioUrl": "/media/pronunciation/sound-162.wav"
                   },
                   {
                     "wordVi": "x",
-                    "meaningEn": "X"
+                    "meaningEn": "X",
+                    "audioUrl": "/media/pronunciation/sound-163.wav"
                   },
                   {
                     "wordVi": "y",
-                    "meaningEn": "Y"
+                    "meaningEn": "Y",
+                    "audioUrl": "/media/pronunciation/sound-164.wav"
                   }
                 ]
               }

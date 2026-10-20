@@ -10,6 +10,16 @@ function tone(w){const n=w.normalize('NFD');return ['\u0301','\u0300','\u0309','
 function mc(vi,en,opts,correct,exVi,exEn){return {questionType:'MULTIPLE_CHOICE',promptVi:vi,promptEn:en,options:opts.map((x,i)=>({id:String(i),...(Array.isArray(x)?pair(...x):pair(x,x))})),correctAnswerJson:{optionIds:[String(correct)]},explanationVi:exVi,explanationEn:exEn,difficulty:'EASY',status:'PUBLISHED'};}
 function fill(vi,en,answer,exVi,exEn){return {questionType:'FILL_BLANK',promptVi:vi,promptEn:en,options:[],correctAnswerJson:{acceptedAnswers:[answer]},explanationVi:exVi,explanationEn:exEn,difficulty:'EASY',status:'PUBLISHED'};}
 const alphabet='a ă â b c d đ e ê g h i k l m n o ô ơ p q r s t u ư v x y'.split(' ');
+// Isolated glyphs make the synthesizer read ă and â identically. Spell out
+// letter names for audio while keeping the written letters in the lesson.
+const letterReadings = {
+  a:'a', 'ă':'á', 'â':'ớ', b:'bê', c:'xê', d:'dê', 'đ':'đê',
+  e:'e', 'ê':'ê', g:'giê', h:'hát', i:'i ngắn', k:'ca',
+  l:'e lờ', m:'em mờ', n:'en nờ', o:'o', 'ô':'ô', 'ơ':'ơ',
+  p:'pê', q:'cu', r:'e rờ', s:'ét sì', t:'tê', u:'u',
+  'ư':'ư', v:'vê', x:'ích xì', y:'i dài',
+};
+const spokenAudioText = text => text.split('. ').map(part => letterReadings[part] || part).join('. ');
 // Each row: title VI | title EN | explanation VI | explanation EN | contextual words (VI ~ EN).
 const rows=`Tiếng Việt được đọc như thế nào?|How Vietnamese Pronunciation Works|Một tiếng thường gồm phụ âm đầu + vần + thanh điệu. Có tiếng không có phụ âm đầu hoặc âm cuối. ba = b + a + ngang; bá = b + a + sắc; bàn = b + an + huyền. Đổi thanh có thể đổi nghĩa.|A syllable usually has an initial, a rime and a tone. Some have no initial or final consonant. ba = b + a + level; bá = b + a + rising; bàn = b + an + falling. Changing the tone can change meaning.|ba~father / three;bá~aunt (regional);bàn~table
 29 chữ cái|The 29 Vietnamese Letters|Bảng chữ cái có 29 chữ: a, ă, â, b, c, d, đ, e, ê, g, h, i, k, l, m, n, o, ô, ơ, p, q, r, s, t, u, ư, v, x, y. F, J, W, Z không thuộc bảng cơ bản; chúng có thể xuất hiện trong tên riêng hoặc từ vay mượn.|The alphabet has 29 letters: a, ă, â, b, c, d, đ, e, ê, g, h, i, k, l, m, n, o, ô, ơ, p, q, r, s, t, u, ư, v, x, y. F, J, W and Z may occur in names or borrowed words but are outside the basic alphabet.|a~letter a;ă~letter ă;â~letter â;đ~letter đ
@@ -108,8 +118,8 @@ const lessons=rows.map(([titleVi,titleEn,textVi,textEn,wordString],i)=>{
  ],questions};
 });
 // Full alphabet recognition and six tone examples remain learner-readable DB content.
-lessons[1].activities[2].contentJson.items=alphabet.map(w=>({wordVi:w,meaningEn:w.toUpperCase()}));
-lessons[3].activities[2].contentJson.items=alphabet.map(w=>({wordVi:w,meaningEn:w.toUpperCase()}));
+lessons[1].activities[2].contentJson.items=alphabet.map(w=>({wordVi:w,meaningEn:w.toUpperCase(),audioUrl:sound(w)}));
+lessons[3].activities[2].contentJson.items=alphabet.map(w=>({wordVi:w,meaningEn:w.toUpperCase(),audioUrl:sound(w)}));
 for(const [j,w] of ['ma','má','mà','mả','mã','mạ'].entries()) {
  lessons[16].questions.push({...mc('Nghe và xác định thanh.','Listen and identify the tone.',tones.map((v,i)=>[v,toneEn[i]]),j,`${w}: thanh ${tones[j]}.`,`${w}: ${toneEn[j]} tone.`),questionType:'LISTENING',audioUrl:sound(w),topic:'TONES'});
  lessons[16].activities[2].contentJson.items[j].pronunciation=tones[j]+' · '+['────','╱','╲','⌄','↗ (ngắt / break)','↓■'][j];
@@ -127,5 +137,5 @@ const course={code:'VI-PRON-A0',slug:'vietnamese-alphabet-tones-pronunciation',t
 const data={schemaVersion:1,editorial:{lessonCount:'The overview says 24; the detailed outline explicitly enumerates 33. All 33 are preserved.',corrections:['ghe = boat; nghe = listen','nho begins with nh, so na illustrates single n','phở illustrates ph rather than standalone p'],audio:'Microsoft An synthetic Vietnamese speech; not native-speaker recordings.',pronunciation:'Regional variation acknowledged. Recording and automated pronunciation grading are not implemented in the existing application.'},course,modules:groups.map(([from,to,titleVi,titleEn])=>({metadata:{titleVi,titleEn,descriptionVi:`Bài ${from}–${to}. Hoàn thành các bài và checkpoint từ 70% để đi tiếp.`,descriptionEn:`Lessons ${from}–${to}. Complete the lessons and pass the checkpoint at 70% to continue.`},lessons:lessons.slice(from-1,to)})),finalSections:finalSections.map(([topic,count,points])=>({topic,count,points})),finalQuestions};
 if(lessons.length!==33||finalQuestions.length!==50||finalQuestions.reduce((s,q)=>s+q.points,0)!==100)throw Error('Curriculum counts mismatch');
 fs.writeFileSync(path.join(root,'learning/pronunciation-course.json'),JSON.stringify(data,null,2)+'\n');
-fs.writeFileSync(path.join(root,'learning/pronunciation-audio-manifest.json'),JSON.stringify([...audio].map(([text,key])=>({text,key})),null,2)+'\n');
+fs.writeFileSync(path.join(root,'learning/pronunciation-audio-manifest.json'),JSON.stringify([...audio].map(([text,key])=>({text:spokenAudioText(text),key})),null,2)+'\n');
 console.log(JSON.stringify({modules:8,lessons:33,minutes:course.estimatedMinutes,lessonQuestions:lessons.reduce((s,l)=>s+l.questions.length,0),finalQuestions:50,audioFiles:audio.size}));

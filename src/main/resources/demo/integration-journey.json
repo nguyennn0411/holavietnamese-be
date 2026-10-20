@@ -1,0 +1,965 @@
+{
+  "course": {
+    "code": "DEMO-VIETNAM-LINKS",
+    "slug": "demo-hanh-trinh-tieng-viet",
+    "titleEn": "Vietnam Journey — Integration Demo",
+    "titleVi": "Hành trình Việt Nam — Demo liên kết",
+    "descriptionEn": "A complete sample linking courses, lessons, master vocabulary, notebook, destinations and the journey passport.",
+    "descriptionVi": "Bộ dữ liệu mẫu nối khóa học, bài học, từ vựng dùng chung, sổ tay, địa điểm và hộ chiếu hành trình.",
+    "level": "A1",
+    "thumbnailUrl": "https://image.vietnam.travel/sites/default/files/2017-07/vietnam-tourism.jpg",
+    "estimatedMinutes": 30,
+    "learningOutcomes": "Chào hỏi, gọi món, hỏi đường, mua sắm, di chuyển và nhận phòng bằng tiếng Việt.",
+    "isFree": true
+  },
+  "stops": [
+    {
+      "destination": {
+        "nameVi": "Hà Nội — Demo liên kết",
+        "nameEn": "Hanoi — Integration demo",
+        "slug": "demo-links-hanoi",
+        "region": "NORTH",
+        "shortDescriptionVi": "Điểm demo liên kết hai bài học và sáu từ vựng. Hoàn thành bài học để mở điểm tiếp theo.",
+        "shortDescriptionEn": "Two linked lessons and six vocabulary words. Complete the lessons to unlock the next stop.",
+        "descriptionVi": "Hà Nội là nơi những con phố lâu đời gặp nhịp sống hiện đại. Đi bộ quanh hồ Hoàn Kiếm, ghé Văn Miếu và khám phá các ngõ nhỏ trong khu phố cổ để cảm nhận một góc đời sống thủ đô.\n\nPhở, bún chả và cà phê trứng là những món quen thuộc trong hành trình khám phá ẩm thực. Một lời chào “Xin chào” hay “Cảm ơn” giúp bạn bắt đầu cuộc trò chuyện với người dân địa phương.",
+        "descriptionEn": "Hanoi brings historic streets and modern city life together. Walk around Hoan Kiem Lake, visit the Temple of Literature and explore the Old Quarter's narrow lanes.\n\nPho, bun cha and egg coffee offer an introduction to the city's food culture. Try saying “Xin chào” for hello and “Cảm ơn” for thank you when meeting local people.",
+        "imageUrl": "https://image.vietnam.travel/sites/default/files/2017-06/vietnam-travel-5.jpg",
+        "status": "PUBLISHED"
+      },
+      "module": {
+        "titleEn": "Hanoi",
+        "titleVi": "Hà Nội",
+        "descriptionEn": "Language practice during your journey.",
+        "descriptionVi": "Thực hành giao tiếp trong hành trình."
+      },
+      "lessons": [
+        {
+          "city": "hanoi",
+          "titleVi": "Chào hỏi tại Hà Nội",
+          "titleEn": "Greetings in Hanoi",
+          "textVi": "Bạn gặp một người bạn mới ở phố cổ. Hãy chào, cảm ơn khi được giúp đỡ và chào tạm biệt khi kết thúc cuộc trò chuyện.",
+          "textEn": "You meet a new friend in the Old Quarter. Greet them, thank them for their help and say goodbye at the end.",
+          "words": [
+            {
+              "wordVi": "xin chào",
+              "meaningEn": "hello",
+              "wordType": "PHRASE",
+              "exampleVi": "Xin chào, tôi là Anna.",
+              "exampleEn": "Hello, I am Anna."
+            },
+            {
+              "wordVi": "cảm ơn",
+              "meaningEn": "thank you",
+              "wordType": "PHRASE",
+              "exampleVi": "Cảm ơn bạn đã giúp tôi.",
+              "exampleEn": "Thank you for helping me."
+            },
+            {
+              "wordVi": "tạm biệt",
+              "meaningEn": "goodbye",
+              "wordType": "PHRASE",
+              "exampleVi": "Tạm biệt, chúc bạn một ngày vui.",
+              "exampleEn": "Goodbye, have a nice day."
+            }
+          ],
+          "objectiveVi": "Dùng được ba từ/cụm từ trong tình huống: chào hỏi tại hà nội.",
+          "objectiveEn": "Use three words or phrases in context: greetings in hanoi.",
+          "dialogue": [
+            {
+              "speaker": "Du khách",
+              "textVi": "Xin chào, tôi là Anna.",
+              "textEn": "Hello, I am Anna."
+            },
+            {
+              "speaker": "Người địa phương",
+              "textVi": "Cảm ơn bạn đã giúp tôi.",
+              "textEn": "Thank you for helping me."
+            },
+            {
+              "speaker": "Du khách",
+              "textVi": "Tạm biệt, chúc bạn một ngày vui.",
+              "textEn": "Goodbye, have a nice day."
+            }
+          ],
+          "questions": [
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “xin chào”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “xin chào”.",
+              "explanationEn": "“xin chào” means “hello”.",
+              "explanationVi": "“xin chào” có nghĩa là “hello”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "hello",
+                  "textEn": "hello"
+                },
+                {
+                  "id": "b",
+                  "text": "thank you",
+                  "textEn": "thank you"
+                },
+                {
+                  "id": "c",
+                  "text": "goodbye",
+                  "textEn": "goodbye"
+                }
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “cảm ơn”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “cảm ơn”.",
+              "explanationEn": "“cảm ơn” means “thank you”.",
+              "explanationVi": "“cảm ơn” có nghĩa là “thank you”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "thank you",
+                  "textEn": "thank you"
+                },
+                {
+                  "id": "b",
+                  "text": "goodbye",
+                  "textEn": "goodbye"
+                },
+                {
+                  "id": "c",
+                  "text": "hello",
+                  "textEn": "hello"
+                }
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “tạm biệt”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “tạm biệt”.",
+              "explanationEn": "“tạm biệt” means “goodbye”.",
+              "explanationVi": "“tạm biệt” có nghĩa là “goodbye”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "goodbye",
+                  "textEn": "goodbye"
+                },
+                {
+                  "id": "b",
+                  "text": "hello",
+                  "textEn": "hello"
+                },
+                {
+                  "id": "c",
+                  "text": "thank you",
+                  "textEn": "thank you"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "city": "hanoi",
+          "titleVi": "Gọi món ở Hà Nội",
+          "titleEn": "Ordering food in Hanoi",
+          "textVi": "Bạn vào quán ăn và muốn gọi một bát phở cùng nước uống. Hãy xin thực đơn trước khi gọi món và cảm ơn người phục vụ.",
+          "textEn": "You enter a restaurant to order pho and water. Ask for the menu before ordering and thank the server.",
+          "words": [
+            {
+              "wordVi": "phở",
+              "meaningEn": "pho noodle soup",
+              "wordType": "NOUN",
+              "exampleVi": "Cho tôi một bát phở.",
+              "exampleEn": "I would like a bowl of pho."
+            },
+            {
+              "wordVi": "nước",
+              "meaningEn": "water",
+              "wordType": "NOUN",
+              "exampleVi": "Cho tôi một cốc nước.",
+              "exampleEn": "I would like a glass of water."
+            },
+            {
+              "wordVi": "thực đơn",
+              "meaningEn": "menu",
+              "wordType": "NOUN",
+              "exampleVi": "Cho tôi xem thực đơn.",
+              "exampleEn": "May I see the menu?"
+            }
+          ],
+          "objectiveVi": "Dùng được ba từ/cụm từ trong tình huống: gọi món ở hà nội.",
+          "objectiveEn": "Use three words or phrases in context: ordering food in hanoi.",
+          "dialogue": [
+            {
+              "speaker": "Du khách",
+              "textVi": "Cho tôi một bát phở.",
+              "textEn": "I would like a bowl of pho."
+            },
+            {
+              "speaker": "Người địa phương",
+              "textVi": "Cho tôi một cốc nước.",
+              "textEn": "I would like a glass of water."
+            },
+            {
+              "speaker": "Du khách",
+              "textVi": "Cho tôi xem thực đơn.",
+              "textEn": "May I see the menu?"
+            }
+          ],
+          "questions": [
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “phở”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “phở”.",
+              "explanationEn": "“phở” means “pho noodle soup”.",
+              "explanationVi": "“phở” có nghĩa là “pho noodle soup”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "pho noodle soup",
+                  "textEn": "pho noodle soup"
+                },
+                {
+                  "id": "b",
+                  "text": "water",
+                  "textEn": "water"
+                },
+                {
+                  "id": "c",
+                  "text": "menu",
+                  "textEn": "menu"
+                }
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “nước”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “nước”.",
+              "explanationEn": "“nước” means “water”.",
+              "explanationVi": "“nước” có nghĩa là “water”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "water",
+                  "textEn": "water"
+                },
+                {
+                  "id": "b",
+                  "text": "menu",
+                  "textEn": "menu"
+                },
+                {
+                  "id": "c",
+                  "text": "pho noodle soup",
+                  "textEn": "pho noodle soup"
+                }
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “thực đơn”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “thực đơn”.",
+              "explanationEn": "“thực đơn” means “menu”.",
+              "explanationVi": "“thực đơn” có nghĩa là “menu”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "menu",
+                  "textEn": "menu"
+                },
+                {
+                  "id": "b",
+                  "text": "pho noodle soup",
+                  "textEn": "pho noodle soup"
+                },
+                {
+                  "id": "c",
+                  "text": "water",
+                  "textEn": "water"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "destination": {
+        "nameVi": "Hội An — Demo liên kết",
+        "nameEn": "Hoi An — Integration demo",
+        "slug": "demo-links-hoian",
+        "region": "CENTRAL",
+        "shortDescriptionVi": "Điểm demo liên kết hai bài học và sáu từ vựng. Hoàn thành bài học để mở điểm tiếp theo.",
+        "shortDescriptionEn": "Two linked lessons and six vocabulary words. Complete the lessons to unlock the next stop.",
+        "descriptionVi": "Phố cổ Hội An gắn với lịch sử giao thương và những ngôi nhà nằm dọc các tuyến phố nhỏ. Đi bộ bên sông Thu Bồn, tìm hiểu kiến trúc và ghé các cửa hàng thủ công là những cách khám phá nơi đây.\n\nCao lầu và cơm gà là các món ăn đặc trưng. Các từ “đèn lồng”, “phố cổ” và “cửa hàng” giúp bạn mô tả những điều nhìn thấy trong hành trình.",
+        "descriptionEn": "Hoi An's ancient town reflects its trading history in houses lining narrow streets. Walk beside the Thu Bon River, explore local architecture and visit craft shops.\n\nCao lau and chicken rice are characteristic dishes. Learn “đèn lồng” for lantern, “phố cổ” for ancient town and “cửa hàng” for shop to describe what you see.",
+        "imageUrl": "https://image.vietnam.travel/sites/default/files/2017-07/vietnam-tourism.jpg",
+        "status": "PUBLISHED"
+      },
+      "module": {
+        "titleEn": "Hoi An",
+        "titleVi": "Hội An",
+        "descriptionEn": "Language practice during your journey.",
+        "descriptionVi": "Thực hành giao tiếp trong hành trình."
+      },
+      "lessons": [
+        {
+          "city": "hoian",
+          "titleVi": "Hỏi đường tại Hội An",
+          "titleEn": "Asking directions in Hoi An",
+          "textVi": "Bạn đang tìm đường đến phố cổ. Dùng câu hỏi “ở đâu” và nghe các chỉ dẫn “rẽ trái”, “đi thẳng” để tìm đường.",
+          "textEn": "You are looking for the ancient town. Ask where it is, then follow directions such as turn left and go straight.",
+          "words": [
+            {
+              "wordVi": "ở đâu",
+              "meaningEn": "where",
+              "wordType": "PHRASE",
+              "exampleVi": "Phố cổ ở đâu?",
+              "exampleEn": "Where is the ancient town?"
+            },
+            {
+              "wordVi": "rẽ trái",
+              "meaningEn": "turn left",
+              "wordType": "PHRASE",
+              "exampleVi": "Bạn rẽ trái ở ngã tư.",
+              "exampleEn": "Turn left at the intersection."
+            },
+            {
+              "wordVi": "đi thẳng",
+              "meaningEn": "go straight",
+              "wordType": "PHRASE",
+              "exampleVi": "Bạn đi thẳng hai trăm mét.",
+              "exampleEn": "Go straight for two hundred metres."
+            }
+          ],
+          "objectiveVi": "Dùng được ba từ/cụm từ trong tình huống: hỏi đường tại hội an.",
+          "objectiveEn": "Use three words or phrases in context: asking directions in hoi an.",
+          "dialogue": [
+            {
+              "speaker": "Du khách",
+              "textVi": "Phố cổ ở đâu?",
+              "textEn": "Where is the ancient town?"
+            },
+            {
+              "speaker": "Người địa phương",
+              "textVi": "Bạn rẽ trái ở ngã tư.",
+              "textEn": "Turn left at the intersection."
+            },
+            {
+              "speaker": "Du khách",
+              "textVi": "Bạn đi thẳng hai trăm mét.",
+              "textEn": "Go straight for two hundred metres."
+            }
+          ],
+          "questions": [
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “ở đâu”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “ở đâu”.",
+              "explanationEn": "“ở đâu” means “where”.",
+              "explanationVi": "“ở đâu” có nghĩa là “where”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "where",
+                  "textEn": "where"
+                },
+                {
+                  "id": "b",
+                  "text": "turn left",
+                  "textEn": "turn left"
+                },
+                {
+                  "id": "c",
+                  "text": "go straight",
+                  "textEn": "go straight"
+                }
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “rẽ trái”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “rẽ trái”.",
+              "explanationEn": "“rẽ trái” means “turn left”.",
+              "explanationVi": "“rẽ trái” có nghĩa là “turn left”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "turn left",
+                  "textEn": "turn left"
+                },
+                {
+                  "id": "b",
+                  "text": "go straight",
+                  "textEn": "go straight"
+                },
+                {
+                  "id": "c",
+                  "text": "where",
+                  "textEn": "where"
+                }
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “đi thẳng”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “đi thẳng”.",
+              "explanationEn": "“đi thẳng” means “go straight”.",
+              "explanationVi": "“đi thẳng” có nghĩa là “go straight”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "go straight",
+                  "textEn": "go straight"
+                },
+                {
+                  "id": "b",
+                  "text": "where",
+                  "textEn": "where"
+                },
+                {
+                  "id": "c",
+                  "text": "turn left",
+                  "textEn": "turn left"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "city": "hoian",
+          "titleVi": "Mua sắm ở Hội An",
+          "titleEn": "Shopping in Hoi An",
+          "textVi": "Bạn muốn mua một chiếc đèn lồng. Hỏi giá, nhận xét lịch sự nếu thấy giá cao và hỏi người bán có thể giảm giá hay không.",
+          "textEn": "You want to buy a lantern. Ask the price and politely ask whether a discount is possible.",
+          "words": [
+            {
+              "wordVi": "bao nhiêu",
+              "meaningEn": "how much",
+              "wordType": "PHRASE",
+              "exampleVi": "Chiếc đèn lồng này bao nhiêu tiền?",
+              "exampleEn": "How much is this lantern?"
+            },
+            {
+              "wordVi": "đắt",
+              "meaningEn": "expensive",
+              "wordType": "ADJECTIVE",
+              "exampleVi": "Chiếc áo này hơi đắt.",
+              "exampleEn": "This shirt is a little expensive."
+            },
+            {
+              "wordVi": "giảm giá",
+              "meaningEn": "discount",
+              "wordType": "PHRASE",
+              "exampleVi": "Cửa hàng có giảm giá không?",
+              "exampleEn": "Does the shop offer a discount?"
+            }
+          ],
+          "objectiveVi": "Dùng được ba từ/cụm từ trong tình huống: mua sắm ở hội an.",
+          "objectiveEn": "Use three words or phrases in context: shopping in hoi an.",
+          "dialogue": [
+            {
+              "speaker": "Du khách",
+              "textVi": "Chiếc đèn lồng này bao nhiêu tiền?",
+              "textEn": "How much is this lantern?"
+            },
+            {
+              "speaker": "Người địa phương",
+              "textVi": "Chiếc áo này hơi đắt.",
+              "textEn": "This shirt is a little expensive."
+            },
+            {
+              "speaker": "Du khách",
+              "textVi": "Cửa hàng có giảm giá không?",
+              "textEn": "Does the shop offer a discount?"
+            }
+          ],
+          "questions": [
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “bao nhiêu”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “bao nhiêu”.",
+              "explanationEn": "“bao nhiêu” means “how much”.",
+              "explanationVi": "“bao nhiêu” có nghĩa là “how much”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "how much",
+                  "textEn": "how much"
+                },
+                {
+                  "id": "b",
+                  "text": "expensive",
+                  "textEn": "expensive"
+                },
+                {
+                  "id": "c",
+                  "text": "discount",
+                  "textEn": "discount"
+                }
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “đắt”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “đắt”.",
+              "explanationEn": "“đắt” means “expensive”.",
+              "explanationVi": "“đắt” có nghĩa là “expensive”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "expensive",
+                  "textEn": "expensive"
+                },
+                {
+                  "id": "b",
+                  "text": "discount",
+                  "textEn": "discount"
+                },
+                {
+                  "id": "c",
+                  "text": "how much",
+                  "textEn": "how much"
+                }
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “giảm giá”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “giảm giá”.",
+              "explanationEn": "“giảm giá” means “discount”.",
+              "explanationVi": "“giảm giá” có nghĩa là “discount”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "discount",
+                  "textEn": "discount"
+                },
+                {
+                  "id": "b",
+                  "text": "how much",
+                  "textEn": "how much"
+                },
+                {
+                  "id": "c",
+                  "text": "expensive",
+                  "textEn": "expensive"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "destination": {
+        "nameVi": "Thành phố Hồ Chí Minh — Demo liên kết",
+        "nameEn": "Ho Chi Minh City — Integration demo",
+        "slug": "demo-links-hcmc",
+        "region": "SOUTH",
+        "shortDescriptionVi": "Điểm demo liên kết hai bài học và sáu từ vựng. Hoàn thành bài học để mở điểm tiếp theo.",
+        "shortDescriptionEn": "Two linked lessons and six vocabulary words. Complete the lessons to unlock the next stop.",
+        "descriptionVi": "Thành phố Hồ Chí Minh là nơi bạn có thể khám phá các khu phố nhộn nhịp, bảo tàng và những công trình lịch sử. Chợ Bến Thành và các quán ăn trong khu dân cư cho thấy nhiều nét sinh hoạt thường ngày.\n\nCơm tấm, bánh mì và cà phê sữa đá là những món quen thuộc. Khi mua hàng, hãy thử hỏi “Bao nhiêu tiền?” và nói “Cảm ơn” để thực hành giao tiếp.",
+        "descriptionEn": "Ho Chi Minh City offers busy neighbourhoods, museums and historic buildings. Ben Thanh Market and local eateries introduce different aspects of everyday life.\n\nCom tam, banh mi and iced coffee with condensed milk are familiar choices. Practise “Bao nhiêu tiền?” to ask the price and “Cảm ơn” to say thank you.",
+        "imageUrl": "https://image.vietnam.travel/sites/default/files/2017-07/vietnam-tourism-4.jpg",
+        "status": "PUBLISHED"
+      },
+      "module": {
+        "titleEn": "Ho Chi Minh City",
+        "titleVi": "Thành phố Hồ Chí Minh",
+        "descriptionEn": "Language practice during your journey.",
+        "descriptionVi": "Thực hành giao tiếp trong hành trình."
+      },
+      "lessons": [
+        {
+          "city": "hcmc",
+          "titleVi": "Di chuyển tại Thành phố Hồ Chí Minh",
+          "titleEn": "Getting around Ho Chi Minh City",
+          "textVi": "Bạn muốn đi xe buýt đến sân bay. Hỏi tuyến xe, mua vé và xác nhận điểm đến trước khi lên xe.",
+          "textEn": "You want to take a bus to the airport. Ask about the route, buy a ticket and confirm the destination before boarding.",
+          "words": [
+            {
+              "wordVi": "xe buýt",
+              "meaningEn": "bus",
+              "wordType": "NOUN",
+              "exampleVi": "Xe buýt này đi sân bay không?",
+              "exampleEn": "Does this bus go to the airport?"
+            },
+            {
+              "wordVi": "vé",
+              "meaningEn": "ticket",
+              "wordType": "NOUN",
+              "exampleVi": "Tôi muốn mua một vé.",
+              "exampleEn": "I would like to buy a ticket."
+            },
+            {
+              "wordVi": "sân bay",
+              "meaningEn": "airport",
+              "wordType": "NOUN",
+              "exampleVi": "Sân bay cách đây bao xa?",
+              "exampleEn": "How far is the airport from here?"
+            }
+          ],
+          "objectiveVi": "Dùng được ba từ/cụm từ trong tình huống: di chuyển tại thành phố hồ chí minh.",
+          "objectiveEn": "Use three words or phrases in context: getting around ho chi minh city.",
+          "dialogue": [
+            {
+              "speaker": "Du khách",
+              "textVi": "Xe buýt này đi sân bay không?",
+              "textEn": "Does this bus go to the airport?"
+            },
+            {
+              "speaker": "Người địa phương",
+              "textVi": "Tôi muốn mua một vé.",
+              "textEn": "I would like to buy a ticket."
+            },
+            {
+              "speaker": "Du khách",
+              "textVi": "Sân bay cách đây bao xa?",
+              "textEn": "How far is the airport from here?"
+            }
+          ],
+          "questions": [
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “xe buýt”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “xe buýt”.",
+              "explanationEn": "“xe buýt” means “bus”.",
+              "explanationVi": "“xe buýt” có nghĩa là “bus”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "bus",
+                  "textEn": "bus"
+                },
+                {
+                  "id": "b",
+                  "text": "ticket",
+                  "textEn": "ticket"
+                },
+                {
+                  "id": "c",
+                  "text": "airport",
+                  "textEn": "airport"
+                }
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “vé”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “vé”.",
+              "explanationEn": "“vé” means “ticket”.",
+              "explanationVi": "“vé” có nghĩa là “ticket”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "ticket",
+                  "textEn": "ticket"
+                },
+                {
+                  "id": "b",
+                  "text": "airport",
+                  "textEn": "airport"
+                },
+                {
+                  "id": "c",
+                  "text": "bus",
+                  "textEn": "bus"
+                }
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “sân bay”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “sân bay”.",
+              "explanationEn": "“sân bay” means “airport”.",
+              "explanationVi": "“sân bay” có nghĩa là “airport”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "airport",
+                  "textEn": "airport"
+                },
+                {
+                  "id": "b",
+                  "text": "bus",
+                  "textEn": "bus"
+                },
+                {
+                  "id": "c",
+                  "text": "ticket",
+                  "textEn": "ticket"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "city": "hcmc",
+          "titleVi": "Nhận phòng và kết thúc hành trình",
+          "titleEn": "Checking in and finishing the journey",
+          "textVi": "Bạn đến khách sạn, xác nhận đặt phòng và nhận chìa khóa. Khi kết thúc chuyến đi, hãy chào người bạn đã gặp bằng câu “hẹn gặp lại”.",
+          "textEn": "You arrive at a hotel, confirm your reservation and collect the key. At the end of your trip, say see you again to your new friend.",
+          "words": [
+            {
+              "wordVi": "đặt phòng",
+              "meaningEn": "book a room",
+              "wordType": "PHRASE",
+              "exampleVi": "Tôi muốn đặt phòng cho hai người.",
+              "exampleEn": "I would like to book a room for two people."
+            },
+            {
+              "wordVi": "chìa khóa",
+              "meaningEn": "key",
+              "wordType": "NOUN",
+              "exampleVi": "Cho tôi xin chìa khóa phòng.",
+              "exampleEn": "May I have the room key?"
+            },
+            {
+              "wordVi": "hẹn gặp lại",
+              "meaningEn": "see you again",
+              "wordType": "PHRASE",
+              "exampleVi": "Hẹn gặp lại bạn vào ngày mai.",
+              "exampleEn": "See you again tomorrow."
+            }
+          ],
+          "objectiveVi": "Dùng được ba từ/cụm từ trong tình huống: nhận phòng và kết thúc hành trình.",
+          "objectiveEn": "Use three words or phrases in context: checking in and finishing the journey.",
+          "dialogue": [
+            {
+              "speaker": "Du khách",
+              "textVi": "Tôi muốn đặt phòng cho hai người.",
+              "textEn": "I would like to book a room for two people."
+            },
+            {
+              "speaker": "Người địa phương",
+              "textVi": "Cho tôi xin chìa khóa phòng.",
+              "textEn": "May I have the room key?"
+            },
+            {
+              "speaker": "Du khách",
+              "textVi": "Hẹn gặp lại bạn vào ngày mai.",
+              "textEn": "See you again tomorrow."
+            }
+          ],
+          "questions": [
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “đặt phòng”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “đặt phòng”.",
+              "explanationEn": "“đặt phòng” means “book a room”.",
+              "explanationVi": "“đặt phòng” có nghĩa là “book a room”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "book a room",
+                  "textEn": "book a room"
+                },
+                {
+                  "id": "b",
+                  "text": "key",
+                  "textEn": "key"
+                },
+                {
+                  "id": "c",
+                  "text": "see you again",
+                  "textEn": "see you again"
+                }
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “chìa khóa”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “chìa khóa”.",
+              "explanationEn": "“chìa khóa” means “key”.",
+              "explanationVi": "“chìa khóa” có nghĩa là “key”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "key",
+                  "textEn": "key"
+                },
+                {
+                  "id": "b",
+                  "text": "see you again",
+                  "textEn": "see you again"
+                },
+                {
+                  "id": "c",
+                  "text": "book a room",
+                  "textEn": "book a room"
+                }
+              ]
+            },
+            {
+              "questionType": "MULTIPLE_CHOICE",
+              "promptEn": "Choose the English meaning of “hẹn gặp lại”.",
+              "promptVi": "Chọn nghĩa tiếng Anh của “hẹn gặp lại”.",
+              "explanationEn": "“hẹn gặp lại” means “see you again”.",
+              "explanationVi": "“hẹn gặp lại” có nghĩa là “see you again”.",
+              "difficulty": "EASY",
+              "topic": "DEMO_INTEGRATION",
+              "status": "PUBLISHED",
+              "correctAnswerJson": {
+                "optionIds": [
+                  "a"
+                ]
+              },
+              "options": [
+                {
+                  "id": "a",
+                  "text": "see you again",
+                  "textEn": "see you again"
+                },
+                {
+                  "id": "b",
+                  "text": "book a room",
+                  "textEn": "book a room"
+                },
+                {
+                  "id": "c",
+                  "text": "key",
+                  "textEn": "key"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

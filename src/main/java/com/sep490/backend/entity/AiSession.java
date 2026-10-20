@@ -69,6 +69,9 @@ public class AiSession {
     @Column(name = "feedback_summary", columnDefinition = "TEXT")
     private String feedbackSummary;
 
+    @Column(name = "context_summary", columnDefinition = "TEXT")
+    private String contextSummary;
+
     @Column(name = "stats_json", columnDefinition = "JSON")
     private String statsJson;
 
