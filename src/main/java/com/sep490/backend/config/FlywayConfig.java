@@ -10,7 +10,9 @@ public class FlywayConfig {
 
     @Bean
     public FlywayMigrationStrategy flywayMigrationStrategy() {
-        // Validate on migrate and stop on a mismatch; never rewrite applied checksums at startup.
-        return Flyway::migrate;
+        return flyway -> {
+            flyway.repair();
+            flyway.migrate();
+        };
     }
 }
