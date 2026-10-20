@@ -36,6 +36,13 @@ public class ContentAdminController {
     return courses.detail(id, null, true);
   }
 
+  @GetMapping("/courses/{id}/readiness")
+  public Object readiness(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal u) {
+    workflow.assertCanView(id,u);
+    var issues = workflow.readiness(id);
+    return Map.of("ready", issues.isEmpty(), "issues", issues);
+  }
+
   @PutMapping("/courses/{id}")
   public Object edit(@PathVariable long id, @Valid @RequestBody ContentRequests.Course r,
       @AuthenticationPrincipal LearnerPrincipal u) {
@@ -48,6 +55,7 @@ public class ContentAdminController {
   @PreAuthorize("hasRole('ADMIN')")
   public Object status(@PathVariable long id, @Valid @RequestBody ContentRequests.Status r,
       @AuthenticationPrincipal LearnerPrincipal u) {
+    workflow.assertCanChangeStatus(id, r.status());
     courses.status(id, r.status());
     return courses.detail(id,null,true);
   }
@@ -56,6 +64,15 @@ public class ContentAdminController {
   @PreAuthorize("hasRole('CONTENT_MANAGER')")
   public Object submit(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal u) {
     workflow.submit(id,u);
+    return courses.detail(id,null,true);
+  }
+
+  @PatchMapping("/courses/{id}/final-assessment")
+  public Object finalAssessment(@PathVariable long id,
+      @Valid @RequestBody ContentRequests.FinalAssessment r,
+      @AuthenticationPrincipal LearnerPrincipal u) {
+    workflow.assertCanEdit(id,u);
+    courses.setFinalAssessment(id,r.quizId());
     return courses.detail(id,null,true);
   }
 

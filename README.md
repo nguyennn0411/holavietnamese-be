@@ -46,6 +46,9 @@ Yêu cầu Java 21 và Maven. Cache dependency dùng mặc định `%USERPROFILE
 
 ## Tài liệu
 
+- [DEMO_DATA.md](DEMO_DATA.md): nạp lại toàn bộ dữ liệu nội dung/demo từ nhánh backup trên máy của nhóm.
+- [INTEGRATION_DEMO.md](INTEGRATION_DEMO.md): liên kết bài học, từ vựng và địa điểm/hành trình; kịch bản kiểm tra và thứ tự migration.
+
 ### Pilot từ điển tiếng Việt
 
 - `python tools/prepare_dictionary_pilot.py --groups 200` đọc streaming raw JSONL gzip của Kaikki/Wiktextract, lọc tiếng Việt và tạo pilot 100–300 nhóm từ/từ loại trong `src/main/resources/dictionary/`. Script không kết nối DB. Cache dump nằm trong `.verification/`.

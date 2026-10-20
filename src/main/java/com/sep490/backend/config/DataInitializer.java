@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
+@org.springframework.core.annotation.Order(0)
 @org.springframework.context.annotation.Profile("dev-demo")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -35,7 +36,7 @@ public class DataInitializer implements CommandLineRunner {
                     Set.of("PROFILE_READ", "PROFILE_WRITE", "LEARNING_READ"));
             initRole("TEACHER", "Giáo viên giảng dạy tiếng Việt",
                     Set.of("COURSE_READ", "LESSON_WRITE", "QUIZ_WRITE"));
-            initRole("CONTENT_MANAGER", "Quản lý nội dung khóa học",
+            Role contentManagerRole = initRole("CONTENT_MANAGER", "Quản lý nội dung khóa học",
                     Set.of("COURSE_READ", "COURSE_WRITE", "COURSE_SUBMIT"));
 
             // Tạo tài khoản admin mặc định nếu chưa tồn tại
@@ -52,6 +53,21 @@ public class DataInitializer implements CommandLineRunner {
                 admin.setRoles(new HashSet<>(Set.of(adminRole)));
                 userRepository.save(admin);
                 log.info(">>> Khởi tạo tài khoản admin mặc định: admin / admin123");
+            }
+
+
+            if (!userRepository.existsByUsername("contentmanager")) {
+                User manager = new User();
+                manager.setUsername("contentmanager");
+                manager.setPasswordHash(passwordEncoder.encode("contentmanager123"));
+                manager.setEmail("contentmanager@holavietnamese.com");
+                manager.setFullName("Content Manager");
+                manager.setStatus("ACTIVE");
+                manager.setEnabled(true);
+                manager.setRole("CONTENT_MANAGER");
+                manager.setRoles(new HashSet<>(Set.of(contentManagerRole)));
+                userRepository.save(manager);
+                log.info(">>> Khởi tạo tài khoản content manager mẫu");
             }
 
             // Tạo tài khoản học viên mẫu nếu chưa tồn tại

@@ -190,6 +190,16 @@ public class CourseContentService {
   }
 
   @Transactional
+  public void setFinalAssessment(long courseId, long quizId) {
+    lock(courseId);
+    var quiz = db.one("SELECT course_id,quiz_type FROM quizzes WHERE id=?", quizId);
+    if (quiz.get("courseId") == null || id(quiz, "courseId") != courseId
+        || !"COURSE".equals(quiz.get("quizType")))
+      throw ContentException.invalid("Final assessment must be a course quiz from this course.");
+    db.update("UPDATE courses SET final_assessment_quiz_id=?,updated_at=CURRENT_TIMESTAMP WHERE id=?", quizId, courseId);
+  }
+
+  @Transactional
   public long addModule(long course, ContentRequests.Module r) {
     lock(course);
     long order =

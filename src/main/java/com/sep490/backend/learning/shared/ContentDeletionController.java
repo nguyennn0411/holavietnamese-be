@@ -22,8 +22,12 @@ public class ContentDeletionController {
     }
 
     @DeleteMapping("/quizzes/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public void quizEndpoint(@PathVariable long id) {
+    @PreAuthorize("hasAnyRole('ADMIN','CONTENT_MANAGER')")
+    public void quizEndpoint(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal actor) {
+        var quiz = db.one("SELECT course_id FROM quizzes WHERE id=?", id);
+        if (quiz.get("courseId") == null) {
+            if (!workflow.isAdmin(actor)) throw ContentException.forbidden("COURSE_REQUIRED", "Only administrators can delete standalone quizzes.");
+        } else workflow.assertCanEdit(ContentStore.id(quiz, "courseId"), actor);
         quiz(id);
     }
 

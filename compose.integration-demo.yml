@@ -1,0 +1,4 @@
+services:
+  backend:
+    environment:
+      APP_INTEGRATIONDEMO_SEED_ENABLED: "true"

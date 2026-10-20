@@ -23,13 +23,17 @@ public class QuizService {
   private final Clock clock;
 
   public PageResponse<Map<String, Object>> list(Map<String, String> p) {
+    return listForEditor(p, null);
+  }
+
+  public PageResponse<Map<String, Object>> listForEditor(Map<String, String> p, Long author) {
     return ContentList.query(
         db,
         "SELECT q.*,(SELECT count(*) FROM quiz_questions qq WHERE qq.quiz_id=q.id) AS"
             + " question_count,(SELECT count(*) FROM quiz_attempts a WHERE a.quiz_id=q.id) AS"
             + " attempt_count",
         "FROM quizzes q",
-        "1=1",
+        author == null ? "1=1" : "q.course_id IN (SELECT id FROM courses WHERE created_by=" + author + ")",
         "q.title,q.description",
         Map.of("quizType", "q.quiz_type", "status", "q.status"),
         Map.of("id", "q.id", "title", "q.title", "updatedAt", "q.updated_at"),
@@ -49,6 +53,13 @@ public class QuizService {
                 id)
             : List.of());
     q.put("questionCount", db.count("SELECT count(*) FROM quiz_questions WHERE quiz_id=?", id));
+    if (q.get("courseId") != null) {
+      var course = db.one("SELECT c.status,c.title,c.created_by,u.role AS author_role"
+          + " FROM courses c LEFT JOIN users u ON u.id=c.created_by WHERE c.id=?", q.get("courseId"));
+      q.put("courseStatus", course.get("status"));
+      q.put("courseTitle", course.get("title"));
+      q.put("courseAuthorRole", course.get("authorRole"));
+    }
     return q;
   }
 
