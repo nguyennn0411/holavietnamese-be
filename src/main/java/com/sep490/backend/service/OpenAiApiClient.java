@@ -20,13 +20,17 @@ public class OpenAiApiClient {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper;
     private final String configuredApiKey;
+    private final String baseUrl;
     private volatile String runtimeApiKey;
 
     public OpenAiApiClient(
             @Value("${app.ai.openai-api-key:}") String configuredApiKey,
+            @Value("${app.ai.openai-base-url:https://api.openai.com/v1}") String baseUrl,
             ObjectMapper objectMapper
     ) {
         this.configuredApiKey = configuredApiKey != null ? configuredApiKey.trim() : "";
+        this.baseUrl = baseUrl != null && !baseUrl.isBlank()
+                ? baseUrl.trim().replaceAll("/+$", "") : "https://api.openai.com/v1";
         this.objectMapper = objectMapper;
     }
 
@@ -112,8 +116,13 @@ public class OpenAiApiClient {
             return new GeminiApiClient.GeminiResponse(
                     text, promptTokens, completionTokens, System.currentTimeMillis() - start, true
             );
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            log.error("OpenAI-compatible API rejected model={} at baseUrl={} with status={} body={}",
+                    model, baseUrl, e.getStatusCode(), e.getResponseBodyAsString());
+            return null;
         } catch (Exception e) {
-            log.error("Failed to invoke OpenAI API: {}", e.getMessage());
+            log.error("Failed to invoke OpenAI-compatible API with model={} at baseUrl={}: {}",
+                    model, baseUrl, e.getMessage());
             return null;
         }
     }
@@ -123,7 +132,7 @@ public class OpenAiApiClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(apiKey);
         return restTemplate.exchange(
-                "https://api.openai.com/v1/chat/completions",
+                baseUrl + "/chat/completions",
                 HttpMethod.POST,
                 new HttpEntity<>(request, headers),
                 String.class

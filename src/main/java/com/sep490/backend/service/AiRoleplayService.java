@@ -160,7 +160,7 @@ public class AiRoleplayService {
 
         AiSetting aiSetting = settingRepository.findById(1L).orElse(null);
         String activeModel = aiSetting != null && aiSetting.getActiveModel() != null
-                ? aiSetting.getActiveModel() : "gemini-1.5-flash";
+                ? aiSetting.getActiveModel() : "gemini-3.8-flash";
         if (aiSetting != null && aiSetting.getApiKey() != null && !aiSetting.getApiKey().isBlank()) {
             aiProviderService.setRuntimeApiKey(activeModel, aiSetting.getApiKey());
         }

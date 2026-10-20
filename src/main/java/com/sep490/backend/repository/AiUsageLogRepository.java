@@ -27,4 +27,11 @@ public interface AiUsageLogRepository extends JpaRepository<AiUsageLog, String> 
 
     @Query("SELECT u.mode, COUNT(u) FROM AiUsageLog u WHERE u.createdAt >= :since GROUP BY u.mode")
     List<Object[]> countByModeGrouped(LocalDateTime since);
+
+    @Query("SELECT u.mode, COUNT(u), COALESCE(SUM(u.tokensIn + u.tokensOut), 0), COALESCE(SUM(u.costUsd), 0) "
+            + "FROM AiUsageLog u WHERE u.createdAt >= :since GROUP BY u.mode")
+    List<Object[]> summarizeByModeSince(LocalDateTime since);
+
+    @Query("SELECT COUNT(u) FROM AiUsageLog u WHERE u.createdAt >= :since AND u.statusCode >= 400")
+    Long countErrorsSince(LocalDateTime since);
 }

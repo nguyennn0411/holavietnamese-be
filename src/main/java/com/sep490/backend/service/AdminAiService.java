@@ -40,23 +40,23 @@ public class AdminAiService {
         AiSetting setting = settingRepository.findById(1L).orElseGet(() -> {
             AiSetting def = AiSetting.builder()
                     .id(1L)
-                    .activeModel("gemini-1.5-flash")
+                    .activeModel("gemini-3.8-flash")
                     .systemPromptVersion("v2.2.0-stable")
                     .maxTurnsPerSession(25)
                     .maxTokensPerResponse(1024)
                     .rateLimitPerMinute(30)
                     .dailySessionsPerUser(40)
                     .monthlyBudgetCapUsd(new BigDecimal("150.00"))
-                    .currentMonthSpendUsd(new BigDecimal("42.68"))
+                    .currentMonthSpendUsd(BigDecimal.ZERO)
                     .costAlertThresholdPercent(80)
-                    .apiKeyConfigured(aiProviderService.isApiKeyAvailable("gemini-1.5-flash"))
+                    .apiKeyConfigured(aiProviderService.isApiKeyAvailable("gemini-3.8-flash"))
                     .enabledModes("tutor,grammar,translation,conversation,culture_guide,travel,regional")
                     .build();
             return settingRepository.save(def);
         });
 
         List<Map<String, Object>> allowedModels = List.of(
-                Map.of("id", "gemini-1.5-flash", "name", "Gemini 1.5 Flash (Khuyên dùng - Nhanh, Tiết kiệm)", "provider", "Google", "costPer1kTokens", 0.00035, "isDefault", true),
+                Map.of("id", "gemini-3.8-flash", "name", "Gemini 3.8 Flash (Khuyên dùng - Nhanh, Tiết kiệm)", "provider", "Google", "costPer1kTokens", 0.00035, "isDefault", true),
                 Map.of("id", "gemini-1.5-pro", "name", "Gemini 1.5 Pro (Nâng cao - Suy luận sâu cho ngữ pháp & văn hóa)", "provider", "Google", "costPer1kTokens", 0.0035, "isDefault", false),
                 Map.of("id", "gpt-4o-mini", "name", "GPT-4o Mini (Đa ngôn ngữ phản xạ)", "provider", "OpenAI", "costPer1kTokens", 0.0006, "isDefault", false),
                 Map.of("id", "claude-3-5-sonnet", "name", "Claude 3.5 Sonnet (Chính xác văn bản)", "provider", "Anthropic", "costPer1kTokens", 0.006, "isDefault", false)
@@ -154,6 +154,7 @@ public class AdminAiService {
         long totalTokens = usageLogRepository.sumTokensSince(thirtyDaysAgo);
         double avgLatency = usageLogRepository.avgLatencySince(thirtyDaysAgo);
         BigDecimal currentSpend = usageLogRepository.sumCostSince(thirtyDaysAgo);
+        long errorCount = usageLogRepository.countErrorsSince(thirtyDaysAgo);
 
         AiSetting setting = settingRepository.findById(1L).orElse(null);
         BigDecimal budgetCap = setting != null && setting.getMonthlyBudgetCapUsd() != null
@@ -163,7 +164,7 @@ public class AdminAiService {
         long totalSessions = sessionRepository.count();
 
         // Mode breakdown
-        List<Object[]> modeGroups = usageLogRepository.countByModeGrouped(thirtyDaysAgo);
+        List<Object[]> modeGroups = usageLogRepository.summarizeByModeSince(thirtyDaysAgo);
         List<Map<String, Object>> modeBreakdown = new ArrayList<>();
 
         if (!modeGroups.isEmpty()) {
@@ -175,8 +176,8 @@ public class AdminAiService {
                         "mode", mode,
                         "name", getModeDisplayName(mode),
                         "calls", calls,
-                        "tokens", calls * 350,
-                        "cost", (calls * 0.00025),
+                        "tokens", ((Number) row[2]).longValue(),
+                        "cost", row[3],
                         "percent", percent
                 ));
             }
@@ -191,6 +192,11 @@ public class AdminAiService {
                     Map.of("mode", "Regional", "name", "Tiếng Việt 3 miền", "calls", 1100, "tokens", 540000, "cost", 1.9, "percent", 6),
                     Map.of("mode", "Culture Guide", "name", "Chỉ dẫn văn hóa", "calls", 700, "tokens", 300800, "cost", 1.1, "percent", 4)
             );
+        }
+
+        // Do not expose demo values when there are no persisted usage logs.
+        if (totalCalls == 0) {
+            modeBreakdown = new ArrayList<>();
         }
 
         // Recent logs
@@ -210,13 +216,13 @@ public class AdminAiService {
         }).collect(Collectors.toList());
 
         Map<String, Object> summary = Map.of(
-                "totalSessions", totalSessions > 0 ? totalSessions : 1482,
-                "totalApiCalls", totalCalls > 0 ? totalCalls : 18450,
-                "totalTokens", totalTokens > 0 ? totalTokens : 12450800,
-                "costMonthUsd", currentSpend.compareTo(BigDecimal.ZERO) > 0 ? currentSpend : new BigDecimal("42.68"),
+                "totalSessions", totalSessions,
+                "totalApiCalls", totalCalls,
+                "totalTokens", totalTokens,
+                "costMonthUsd", currentSpend,
                 "budgetLimitUsd", budgetCap,
-                "avgResponseTimeMs", avgLatency > 0 ? (int) avgLatency : 315,
-                "errorRate", "0.18%"
+                "avgResponseTimeMs", Math.round(avgLatency),
+                "errorRate", totalCalls > 0 ? String.format(Locale.ROOT, "%.2f%%", errorCount * 100.0 / totalCalls) : "0.00%"
         );
 
         return AiUsageStatsResponse.builder()

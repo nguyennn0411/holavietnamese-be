@@ -83,7 +83,7 @@ public class AiTutorService {
         sessionRepository.save(session);
 
         // Generate welcoming opening message for the chosen mode
-        String welcomeText = getInitialGreetingForMode(mode, currentUser);
+        String welcomeText = generateInitialGreetingText(session, currentUser, settings);
         AiMessage initialMessage = AiMessage.builder()
                 .id("msg-" + UUID.randomUUID().toString().substring(0, 13))
                 .session(session)
@@ -308,7 +308,7 @@ public class AiTutorService {
         AiSetting settings = settingRepository.findById(1L).orElseGet(() -> {
             AiSetting def = AiSetting.builder()
                     .id(1L)
-                    .activeModel("gemini-1.5-flash")
+                    .activeModel("gemini-3.8-flash")
                     .systemPromptVersion("v2.2.0-stable")
                     .maxTurnsPerSession(25)
                     .maxTokensPerResponse(1024)
@@ -317,7 +317,7 @@ public class AiTutorService {
                     .monthlyBudgetCapUsd(new BigDecimal("150.00"))
                     .currentMonthSpendUsd(BigDecimal.ZERO)
                     .costAlertThresholdPercent(80)
-                    .apiKeyConfigured(aiProviderService.isApiKeyAvailable("gemini-1.5-flash"))
+                    .apiKeyConfigured(aiProviderService.isApiKeyAvailable("gemini-3.8-flash"))
                     .enabledModes("tutor,grammar,translation,conversation,culture_guide,travel,regional")
                     .build();
             return settingRepository.save(def);
@@ -347,7 +347,7 @@ public class AiTutorService {
 
     public Map<String, Object> getAiStatus() {
         AiSetting settings = getOrInitSettings();
-        String activeModel = settings.getActiveModel() != null ? settings.getActiveModel() : "gemini-1.5-flash";
+        String activeModel = settings.getActiveModel() != null ? settings.getActiveModel() : "gemini-3.8-flash";
         boolean isConfigured = aiProviderService.isApiKeyAvailable(activeModel);
         String rawKey = settings.getApiKey() != null && !settings.getApiKey().isBlank()
                 ? settings.getApiKey()
@@ -373,9 +373,11 @@ public class AiTutorService {
         Map<String, Object> statusMap = new LinkedHashMap<>();
         statusMap.put("isLiveCall", isConfigured);
         statusMap.put("apiKeyConfigured", isConfigured);
-        statusMap.put("activeModel", settings.getActiveModel() != null ? settings.getActiveModel() : "gemini-1.5-flash");
+        statusMap.put("activeModel", settings.getActiveModel() != null ? settings.getActiveModel() : "gemini-3.8-flash");
         statusMap.put("apiKeyMasked", masked != null ? masked : "");
         statusMap.put("provider", aiProviderService.isOpenAiModel(activeModel) ? "OpenAI" : "Google Gemini");
+        statusMap.put("conversationMode", isConfigured ? "generative" : "offline_fallback");
+        statusMap.put("fallbackActive", !isConfigured);
         statusMap.put("dailySessionsRemaining", remaining);
         statusMap.put("dailySessionsCap", dailyCap);
         return statusMap;
@@ -393,12 +395,17 @@ public class AiTutorService {
         }
         AiSetting setting = getOrInitSettings();
         String cleanKey = apiKey.trim();
+        String inferredModel = inferModelFromApiKey(cleanKey);
         if (requestedModel != null && !requestedModel.isBlank()) {
             if (!aiProviderService.isOpenAiModel(requestedModel)
                     && !requestedModel.toLowerCase().startsWith("gemini-")) {
                 throw new IllegalArgumentException("Model AI không được hỗ trợ.");
             }
             setting.setActiveModel(requestedModel.trim());
+        } else if (inferredModel != null) {
+            // The learner-facing popup sends only the key. Select the matching
+            // provider instead of storing an OpenRouter/OpenAI key for Gemini.
+            setting.setActiveModel(inferredModel);
         }
         String activeModel = setting.getActiveModel();
         boolean isValid = aiProviderService.testApiKey(cleanKey, activeModel);
@@ -422,6 +429,14 @@ public class AiTutorService {
                 ? "Đã kết nối thành công với " + (aiProviderService.isOpenAiModel(activeModel) ? "OpenAI" : "Google Gemini") + " API!"
                 : "Đã lưu API Key. Lưu ý: Kiểm tra model, quota và quyền truy cập của nhà cung cấp.");
         return res;
+    }
+
+    private String inferModelFromApiKey(String apiKey) {
+        if (apiKey == null || apiKey.isBlank()) return null;
+        String normalized = apiKey.trim().toLowerCase(Locale.ROOT);
+        if (normalized.startsWith("sk-or-")) return "openrouter/free";
+        if (normalized.startsWith("sk-")) return "gpt-4o-mini";
+        return null;
     }
 
     private String loadPromptTemplate() {
@@ -906,6 +921,35 @@ public class AiTutorService {
                 .replace("đẹp áo", "áo đẹp")
                 .replace("ngon phở", "phở ngon")
                 .replace("lớn trường", "trường lớn");
+    }
+
+    private String generateInitialGreetingText(AiSession session, User user, AiSetting settings) {
+        String learnerName = user.getFullName() != null && !user.getFullName().isBlank()
+                ? user.getFullName() : "bạn";
+        String level = user.getTargetLevel() != null ? user.getTargetLevel() : "A1";
+        String language = user.getNativeLanguage() != null ? user.getNativeLanguage() : "English";
+        String goal = user.getLearningGoal() != null ? user.getLearningGoal() : "Everyday conversations";
+        String prompt = "Start a natural, friendly conversation with learner " + learnerName
+                + ". This is a " + getModeTitle(session.getMode()) + " session."
+                + " Do not give a long introduction or a list of choices."
+                + " Say hello, suggest one open topic related to the learner goal, and ask only one follow-up question."
+                + " Learner level: " + level + ". Preferred explanation language: " + language
+                + ". Learning goal: " + goal + ". Return only the JSON schema from the system prompt.";
+
+        if (aiProviderService.isApiKeyAvailable(settings.getActiveModel())) {
+            GeminiApiClient.GeminiResponse response = aiProviderService.generateContent(
+                    buildSystemPrompt(session.getMode(), level, language, goal,
+                            ConversationIntent.CASUAL_CHAT, null),
+                    prompt, settings.getActiveModel());
+            if (response != null && response.text() != null && !response.text().isBlank()) {
+                AiMessage generated = parseAndBuildAiMessage(session, response.text(), session.getMode());
+                if (generated.getText() != null && !generated.getText().isBlank()) {
+                    return generated.getText();
+                }
+            }
+        }
+
+        return "Chào " + learnerName + "! Mình ở đây để đồng hành cùng bạn. Bạn muốn bắt đầu bằng một câu chuyện ngắn về ngày hôm nay không?";
     }
 
     private String getInitialGreetingForMode(String mode, User user) {

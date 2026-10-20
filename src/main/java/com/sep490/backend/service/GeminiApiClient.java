@@ -22,13 +22,13 @@ public class GeminiApiClient {
 
     public GeminiApiClient(
             @Value("${app.ai.gemini-api-key:}") String configuredApiKey,
-            @Value("${app.ai.default-model:gemini-1.5-flash}") String defaultModel,
+            @Value("${app.ai.default-model:gemini-3.8-flash}") String defaultModel,
             ObjectMapper objectMapper
     ) {
         this.restTemplate = new RestTemplate();
         this.objectMapper = objectMapper;
         this.configuredApiKey = configuredApiKey != null ? configuredApiKey.trim() : "";
-        this.defaultModel = defaultModel != null && !defaultModel.isBlank() ? defaultModel : "gemini-1.5-flash";
+        this.defaultModel = defaultModel != null && !defaultModel.isBlank() ? defaultModel : "gemini-3.8-flash";
     }
 
     public String getEffectiveApiKey() {
@@ -60,9 +60,10 @@ public class GeminiApiClient {
     public boolean testApiKey(String key) {
         if (key == null || key.isBlank()) return false;
         try {
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/" + defaultModel + ":generateContent?key=" + key.trim();
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/" + defaultModel + ":generateContent";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("x-goog-api-key", key.trim());
             Map<String, Object> req = Map.of(
                     "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", "Xin chào"))))
             );
@@ -113,10 +114,11 @@ public class GeminiApiClient {
 
         try {
             // Google Gemini API URL
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + apiKey;
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("x-goog-api-key", apiKey);
 
             Map<String, Object> requestBody = new HashMap<>();
 
@@ -156,8 +158,11 @@ public class GeminiApiClient {
                     }
                 }
             }
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            log.error("Gemini API rejected model={} with status={} body={}",
+                    model, e.getStatusCode(), e.getResponseBodyAsString());
         } catch (Exception e) {
-            log.error("Failed to invoke Google Gemini Multi-Turn API: {}", e.getMessage());
+            log.error("Failed to invoke Google Gemini Multi-Turn API with model={}: {}", model, e.getMessage());
         }
 
         return null;

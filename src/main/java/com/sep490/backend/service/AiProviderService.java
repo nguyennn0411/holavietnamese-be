@@ -60,6 +60,11 @@ public class AiProviderService {
     }
 
     public boolean isOpenAiModel(String model) {
-        return model != null && model.toLowerCase().startsWith("gpt-");
+        if (model == null) return false;
+        String normalized = model.toLowerCase();
+        return normalized.startsWith("gpt-")
+                || normalized.startsWith("openrouter/")
+                || normalized.startsWith("anthropic/")
+                || normalized.startsWith("meta-llama/");
     }
 }

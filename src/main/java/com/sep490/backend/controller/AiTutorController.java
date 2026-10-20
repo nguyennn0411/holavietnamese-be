@@ -36,9 +36,6 @@ public class AiTutorController {
     public ApiResponse<Map<String, Object>> configureApiKey(@RequestBody Map<String, String> request) {
         String apiKey = request.get("apiKey");
         String model = request.get("model");
-        if ((model == null || model.isBlank()) && "openai".equalsIgnoreCase(request.get("provider"))) {
-            model = "gpt-4o-mini";
-        }
         Map<String, Object> res = aiTutorService.configureApiKey(apiKey, model);
         return ApiResponse.<Map<String, Object>>builder()
                 .result(res)
