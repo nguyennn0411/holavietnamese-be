@@ -1,5 +1,19 @@
 # Bộ dữ liệu demo bài học, từ vựng và hành trình
 
+## Khám phá Việt Nam — luồng mới của An
+
+Khám phá mở tự do các điểm đã xuất bản cho người dùng đã đăng nhập, không phụ thuộc Course/Lesson. Trang chi tiết có Văn hóa, Ngôn ngữ vùng miền và Thực hành; không bắt đầu/hoàn thành điểm, tính tiến độ hay cấp dấu mới. Course và các kết quả học của module khác được giữ nguyên.
+
+- `GET /api/destinations/{id}/content`: chỉ đọc từ, biến thể, ID bài văn hóa và scenario khả dụng; không ghi lịch sử học.
+- `GET/PUT /api/admin/destinations/{id}/explore-content`: quản lý liên kết bằng `vocabularyIds` (số), `cultureIds` (chuỗi), `scenarioIds` (chuỗi). Giữ phân quyền quản lý hiện có; không thay cấu hình quyền chung.
+- Migration `V29` chỉ thêm bảng tham chiếu nội dung; không xóa bảng, dữ liệu học, Lesson hoặc Passport cũ. Khởi động lại Backend để Flyway áp dụng sau khi cập nhật source; Docker cần build lại image.
+- Endpoint ghi Journey cũ (`start`, `complete`, cấu hình journey, liên kết Lesson cũ) và endpoint nội dung Journey của học viên trả HTTP 410. `/admin/journey` chuyển về quản lý điểm đến. `LegacyJourneyReadController` chỉ giữ các API đọc mà Dashboard/Achievements và script kiểm tra liên kết của đồng đội còn sử dụng. Endpoint Passport chỉ đọc các dấu lịch sử.
+- Culture hiện được mở qua thư viện Frontend của Tuyển (`cultureService`), chưa có API dữ liệu Culture thật trong source này. Explore chỉ lưu ID tham chiếu, không sao chép nội dung. ID bị thiếu khỏi thư viện được ẩn ở phía học viên.
+- Scenario phải tồn tại trong DB, đang `ACTIVE` và có đúng ID mà màn scenario hiện tại của Tuyển hỗ trợ. Không dùng fallback sang scenario đầu tiên khi ID không khớp. Màn hội thoại/đánh giá của Tuyển được giữ nguyên; chưa coi phần thực hành hiện có là đánh giá AI thật.
+- Kiểm tra hồi quy: `DestinationExploreIntegrationTests`, `RegionalVocabularyIntegrationTests` và `qa/explore-contract.test.mjs`. Thử lưu liên kết trong chi tiết điểm đến rồi mở bằng tài khoản Learner chưa học bài nào.
+
+Các mục demo bên dưới mô tả bộ liên kết/lịch sử cũ, không còn là điều kiện mở khóa của trang Khám phá mới. Không chạy seed chỉ để dùng chức năng Khám phá và không xóa lịch sử cũ khi chuyển luồng.
+
 Khóa học **Hành trình Việt Nam — Demo liên kết**, mã `DEMO-VIETNAM-LINKS`, slug `demo-hanh-trinh-tieng-viet`.
 
 | Chặng | Bài học | Từ vựng dùng chung |

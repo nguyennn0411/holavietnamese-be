@@ -15,9 +15,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/** Legacy support for the shared dashboard and opt-in integration seed, not the Explore flow. */
 @Service @RequiredArgsConstructor @Transactional(readOnly = true)
 public class JourneyService {
-    // Product-owner approved rules: all linked lessons, then the next ordered stop.
+    // Preserve the old model for existing consumers; new Explore uses DestinationExploreService.
     private static final String UNLOCK_RULE = "PREVIOUS_COMPLETED";
     private static final String COMPLETION_RULE = "ALL_LINKED_LESSONS";
     private final JourneyRepository repository;
@@ -50,15 +51,11 @@ public class JourneyService {
     public List<JourneyResponse.Passport> passport(long user) {
         var entries = repository.passport(user);
         var result = new ArrayList<JourneyResponse.Passport>();
-        var earned = new HashSet<Long>();
         for (var entry : entries) {
-            var d = entry.getDestination(); earned.add(d.getId());
+            var d = entry.getDestination();
             result.add(new JourneyResponse.Passport(entry.getId(), d.getId(), d.getNameVi(), d.getNameEn(), true, entry.getStampedAt()));
         }
-        for (var stop : activeStops()) {
-            var d = stop.getDestination();
-            if (!earned.contains(d.getId())) result.add(new JourneyResponse.Passport(null, d.getId(), d.getNameVi(), d.getNameEn(), false, null));
-        }
+        // Shared Achievements may still read historical stamps; Explore issues no new ones.
         return List.copyOf(result);
     }
     public DestinationContentResponse adminContent(long destination) {
@@ -69,11 +66,6 @@ public class JourneyService {
     public DestinationContentResponse link(long destination, DestinationContentRequest request) {
         repository.link(destination, request);
         return adminContent(destination);
-    }
-    public void assertDestinationAccess(Long user, long destination) {
-        if (activeStops().stream().noneMatch(s -> s.getDestination().getId().equals(destination))) return;
-        if (user == null) throw forbidden();
-        assertAccessible(state(user).row(destination));
     }
     public DestinationContentResponse learnerContent(long user, long destination) {
         var d = repository.destination(destination);
