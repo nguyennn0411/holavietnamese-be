@@ -21,6 +21,7 @@ public enum ErrorCode {
     ROLE_NOT_FOUND(1009, "Vai trò không tồn tại trong hệ thống", HttpStatus.BAD_REQUEST),
     INVALID_FULL_NAME(1010, "Họ và tên không hợp lệ", HttpStatus.BAD_REQUEST),
     INVALID_EMAIL(1011, "Email không hợp lệ", HttpStatus.BAD_REQUEST),
+    EMAIL_NOT_VERIFIED(1012, "Email chưa được xác minh", HttpStatus.FORBIDDEN),
     INVALID_GOOGLE_TOKEN(1001, "Google token không hợp lệ hoặc đã hết hạn", HttpStatus.UNAUTHORIZED),
 
     // === OTP / Forgot Password (2xxx) ===
@@ -28,6 +29,7 @@ public enum ErrorCode {
     INVALID_OTP(2002, "Mã OTP không hợp lệ hoặc đã hết hạn", HttpStatus.BAD_REQUEST),
     EMAIL_NOT_FOUND(2003, "Email không tìm thấy trong hệ thống", HttpStatus.NOT_FOUND),
     PASSWORD_SAME_AS_CURRENT(2004, "Mật khẩu mới không được trùng với mật khẩu hiện tại", HttpStatus.BAD_REQUEST),
+    MAIL_DELIVERY_FAILED(2005, "Không thể gửi email OTP. Vui lòng thử lại sau.", HttpStatus.SERVICE_UNAVAILABLE),
     AI_QUOTA_EXCEEDED(3001, "Bạn đã đạt giới hạn số phiên hội thoại AI trong ngày (BR-24)", HttpStatus.TOO_MANY_REQUESTS),
     AI_RATE_LIMIT_EXCEEDED(3002, "Tần suất gửi tin nhắn quá nhanh. Vui lòng thử lại sau.", HttpStatus.TOO_MANY_REQUESTS),
     AI_TURN_LIMIT_EXCEEDED(3003, "Phiên hội thoại đã đạt số lượt trao đổi tối đa.", HttpStatus.BAD_REQUEST),

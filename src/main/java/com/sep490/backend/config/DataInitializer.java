@@ -32,7 +32,7 @@ public class DataInitializer implements CommandLineRunner {
         try {
             Role adminRole = initRole("ADMIN", "Quản trị viên hệ thống",
                     Set.of("USER_READ", "USER_WRITE", "ROLE_WRITE", "SETTING_WRITE", "ACHIEVEMENT_WRITE", "XP_RULE_WRITE", "AUDIT_READ"));
-            Role learnerRole = initRole("LEARNER", "Học viên học tiếng Việt",
+            initRole("LEARNER", "Học viên học tiếng Việt",
                     Set.of("PROFILE_READ", "PROFILE_WRITE", "LEARNING_READ"));
             initRole("TEACHER", "Giáo viên giảng dạy tiếng Việt",
                     Set.of("COURSE_READ", "LESSON_WRITE", "QUIZ_WRITE"));
@@ -49,6 +49,7 @@ public class DataInitializer implements CommandLineRunner {
                 admin.setFullName("System Administrator");
                 admin.setStatus("ACTIVE");
                 admin.setEnabled(true);
+                admin.setEmailVerified(true);
                 admin.setRole("ADMIN");
                 admin.setRoles(new HashSet<>(Set.of(adminRole)));
                 userRepository.save(admin);
@@ -64,29 +65,13 @@ public class DataInitializer implements CommandLineRunner {
                 manager.setFullName("Content Manager");
                 manager.setStatus("ACTIVE");
                 manager.setEnabled(true);
+                manager.setEmailVerified(true);
                 manager.setRole("CONTENT_MANAGER");
                 manager.setRoles(new HashSet<>(Set.of(contentManagerRole)));
                 userRepository.save(manager);
                 log.info(">>> Khởi tạo tài khoản content manager mẫu");
             }
 
-            // Tạo tài khoản học viên mẫu nếu chưa tồn tại
-            if (!userRepository.existsByUsername("learner")) {
-                User learner = new User();
-                learner.setUsername("learner");
-                learner.setPasswordHash(passwordEncoder.encode("learner123"));
-                learner.setEmail("learner@holavietnamese.com");
-                learner.setFullName("John Smith");
-                learner.setNativeLanguage("en");
-                learner.setLearningGoal("Du lịch và giao tiếp hàng ngày");
-                learner.setTargetLevel("A1");
-                learner.setStatus("ACTIVE");
-                learner.setEnabled(true);
-                learner.setRole("LEARNER");
-                learner.setRoles(new HashSet<>(Set.of(learnerRole)));
-                userRepository.save(learner);
-                log.info(">>> Khởi tạo tài khoản học viên mẫu: learner / learner123");
-            }
         } catch (Exception e) {
             log.warn("Không thể seed dữ liệu khởi tạo (Database có thể chưa sẵn sàng): {}", e.getMessage());
         }
