@@ -6,7 +6,6 @@ import com.sep490.backend.exception.AppException;
 import com.sep490.backend.exception.ErrorCode;
 import com.sep490.backend.learning.shared.ContentStore;
 import com.sep490.backend.repository.UserRepository;
-import com.sep490.backend.service.JourneyService;
 import com.sep490.backend.service.MyCoursesService;
 import java.time.LocalDate;
 import java.util.*;
@@ -23,7 +22,6 @@ public class LearnerOverviewController {
     private final ContentStore db;
     private final com.sep490.backend.service.UserProgressService userProgress;
     private final UserRepository userRepository;
-    private final JourneyService journey;
 
     @GetMapping("/api/users/progress")
     @Transactional(readOnly = true)
@@ -74,13 +72,6 @@ public class LearnerOverviewController {
         result.put("level", streak > 5 ? "A2 - Sơ cấp 2" : "A1 - Sơ cấp 1");
         result.put("nextLevelXp", 600);
         result.put("dailyGoalMinutes", dailyGoal);
-        var journeySummary = journey.journey(user.id(), null, null);
-        result.put("journeyProgress", journeySummary.progressPercent());
-        result.put("journeyCity", journeySummary.stops().stream()
-                .filter(s -> s.destination().id().equals(journeySummary.currentDestinationId()))
-                .map(s -> s.destination().nameVi()).findFirst().orElse(
-                        journeySummary.totalStops() > 0 && journeySummary.completedStops() == journeySummary.totalStops()
-                                ? "Đã hoàn thành hành trình" : "Chưa bắt đầu hành trình"));
         result.put("weeklyActivity", weeklyActivity);
         result.put("recentActivities", summary.getRecentXpTransactions());
         result.put("lastActivityDate", summary.getLastActivityDate());

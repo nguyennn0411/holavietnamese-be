@@ -25,6 +25,7 @@ class DestinationExploreIntegrationTests {
     @Autowired ObjectMapper json;
     @Autowired DestinationService destinations;
     @Autowired jakarta.persistence.EntityManager em;
+    @Autowired org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping mappings;
     LearnerPrincipal learner, admin;
     @BeforeEach void fixture() { learner=principal("LEARNER"); admin=principal("ADMIN"); }
     LearnerPrincipal principal(String role) {
@@ -50,18 +51,16 @@ class DestinationExploreIntegrationTests {
         return mvc.perform(put("/api/admin/destinations/"+id+"/explore-content").with(user(actor)).with(csrf()).contentType("application/json")
                 .content(json.writeValueAsString(Map.of("vocabularyIds",words,"cultureIds",cultures,"scenarioIds",scenarios))));
     }
-    @Test void anyPublishedDestinationOpensWithoutLearningAndReadsDoNotWriteProgress() throws Exception {
+    @Test void anyPublishedDestinationOpensWithoutLearningAndReadsDoNotChangeLearning() throws Exception {
         long first=destination(DestinationStatus.PUBLISHED), next=destination(DestinationStatus.PUBLISHED);
-        db.update("INSERT INTO journey_stops(destination_id,display_order,status) VALUES(?,1,'PUBLISHED'),(?,2,'PUBLISHED')",first,next);
-        var progress=db.queryForList("SELECT * FROM user_journey_progress");
-        var stamps=db.queryForList("SELECT * FROM user_passport_entries");
-        for (int repeat=0;repeat<2;repeat++) {
-            mvc.perform(get("/api/destinations/"+next).with(user(learner))).andExpect(status().isOk());
-            mvc.perform(get("/api/destinations/"+next+"/content").with(user(learner))).andExpect(status().isOk())
+        var sources=List.of("enrollments","lesson_progress","ai_sessions");
+        var before=sources.stream().map(t -> db.queryForList("SELECT * FROM "+t+" ORDER BY 1")).toList();
+        for (long id:List.of(first,next,next)) {
+            mvc.perform(get("/api/destinations/"+id).with(user(learner))).andExpect(status().isOk());
+            mvc.perform(get("/api/destinations/"+id+"/content").with(user(learner))).andExpect(status().isOk())
                     .andExpect(jsonPath("$.result.lessons").doesNotExist()).andExpect(jsonPath("$.result.journey").doesNotExist());
         }
-        assertThat(db.queryForList("SELECT * FROM user_journey_progress")).isEqualTo(progress);
-        assertThat(db.queryForList("SELECT * FROM user_passport_entries")).isEqualTo(stamps);
+        assertThat(sources.stream().map(t -> db.queryForList("SELECT * FROM "+t+" ORDER BY 1")).toList()).isEqualTo(before);
         assertThat(db.queryForObject("SELECT COUNT(*) FROM enrollments WHERE user_id=?",Integer.class,learner.id())).isZero();
     }
     @Test void referencesPersistInOrderWithoutEditingSourceAndLearnersSeeOnlyAvailableContent() throws Exception {
@@ -105,21 +104,19 @@ class DestinationExploreIntegrationTests {
         }
         mvc.perform(get("/api/destinations/1/content")).andExpect(status().isUnauthorized());
     }
-    @Test void oldWriteEndpointsAreRetiredAndHistoricalPassportRemainsReadable() throws Exception {
-        long id=destination(DestinationStatus.PUBLISHED);
-        db.update("INSERT INTO user_journey_progress(user_id,destination_id,status,progress_percent) VALUES(?,?,'COMPLETED',100)",learner.id(),id);
-        db.update("INSERT INTO user_passport_entries(user_id,destination_id,stamped_at) VALUES(?,?,CURRENT_TIMESTAMP)",learner.id(),id);
-        var history=db.queryForList("SELECT * FROM user_passport_entries");
-        for (String action:List.of("start","complete")) mvc.perform(post("/api/me/journey/destinations/"+id+"/"+action).with(user(learner)).with(csrf())).andExpect(status().isGone());
-        mvc.perform(put("/api/admin/journey").with(user(admin)).with(csrf()).contentType("application/json").content("{\"stops\":[]}"))
-                .andExpect(status().isGone());
-        mvc.perform(get("/api/me/journey/destinations/"+id+"/content").with(user(learner))).andExpect(status().isGone());
-        mvc.perform(get("/api/admin/journey").with(user(admin))).andExpect(status().isOk());
-        mvc.perform(get("/api/admin/destinations/"+id+"/content").with(user(admin))).andExpect(status().isOk());
-        mvc.perform(get("/api/me/journey").with(user(learner))).andExpect(status().isOk());
-        mvc.perform(get("/api/users/progress").with(user(learner))).andExpect(status().isOk());
-        mvc.perform(get("/api/me/journey/passport").with(user(learner))).andExpect(status().isOk()).andExpect(jsonPath("$.result[0].unlocked").value(true));
-        assertThat(db.queryForList("SELECT * FROM user_passport_entries")).isEqualTo(history);
+    @Test
+    void sharedOverviewPreservesLearningDataAndRetiredJourneyRoutesAreAbsent() throws Exception {
+        mvc.perform(get("/api/users/progress").with(user(learner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.enrolledCourses").isArray())
+                .andExpect(jsonPath("$.result.completedLessonsCount").exists())
+                .andExpect(jsonPath("$.result.journeyProgress").doesNotExist())
+                .andExpect(jsonPath("$.result.journeyCity").doesNotExist());
+        var routes=mappings.getHandlerMethods().keySet().stream()
+                .flatMap(mapping -> mapping.getPatternValues().stream()).toList();
+        assertThat(routes).noneMatch(path -> path.startsWith("/api/me/journey")
+                || path.startsWith("/api/admin/journey") || path.equals("/api/learner/journey/progress"));
+        assertThat(routes).doesNotContain("/api/admin/destinations/{id}/content");
     }
 }
 

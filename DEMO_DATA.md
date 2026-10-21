@@ -14,13 +14,10 @@ docker compose --env-file .env.mysql -f compose.yml -f compose.demo.yml -f compo
 ```
 
 5. Tại FE, chạy `npm ci` rồi `npm run dev` và mở `http://localhost:5173`.
-6. Tại BE, chạy `node scripts/verify-integration-demo.cjs` để lấy ID thực tế và xác nhận liên kết.
 
-Bộ nạp bật các course A1, nền tảng, phát âm, chương 1–3, TV123, gói TV123 LMS và khóa demo liên kết Hà Nội → Hội An → TP.HCM. Seed dùng lại course đã tồn tại; nếu cấu trúc course trùng mã nhưng khác dữ liệu biên soạn, seed dừng để người phụ trách kiểm tra, không ghi đè tiến độ học.
+Bộ nạp bật các course A1, nền tảng, phát âm, chương 1–3, TV123 và gói TV123 LMS. Seed dùng lại course đã tồn tại; nếu cấu trúc course trùng mã nhưng khác dữ liệu biên soạn, seed dừng để người phụ trách kiểm tra, không ghi đè tiến độ học. Xem [TV123](TV123_COURSES.md) và [gói LMS](TV123_PACKAGE_COURSES.md).
 
-Khóa liên kết có mã `DEMO-VIETNAM-LINKS`, gồm 6 bài, 18 từ và 7 quiz. Xem [kịch bản tích hợp](INTEGRATION_DEMO.md), [TV123](TV123_COURSES.md) và [gói LMS](TV123_PACKAGE_COURSES.md).
-
-Đã kiểm chứng lệnh bật toàn bộ seed trên MySQL tạm với V1–V26: nạp thành công **16 khóa đã xuất bản, 290 bài học, 18 từ dùng chung và 3 chặng hành trình**. ID giữa các máy có thể khác nhau. Các bản nháp tạo thử riêng trên database của người biên soạn không nằm trong bộ demo này.
+Các bộ demo điểm đến và từ vựng liên kết đã được gỡ. Khám phá và danh mục từ vựng không tự nạp dữ liệu mẫu; Admin tạo hoặc import nội dung qua chức năng quản lý. Bộ từ điển có nguồn Wiktionary và công cụ import được giữ riêng, không tự nạp khi khởi động.
 
 Các tài khoản mẫu chỉ được tạo với profile `dev-demo`: `admin / admin123`, `contentmanager / contentmanager123`, `learner / learner123`. Khóa Cloudinary, SMTP, AI và cấu hình riêng phải đặt trong `.env.mysql` hoặc `.env.cloudinary` cục bộ; file mẫu để trống các khóa dịch vụ.
 
