@@ -17,4 +17,7 @@ public class AiMessageSendRequest {
     private String text;
 
     private String mode; // tutor, grammar, translation, conversation, culture_guide, travel, regional
+
+    /** UI response language: en or vi. */
+    private String language;
 }

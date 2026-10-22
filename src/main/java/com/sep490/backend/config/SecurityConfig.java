@@ -25,7 +25,9 @@ public class SecurityConfig {
             .requestMatchers("/api/auth/**", "/api/users/register", "/api/login", "/error",
                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
             .requestMatchers(HttpMethod.GET, "/media/**", "/api/csrf", "/api/courses", "/api/courses/{id}",
-                "/api/grammar", "/api/grammar/{id}", "/api/lessons/public/**", "/api/topics/public/**", "/api/notifications/stream").permitAll()
+                "/api/grammar", "/api/grammar/{id}", "/api/lessons/public/**", "/api/topics/public/**", "/api/notifications/stream",
+                "/api/ai/scenarios", "/api/ai/scenarios/*").permitAll()
+            .requestMatchers("/api/ai/roleplay/scenarios/*/complete", "/api/ai/roleplay/sessions/*/finish").permitAll()
             .requestMatchers("/api/admin/courses/**", "/api/admin/modules/**",
                 "/api/admin/lessons/**", "/api/admin/activities/**",
                 "/api/admin/questions/**", "/api/admin/quizzes/**")
@@ -33,7 +35,8 @@ public class SecurityConfig {
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated())
             // JWT clients send an explicit Authorization header; legacy session clients keep CSRF.
-            .csrf(c -> c.ignoringRequestMatchers("/api/auth/**", "/api/users/register", "/api/notifications/**")
+            .csrf(c -> c.ignoringRequestMatchers("/api/auth/**", "/api/users/register", "/api/notifications/**",
+                    "/api/ai/roleplay/scenarios/*/complete", "/api/ai/roleplay/sessions/*/finish")
                 .ignoringRequestMatchers(r -> r.getHeader("Authorization") != null
                     && r.getHeader("Authorization").startsWith("Bearer ")))
             .oauth2ResourceServer(o -> o.jwt(j -> j.decoder(decoder).jwtAuthenticationConverter(converter))

@@ -22,13 +22,13 @@ public class GeminiApiClient {
 
     public GeminiApiClient(
             @Value("${app.ai.gemini-api-key:}") String configuredApiKey,
-            @Value("${app.ai.default-model:gemini-3.8-flash}") String defaultModel,
+            @Value("${app.ai.default-model:openrouter/free}") String defaultModel,
             ObjectMapper objectMapper
     ) {
         this.restTemplate = new RestTemplate();
         this.objectMapper = objectMapper;
         this.configuredApiKey = configuredApiKey != null ? configuredApiKey.trim() : "";
-        this.defaultModel = defaultModel != null && !defaultModel.isBlank() ? defaultModel : "gemini-3.8-flash";
+        this.defaultModel = defaultModel != null && !defaultModel.isBlank() ? defaultModel : "openrouter/free";
     }
 
     public String getEffectiveApiKey() {

@@ -87,7 +87,7 @@ app:
     gemini-api-key: ${GEMINI_API_KEY:${GOOGLE_AI_API_KEY:}}
     openai-api-key: ${OPENAI_API_KEY:}
     openai-base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
-    default-model: ${AI_DEFAULT_MODEL:gemini-3.8-flash}
+    default-model: ${AI_DEFAULT_MODEL:openrouter/free}
 
 logging:
   level:

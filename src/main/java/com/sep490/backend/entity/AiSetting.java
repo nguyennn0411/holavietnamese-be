@@ -21,7 +21,7 @@ public class AiSetting {
 
     @Column(name = "active_model", nullable = false, length = 100)
     @Builder.Default
-    private String activeModel = "gemini-3.8-flash";
+    private String activeModel = "openrouter/free";
 
     @Column(name = "system_prompt_version", nullable = false, length = 50)
     @Builder.Default
