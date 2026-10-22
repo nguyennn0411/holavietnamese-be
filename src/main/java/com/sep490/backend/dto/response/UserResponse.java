@@ -37,5 +37,6 @@ public class UserResponse {
     String status;
     Set<String> roles;
     String token;
+    String verificationOtp;
     LocalDateTime createdAt;
 }

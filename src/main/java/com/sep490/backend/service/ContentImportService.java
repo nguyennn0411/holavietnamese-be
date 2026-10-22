@@ -26,7 +26,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class ContentImportService {
     private final List<ContentImportHandler> handlers;
     private final ContentExcelReader reader;
-    private final DictionaryJsonlReader dictionaryReader;
     private final ContentImportJobJpaRepository jobs;
     private final UserRepository users;
     private final ObjectMapper json;
@@ -42,9 +41,7 @@ public class ContentImportService {
     @Transactional public ContentImportResponse preview(String module, java.io.InputStream input, String filename, LearnerPrincipal actor) {
         long owner = actorId(actor); var handler = handler(module);
         List<Row> rows; List<Error> inputErrors; Map<String,Object> summary=Map.of();
-        if ("jsonl".equals(handler.type().format())) {
-            var parsed=dictionaryReader.read(input,filename); rows=parsed.rows(); inputErrors=parsed.errors(); summary=parsed.summary();
-        } else {
+        {
             try {
                 byte[] bytes=input.readNBytes((int)ExcelCourseParser.MAX_BYTES+1);
                 var parsed=reader.read(bytes,filename,handler.type()); rows=parsed.rows(); inputErrors=parsed.errors();
@@ -57,12 +54,6 @@ public class ContentImportService {
         job.setId(UUID.randomUUID().toString()); job.setModule(module); job.setFilename(safeFilename(filename));
         job.setActorId(owner); job.setActorName(user.getFullName() == null || user.getFullName().isBlank() ? user.getUsername() : user.getFullName());
         job.setCreatedAt(clock.instant()); job.setTotalRows(rows.size());
-        if ("DICTIONARY_JSONL".equals(module)) {
-            var acceptedLines=rows.stream().map(Row::rowNumber).collect(java.util.stream.Collectors.toSet());
-            job.setTotalRows(rows.size()+(int)inputErrors.stream().map(Error::row).filter(r -> r>0&&!acceptedLines.contains(r)).distinct().count());
-            summary=new LinkedHashMap<>(summary);
-            summary.put("skippedExisting",rows.stream().filter(r -> "SKIP_EXISTING".equals(r.values().get("action"))).count());
-        }
         job.setSummary(encode(summary)); job.setPayload(encode(rows)); setErrors(job,errors);
         job.setStatus(errors.isEmpty() ? "READY" : "VALIDATION_FAILED");
         return response(jobs.saveAndFlush(job),true);
@@ -80,11 +71,6 @@ public class ContentImportService {
                 if (!"READY".equals(job.getStatus())) throw new LearningException(LearningException.Kind.CONFLICT,"Hãy sửa file và tạo preview mới trước khi xác nhận.");
                 var handler = handler(module); var rows = rows(job); var errors = handler.validate(rows);
                 job.setPayload(encode(rows));
-                if ("DICTIONARY_JSONL".equals(module)) {
-                    var summary=summary(job);
-                    summary.put("skippedExisting",rows.stream().filter(r -> "SKIP_EXISTING".equals(r.values().get("action"))).count());
-                    job.setSummary(encode(summary));
-                }
                 if (!errors.isEmpty()) {
                     setErrors(job,errors); job.setStatus("VALIDATION_FAILED"); job.setCompletedAt(clock.instant());
                     return response(jobs.saveAndFlush(job),true);
@@ -118,7 +104,7 @@ public class ContentImportService {
     }
     private void setErrors(ContentImportJobJpaEntity job,List<Error> errors) {
         job.setDiagnostics(encode(errors));
-        int firstDataRow="DICTIONARY_JSONL".equals(job.getModule()) ? 1 : 2;
+        int firstDataRow=2;
         long invalidRows = errors.stream().filter(e -> e.row() >= firstDataRow).map(Error::row).distinct().count();
         boolean fileError = errors.stream().anyMatch(e -> e.row() < firstDataRow);
         job.setErrorRows(fileError ? job.getTotalRows() : (int)invalidRows);
@@ -129,7 +115,7 @@ public class ContentImportService {
         return new ContentImportResponse(job.getId(),job.getModule(),job.getFilename(),job.getActorId(),job.getActorName(),job.getStatus(),
                 job.getTotalRows(),job.getValidRows(),job.getErrorRows(),job.getImportedRows(),
                 "FAILED".equals(job.getStatus()) ? job.getTotalRows() : job.getErrorRows(),
-                "READY".equals(job.getStatus()),done,job.getCreatedAt(),job.getCompletedAt(),
+                "READY".equals(job.getStatus()) && handlers.stream().anyMatch(h -> h.type().id().equals(job.getModule())),done,job.getCreatedAt(),job.getCompletedAt(),
                 includeData ? rows(job) : List.of(),includeData ? decode(job.getDiagnostics(),new TypeReference<List<Error>>() {}) : List.of(),summary(job));
     }
     private Map<String,Object> summary(ContentImportJobJpaEntity job) {

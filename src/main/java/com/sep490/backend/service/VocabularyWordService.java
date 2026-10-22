@@ -2,7 +2,6 @@ package com.sep490.backend.service;
 
 import com.sep490.backend.dto.model.VocabularyExample;
 import com.sep490.backend.dto.model.VocabularyMeaning;
-import com.sep490.backend.dto.model.VocabularyTopic;
 import com.sep490.backend.dto.model.VocabularyWord;
 import com.sep490.backend.dto.request.VocabularyExampleRequest;
 import com.sep490.backend.dto.request.VocabularyMeaningRequest;
@@ -12,15 +11,12 @@ import com.sep490.backend.entity.enums.VocabularyStatus;
 import com.sep490.backend.exception.LearningException;
 import com.sep490.backend.mapper.VocabularyWordResponseMapper;
 import com.sep490.backend.repository.VocabularyCatalogRepository;
-import com.sep490.backend.repository.VocabularyTopicRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +24,6 @@ import java.util.Set;
 public class VocabularyWordService {
 
     private final VocabularyCatalogRepository repository;
-    private final VocabularyTopicRepository topicRepository;
     private final com.sep490.backend.repository.jpa.VocabularyWordJpaRepository words;
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
@@ -42,17 +37,11 @@ public class VocabularyWordService {
     public List<VocabularyWordResponse> search(
             String keyword,
             VocabularyStatus status,
-            String cefrLevel,
-            String partOfSpeech,
-            Long topicId
-    ) {
+            String partOfSpeech) {
         return repository.search(
                         keyword,
                         status,
-                        cefrLevel,
-                        partOfSpeech,
-                        topicId
-                )
+                        partOfSpeech)
                 .stream()
                 .map(VocabularyWordResponseMapper::toResponse)
                 .toList();
@@ -78,12 +67,10 @@ public class VocabularyWordService {
                 VocabularyText.normalize(request.word()),
                 trimToNull(request.pronunciation()),
                 request.partOfSpeech().trim(),
-                trimToNull(request.cefrLevel()),
                 trimToNull(request.audioUrl()),
                 status,
                 status == VocabularyStatus.PUBLISHED ? now : null,
                 status == VocabularyStatus.ARCHIVED ? now : null,
-                resolveTopics(request.topicIds()),
                 mapMeanings(request.meanings()),
                 null,
                 null
@@ -126,12 +113,10 @@ public class VocabularyWordService {
                 VocabularyText.normalize(request.word()),
                 trimToNull(request.pronunciation()),
                 request.partOfSpeech().trim(),
-                trimToNull(request.cefrLevel()),
                 trimToNull(request.audioUrl()),
                 status,
                 publishedAt,
                 archivedAt,
-                resolveTopics(request.topicIds()),
                 mapMeanings(request.meanings()),
                 current.createdAt(),
                 current.updatedAt()
@@ -148,27 +133,6 @@ public class VocabularyWordService {
                 .orElseThrow(() ->
                         LearningException.notFound("Vocabulary")
                 );
-    }
-
-    private Set<VocabularyTopic> resolveTopics(Set<Long> topicIds) {
-        if (topicIds == null || topicIds.isEmpty()) {
-            return Set.of();
-        }
-
-        Set<VocabularyTopic> topics = new LinkedHashSet<>();
-
-        for (Long topicId : topicIds) {
-            VocabularyTopic topic = topicRepository.findById(topicId)
-                    .orElseThrow(() ->
-                            LearningException.notFound(
-                                    "Vocabulary topic"
-                            )
-                    );
-
-            topics.add(topic);
-        }
-
-        return topics;
     }
 
     private List<VocabularyMeaning> mapMeanings(
@@ -229,17 +193,11 @@ public class VocabularyWordService {
 
     public List<VocabularyWordResponse> searchPublished(
             String keyword,
-            String cefrLevel,
-            String partOfSpeech,
-            Long topicId
-    ) {
+            String partOfSpeech) {
         return repository.search(
                         keyword,
                         VocabularyStatus.PUBLISHED,
-                        cefrLevel,
-                        partOfSpeech,
-                        topicId
-                )
+                        partOfSpeech)
                 .stream()
                 .map(VocabularyWordResponseMapper::toPublishedResponse)
                 .toList();
@@ -262,16 +220,10 @@ public class VocabularyWordService {
         if (words.existsByWordIgnoreCaseAndPartOfSpeechIgnoreCaseAndIdNot(VocabularyText.normalize(request.word()),request.partOfSpeech().strip(),id))
             throw new LearningException(LearningException.Kind.CONFLICT,"Từ và từ loại đã tồn tại. Hãy sửa mục từ hiện có để thêm nghĩa.");
     }
-    public org.springframework.data.domain.Page<VocabularyWordResponse> searchPage(String keyword,VocabularyStatus status,String level,
-            String part,Long topic,int page,int size,boolean publishedOnly,boolean exact) {
+    public org.springframework.data.domain.Page<VocabularyWordResponse> searchPage(String keyword,VocabularyStatus status,String part,int page,int size,boolean publishedOnly,boolean exact) {
         if (keyword != null && keyword.length() > 200) throw new LearningException(LearningException.Kind.INVALID,"Từ khóa tối đa 200 ký tự.");
-        return repository.searchPage(keyword,publishedOnly ? VocabularyStatus.PUBLISHED : status,level,part,topic,page,size,exact)
+        return repository.searchPage(keyword,publishedOnly ? VocabularyStatus.PUBLISHED : status,part,page,size,exact)
                 .map(w -> publishedOnly ? VocabularyWordResponseMapper.toPublishedResponse(w) : VocabularyWordResponseMapper.toResponse(w));
-    }
-    public java.util.Map<String,Object> filters() {
-        return java.util.Map.of("levels",jdbc.queryForList("SELECT DISTINCT cefr_level FROM vocabularies WHERE status='PUBLISHED' AND cefr_level IS NOT NULL ORDER BY cefr_level",String.class),
-                "partsOfSpeech",jdbc.queryForList("SELECT DISTINCT part_of_speech FROM vocabularies WHERE status='PUBLISHED' ORDER BY part_of_speech",String.class),
-                "topics",topicRepository.findAll().stream().filter(t -> t.status() == VocabularyStatus.PUBLISHED).toList());
     }
     public java.util.Map<String,Object> links(Long id) {
         var word = findWord(id);
@@ -285,13 +237,5 @@ public class VocabularyWordService {
             row.put("id",targets.isEmpty() ? null : targets.getFirst().getId()); related.add(row);
         }
         return java.util.Map.of("otherPartsOfSpeech",family,"relatedWords",related);
-    }
-    @Transactional public VocabularyWordResponse createDictionary(VocabularyWordRequest request,
-            com.sep490.backend.dto.model.DictionaryMetadata.Source source,com.sep490.backend.dto.model.DictionaryMetadata.Lexical lexical,String raw) {
-        var saved = create(request);
-        var entity = words.findById(saved.id()).orElseThrow();
-        entity.setSourceMetadata(com.sep490.backend.dto.model.DictionaryMetadata.encode(source));
-        entity.setLexicalData(com.sep490.backend.dto.model.DictionaryMetadata.encode(lexical)); entity.setSourceRaw(raw);
-        return VocabularyWordResponseMapper.toResponse(com.sep490.backend.mapper.VocabularyWordMapper.toDomain(words.saveAndFlush(entity)));
     }
 }

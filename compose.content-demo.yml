@@ -8,4 +8,3 @@ services:
       - --app.chapterthree.seed.enabled=true
       - --app.tv123.seed.enabled=true
       - --app.tv123.package-seed.enabled=true
-      - --app.integration-demo.seed.enabled=true

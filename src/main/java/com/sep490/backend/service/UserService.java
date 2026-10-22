@@ -25,9 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.List;
-import java.time.LocalDateTime;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -79,18 +77,14 @@ public class UserService {
         user.setEnabled(true);
         user.setRole("LEARNER");
         user.setEmailVerified(false);
-        user.setEmailVerificationToken(UUID.randomUUID().toString());
-        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
         user.setRoles(new HashSet<>(Set.of(learnerRole)));
 
         User savedUser = userRepository.save(user);
+        String developmentOtp = authenticationService.sendRegistrationVerificationOtp(savedUser);
         log.info("Học viên [{}] đăng ký tài khoản thành công", savedUser.getUsername());
 
-        // Sinh token tự động để học viên đăng nhập ngay lập tức
-        String token = authenticationService.generateToken(savedUser);
         UserResponse response = toUserResponse(savedUser);
-        response.setToken(token);
-
+        response.setVerificationOtp(developmentOtp);
         return response;
     }
 

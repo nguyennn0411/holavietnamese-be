@@ -16,7 +16,6 @@ import java.util.*;
  * Controller providing specific learner progress endpoints for Section 10:
  * - UC-113: View Lesson History (10.1.4)
  * - UC-114: View Vocabulary Mastery (10.1.5)
- * - UC-115: View Journey Progress (10.1.6)
  * - UC-116: View Quiz History (10.1.7)
  * - UC-117: View Learning Streak (10.1.8)
  */
@@ -80,31 +79,6 @@ public class LearnerProgressReportController {
 
         return ApiResponse.<Map<String, Object>>builder()
                 .result(result)
-                .build();
-    }
-
-    /**
-     * UC-115 & Screen 10.1.6: View Journey Progress
-     */
-    @GetMapping("/journey/progress")
-    @Transactional(readOnly = true)
-    public ApiResponse<Map<String, Object>> getJourneyProgress(@AuthenticationPrincipal LearnerPrincipal user) {
-        Map<String, Object> res = new LinkedHashMap<>();
-        res.put("currentDestination", "Hà Nội - Phố Cổ");
-        res.put("completedDestinations", 3);
-        res.put("totalDestinations", 8);
-        res.put("destinations", List.of(
-                Map.of("id", "ha-noi", "name", "Hà Nội", "status", "COMPLETED", "progress", 100),
-                Map.of("id", "ninh-binh", "name", "Ninh Bình", "status", "COMPLETED", "progress", 100),
-                Map.of("id", "ha-long", "name", "Vịnh Hạ Long", "status", "COMPLETED", "progress", 100),
-                Map.of("id", "hue", "name", "Cố đô Huế", "status", "IN_PROGRESS", "progress", 45),
-                Map.of("id", "da-nang", "name", "Đà Nẵng & Hội An", "status", "LOCKED", "progress", 0),
-                Map.of("id", "da-lat", "name", "Đà Lạt", "status", "LOCKED", "progress", 0),
-                Map.of("id", "sai-gon", "name", "TP. Hồ Chí Minh", "status", "LOCKED", "progress", 0),
-                Map.of("id", "can-tho", "name", "Cần Thơ & Miền Tây", "status", "LOCKED", "progress", 0)
-        ));
-        return ApiResponse.<Map<String, Object>>builder()
-                .result(res)
                 .build();
     }
 

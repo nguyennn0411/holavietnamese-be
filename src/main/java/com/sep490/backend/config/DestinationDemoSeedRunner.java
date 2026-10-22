@@ -7,17 +7,26 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-/** Opt in with APP_DESTINATION_SEED_ENABLED=true or --app.destination.seed.enabled=true. */
 @Component
-@Order(120)
-@ConditionalOnProperty(name = "app.destination.seed.enabled", havingValue = "true")
+@Order(170)
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty(
+        name = "app.destination.seed.enabled",
+        havingValue = "true",
+        matchIfMissing = true
+)
 public class DestinationDemoSeedRunner implements CommandLineRunner {
+
     private final DestinationDemoSeed seed;
 
     @Override
     public void run(String... args) throws Exception {
-        log.info("Destination demo seed: created {} records; existing slugs preserved.", seed.seed());
+        var result = seed.seed();
+
+        log.info(
+                "Destination seed: created {} destinations; updated {} destinations from JSON.",
+                result.created(), result.updated()
+        );
     }
 }

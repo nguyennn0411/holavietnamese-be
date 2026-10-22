@@ -18,17 +18,10 @@ public final class VocabularyWordMapper {
                 entity.getWord(),
                 entity.getPronunciation(),
                 entity.getPartOfSpeech(),
-                entity.getCefrLevel(),
                 entity.getAudioUrl(),
                 entity.getStatus(),
                 entity.getPublishedAt(),
                 entity.getArchivedAt(),
-                entity.getTopics() == null
-                        ? new LinkedHashSet<>()
-                        : entity.getTopics()
-                          .stream()
-                          .map(VocabularyTopicMapper::toDomain)
-                          .collect(Collectors.toCollection(LinkedHashSet::new)),
                 entity.getMeanings() == null
                         ? List.of()
                         : entity.getMeanings()
