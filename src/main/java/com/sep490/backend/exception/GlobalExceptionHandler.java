@@ -126,6 +126,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(exception.getStatusCode().value(), message));
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMissingResource(
+            org.springframework.web.servlet.resource.NoResourceFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(404, "Không tìm thấy tài nguyên."));
+    }
+
     @ExceptionHandler(AsyncRequestNotUsableException.class)
     public ResponseEntity<Void> handleClientDisconnected(AsyncRequestNotUsableException exception) {
         log.debug("Client đã ngắt request bất đồng bộ: {}", exception.getMessage());

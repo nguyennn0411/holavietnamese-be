@@ -1,0 +1,5013 @@
+{
+  "sourceName": "Tiếng Việt 1 tập 1.pdf",
+  "sourceSha256": "af2bb8a065b21aeae6c2941e989f9942c0150ad3e578f1f00d052ca4c97e8596",
+  "pageCount": 173,
+  "pages": [
+    {
+      "pdfPage": 1,
+      "printedPage": null,
+      "width": 560,
+      "height": 783,
+      "image": "/media/tv1-tap1/pages/page-001.jpg",
+      "illustrations": []
+    },
+    {
+      "pdfPage": 2,
+      "printedPage": null,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-002.jpg",
+      "illustrations": []
+    },
+    {
+      "pdfPage": 3,
+      "printedPage": 2,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-003.jpg",
+      "illustrations": []
+    },
+    {
+      "pdfPage": 4,
+      "printedPage": 3,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-004.jpg",
+      "illustrations": []
+    },
+    {
+      "pdfPage": 5,
+      "printedPage": 4,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-005.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-005-figure-01.jpg",
+          "bbox": [
+            19,
+            0,
+            710,
+            916
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 6,
+      "printedPage": 5,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-006.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-006-figure-01.jpg",
+          "bbox": [
+            10,
+            88,
+            710,
+            994
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 7,
+      "printedPage": 6,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-007.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-007-figure-01.jpg",
+          "bbox": [
+            40,
+            100,
+            683,
+            856
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 8,
+      "printedPage": 7,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-008.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-008-figure-01.jpg",
+          "bbox": [
+            70,
+            97,
+            671,
+            628
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-008-figure-02.jpg",
+          "bbox": [
+            148,
+            650,
+            542,
+            1006
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 9,
+      "printedPage": 8,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-009.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-009-figure-01.jpg",
+          "bbox": [
+            10,
+            0,
+            710,
+            880
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 10,
+      "printedPage": 9,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-010.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-010-figure-01.jpg",
+          "bbox": [
+            43,
+            118,
+            698,
+            1009
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 11,
+      "printedPage": 10,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-011.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-011-figure-01.jpg",
+          "bbox": [
+            22,
+            0,
+            665,
+            922
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 12,
+      "printedPage": 11,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-012.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-012-figure-01.jpg",
+          "bbox": [
+            13,
+            163,
+            713,
+            997
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 13,
+      "printedPage": 12,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-013.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-013-figure-01.jpg",
+          "bbox": [
+            19,
+            0,
+            692,
+            919
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 14,
+      "printedPage": 13,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-014.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-014-figure-01.jpg",
+          "bbox": [
+            4,
+            220,
+            710,
+            916
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 15,
+      "printedPage": 14,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-015.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-015-figure-01.jpg",
+          "bbox": [
+            0,
+            0,
+            692,
+            865
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 16,
+      "printedPage": 15,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-016.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-016-figure-01.jpg",
+          "bbox": [
+            78,
+            46,
+            671,
+            467
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-016-figure-02.jpg",
+          "bbox": [
+            10,
+            555,
+            710,
+            1035
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 17,
+      "printedPage": 16,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-017.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-017-figure-01.jpg",
+          "bbox": [
+            64,
+            264,
+            317,
+            610
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-017-figure-02.jpg",
+          "bbox": [
+            415,
+            250,
+            686,
+            607
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 18,
+      "printedPage": 17,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-018.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-018-figure-01.jpg",
+          "bbox": [
+            136,
+            57,
+            644,
+            506
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-018-figure-02.jpg",
+          "bbox": [
+            238,
+            685,
+            503,
+            1030
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 19,
+      "printedPage": 18,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-019.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-019-figure-01.jpg",
+          "bbox": [
+            370,
+            238,
+            692,
+            694
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-019-figure-02.jpg",
+          "bbox": [
+            79,
+            391,
+            299,
+            676
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 20,
+      "printedPage": 19,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-020.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-020-figure-01.jpg",
+          "bbox": [
+            121,
+            43,
+            587,
+            576
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-020-figure-02.jpg",
+          "bbox": [
+            106,
+            699,
+            638,
+            1015
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 21,
+      "printedPage": 20,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-021.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-021-figure-01.jpg",
+          "bbox": [
+            79,
+            229,
+            332,
+            640
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-021-figure-02.jpg",
+          "bbox": [
+            361,
+            205,
+            671,
+            703
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 22,
+      "printedPage": 21,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-022.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-022-figure-01.jpg",
+          "bbox": [
+            0,
+            36,
+            683,
+            412
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-022-figure-02.jpg",
+          "bbox": [
+            43,
+            592,
+            677,
+            1006
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 23,
+      "printedPage": 22,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-023.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-023-figure-01.jpg",
+          "bbox": [
+            397,
+            73,
+            689,
+            476
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-023-figure-02.jpg",
+          "bbox": [
+            10,
+            247,
+            353,
+            664
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 24,
+      "printedPage": 23,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-024.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-024-figure-01.jpg",
+          "bbox": [
+            178,
+            55,
+            564,
+            428
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-024-figure-02.jpg",
+          "bbox": [
+            0,
+            514,
+            638,
+            1018
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 25,
+      "printedPage": 24,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-025.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-025-figure-01.jpg",
+          "bbox": [
+            10,
+            0,
+            638,
+            998
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 26,
+      "printedPage": 25,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-026.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-026-figure-01.jpg",
+          "bbox": [
+            118,
+            55,
+            608,
+            455
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 27,
+      "printedPage": 26,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-027.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-027-figure-01.jpg",
+          "bbox": [
+            55,
+            256,
+            296,
+            568
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-027-figure-02.jpg",
+          "bbox": [
+            391,
+            280,
+            695,
+            523
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-027-figure-03.jpg",
+          "bbox": [
+            157,
+            750,
+            281,
+            904
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-027-figure-04.jpg",
+          "bbox": [
+            301,
+            750,
+            533,
+            904
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 28,
+      "printedPage": 27,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-028.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-028-figure-01.jpg",
+          "bbox": [
+            151,
+            43,
+            581,
+            548
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-028-figure-02.jpg",
+          "bbox": [
+            0,
+            564,
+            593,
+            1009
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 29,
+      "printedPage": 28,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-029.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-029-figure-01.jpg",
+          "bbox": [
+            53,
+            217,
+            332,
+            631
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-029-figure-02.jpg",
+          "bbox": [
+            409,
+            287,
+            626,
+            607
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-029-figure-03.jpg",
+          "bbox": [
+            16,
+            699,
+            251,
+            853
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-029-figure-04.jpg",
+          "bbox": [
+            289,
+            738,
+            530,
+            904
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 30,
+      "printedPage": 29,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-030.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-030-figure-01.jpg",
+          "bbox": [
+            0,
+            40,
+            674,
+            452
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-030-figure-02.jpg",
+          "bbox": [
+            0,
+            534,
+            614,
+            1006
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 31,
+      "printedPage": 30,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-031.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-031-figure-01.jpg",
+          "bbox": [
+            397,
+            245,
+            680,
+            664
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-031-figure-02.jpg",
+          "bbox": [
+            62,
+            355,
+            350,
+            652
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-031-figure-03.jpg",
+          "bbox": [
+            16,
+            696,
+            242,
+            847
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 32,
+      "printedPage": 31,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-032.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-032-figure-01.jpg",
+          "bbox": [
+            0,
+            38,
+            677,
+            467
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-032-figure-02.jpg",
+          "bbox": [
+            133,
+            669,
+            594,
+            1005
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 33,
+      "printedPage": 32,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-033.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-033-figure-01.jpg",
+          "bbox": [
+            427,
+            88,
+            653,
+            625
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-033-figure-02.jpg",
+          "bbox": [
+            40,
+            349,
+            365,
+            689
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 34,
+      "printedPage": 33,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-034.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-034-figure-01.jpg",
+          "bbox": [
+            76,
+            46,
+            671,
+            482
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-034-figure-02.jpg",
+          "bbox": [
+            406,
+            687,
+            683,
+            990
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-034-figure-03.jpg",
+          "bbox": [
+            28,
+            765,
+            371,
+            1015
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 35,
+      "printedPage": 34,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-035.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-035-figure-01.jpg",
+          "bbox": [
+            10,
+            0,
+            689,
+            983
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 36,
+      "printedPage": 35,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-036.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-036-figure-01.jpg",
+          "bbox": [
+            0,
+            159,
+            656,
+            1015
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 37,
+      "printedPage": 36,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-037.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-037-figure-01.jpg",
+          "bbox": [
+            352,
+            214,
+            659,
+            628
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-037-figure-02.jpg",
+          "bbox": [
+            82,
+            262,
+            299,
+            622
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 38,
+      "printedPage": 37,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-038.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-038-figure-01.jpg",
+          "bbox": [
+            95,
+            64,
+            680,
+            475
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-038-figure-02.jpg",
+          "bbox": [
+            0,
+            519,
+            599,
+            1012
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 39,
+      "printedPage": 38,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-039.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-039-figure-01.jpg",
+          "bbox": [
+            412,
+            301,
+            716,
+            539
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-039-figure-02.jpg",
+          "bbox": [
+            7,
+            343,
+            359,
+            547
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 40,
+      "printedPage": 39,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-040.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-040-figure-01.jpg",
+          "bbox": [
+            0,
+            38,
+            692,
+            465
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-040-figure-02.jpg",
+          "bbox": [
+            0,
+            511,
+            690,
+            1006
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 41,
+      "printedPage": 40,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-041.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-041-figure-01.jpg",
+          "bbox": [
+            65,
+            226,
+            351,
+            570
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-041-figure-02.jpg",
+          "bbox": [
+            451,
+            319,
+            639,
+            602
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-041-figure-03.jpg",
+          "bbox": [
+            388,
+            774,
+            515,
+            895
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 42,
+      "printedPage": 41,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-042.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-042-figure-01.jpg",
+          "bbox": [
+            0,
+            45,
+            704,
+            503
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-042-figure-02.jpg",
+          "bbox": [
+            226,
+            783,
+            647,
+            979
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 43,
+      "printedPage": 42,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-043.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-043-figure-01.jpg",
+          "bbox": [
+            25,
+            208,
+            356,
+            646
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-043-figure-02.jpg",
+          "bbox": [
+            408,
+            248,
+            695,
+            652
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-043-figure-03.jpg",
+          "bbox": [
+            157,
+            762,
+            290,
+            886
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 44,
+      "printedPage": 43,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-044.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-044-figure-01.jpg",
+          "bbox": [
+            145,
+            40,
+            635,
+            425
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-044-figure-02.jpg",
+          "bbox": [
+            0,
+            505,
+            690,
+            1035
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 45,
+      "printedPage": 44,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-045.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-045-figure-01.jpg",
+          "bbox": [
+            10,
+            0,
+            608,
+            983
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 46,
+      "printedPage": 45,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-046.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-046-figure-01.jpg",
+          "bbox": [
+            0,
+            43,
+            656,
+            440
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-046-figure-02.jpg",
+          "bbox": [
+            0,
+            493,
+            650,
+            1006
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 47,
+      "printedPage": 46,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-047.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-047-figure-01.jpg",
+          "bbox": [
+            40,
+            225,
+            296,
+            634
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-047-figure-02.jpg",
+          "bbox": [
+            391,
+            289,
+            655,
+            637
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-047-figure-03.jpg",
+          "bbox": [
+            157,
+            792,
+            314,
+            913
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 48,
+      "printedPage": 47,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-048.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-048-figure-01.jpg",
+          "bbox": [
+            82,
+            43,
+            692,
+            499
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-048-figure-02.jpg",
+          "bbox": [
+            0,
+            522,
+            698,
+            1028
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 49,
+      "printedPage": 48,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-049.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-049-figure-01.jpg",
+          "bbox": [
+            397,
+            73,
+            665,
+            625
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-049-figure-02.jpg",
+          "bbox": [
+            82,
+            82,
+            365,
+            631
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-049-figure-03.jpg",
+          "bbox": [
+            391,
+            768,
+            551,
+            889
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 50,
+      "printedPage": 49,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-050.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-050-figure-01.jpg",
+          "bbox": [
+            0,
+            37,
+            704,
+            476
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-050-figure-02.jpg",
+          "bbox": [
+            66,
+            741,
+            346,
+            990
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-050-figure-03.jpg",
+          "bbox": [
+            433,
+            721,
+            662,
+            991
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 51,
+      "printedPage": 50,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-051.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-051-figure-01.jpg",
+          "bbox": [
+            52,
+            97,
+            392,
+            664
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-051-figure-02.jpg",
+          "bbox": [
+            418,
+            328,
+            677,
+            646
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-051-figure-03.jpg",
+          "bbox": [
+            385,
+            768,
+            539,
+            892
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 52,
+      "printedPage": 51,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-052.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-052-figure-01.jpg",
+          "bbox": [
+            139,
+            43,
+            631,
+            517
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-052-figure-02.jpg",
+          "bbox": [
+            0,
+            531,
+            581,
+            1000
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 53,
+      "printedPage": 52,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-053.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-053-figure-01.jpg",
+          "bbox": [
+            121,
+            97,
+            314,
+            640
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-053-figure-02.jpg",
+          "bbox": [
+            469,
+            88,
+            621,
+            257
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-053-figure-03.jpg",
+          "bbox": [
+            395,
+            378,
+            684,
+            544
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-053-figure-04.jpg",
+          "bbox": [
+            385,
+            780,
+            542,
+            901
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 54,
+      "printedPage": 53,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-054.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-054-figure-01.jpg",
+          "bbox": [
+            178,
+            52,
+            656,
+            524
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-054-figure-02.jpg",
+          "bbox": [
+            94,
+            612,
+            662,
+            985
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 55,
+      "printedPage": 54,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-055.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-055-figure-01.jpg",
+          "bbox": [
+            373,
+            70,
+            641,
+            670
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-055-figure-02.jpg",
+          "bbox": [
+            43,
+            250,
+            344,
+            655
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-055-figure-03.jpg",
+          "bbox": [
+            10,
+            723,
+            290,
+            995
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 56,
+      "printedPage": 55,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-056.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-056-figure-01.jpg",
+          "bbox": [
+            0,
+            36,
+            669,
+            997
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 57,
+      "printedPage": 56,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-057.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-057-figure-01.jpg",
+          "bbox": [
+            10,
+            0,
+            710,
+            993
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 58,
+      "printedPage": 57,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-058.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-058-figure-01.jpg",
+          "bbox": [
+            0,
+            34,
+            680,
+            467
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-058-figure-02.jpg",
+          "bbox": [
+            0,
+            466,
+            710,
+            1031
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 59,
+      "printedPage": 58,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-059.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-059-figure-01.jpg",
+          "bbox": [
+            7,
+            0,
+            720,
+            1029
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 60,
+      "printedPage": 59,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-060.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-060-figure-01.jpg",
+          "bbox": [
+            0,
+            44,
+            680,
+            524
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-060-figure-02.jpg",
+          "bbox": [
+            0,
+            549,
+            687,
+            1032
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 61,
+      "printedPage": 60,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-061.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-061-figure-01.jpg",
+          "bbox": [
+            10,
+            711,
+            296,
+            993
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 62,
+      "printedPage": 61,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-062.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-062-figure-01.jpg",
+          "bbox": [
+            0,
+            37,
+            701,
+            434
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-062-figure-02.jpg",
+          "bbox": [
+            187,
+            605,
+            581,
+            1006
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 63,
+      "printedPage": 62,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-063.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-063-figure-01.jpg",
+          "bbox": [
+            331,
+            85,
+            689,
+            613
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-063-figure-02.jpg",
+          "bbox": [
+            10,
+            711,
+            386,
+            973
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 64,
+      "printedPage": 63,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-064.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-064-figure-01.jpg",
+          "bbox": [
+            0,
+            40,
+            692,
+            524
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-064-figure-02.jpg",
+          "bbox": [
+            0,
+            555,
+            596,
+            1009
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 65,
+      "printedPage": 64,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-065.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-065-figure-01.jpg",
+          "bbox": [
+            10,
+            0,
+            674,
+            993
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 66,
+      "printedPage": 65,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-066.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-066-figure-01.jpg",
+          "bbox": [
+            208,
+            46,
+            686,
+            440
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-066-figure-02.jpg",
+          "bbox": [
+            0,
+            472,
+            707,
+            1000
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 67,
+      "printedPage": 66,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-067.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-067-figure-01.jpg",
+          "bbox": [
+            14,
+            0,
+            631,
+            668
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-067-figure-02.jpg",
+          "bbox": [
+            10,
+            691,
+            374,
+            973
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 68,
+      "printedPage": 67,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-068.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-068-figure-01.jpg",
+          "bbox": [
+            0,
+            39,
+            686,
+            461
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-068-figure-02.jpg",
+          "bbox": [
+            0,
+            555,
+            629,
+            1009
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 69,
+      "printedPage": 68,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-069.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-069-figure-01.jpg",
+          "bbox": [
+            70,
+            88,
+            284,
+            473
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-069-figure-02.jpg",
+          "bbox": [
+            316,
+            274,
+            695,
+            553
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-069-figure-03.jpg",
+          "bbox": [
+            10,
+            687,
+            363,
+            993
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 70,
+      "printedPage": 69,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-070.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-070-figure-01.jpg",
+          "bbox": [
+            0,
+            43,
+            710,
+            557
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-070-figure-02.jpg",
+          "bbox": [
+            160,
+            637,
+            710,
+            1032
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 71,
+      "printedPage": 70,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-071.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-071-figure-01.jpg",
+          "bbox": [
+            37,
+            221,
+            344,
+            643
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-071-figure-02.jpg",
+          "bbox": [
+            391,
+            224,
+            665,
+            628
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-071-figure-03.jpg",
+          "bbox": [
+            379,
+            774,
+            557,
+            901
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 72,
+      "printedPage": 71,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-072.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-072-figure-01.jpg",
+          "bbox": [
+            100,
+            43,
+            650,
+            443
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-072-figure-02.jpg",
+          "bbox": [
+            0,
+            525,
+            680,
+            1025
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 73,
+      "printedPage": 72,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-073.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-073-figure-01.jpg",
+          "bbox": [
+            14,
+            0,
+            248,
+            239
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-073-figure-02.jpg",
+          "bbox": [
+            435,
+            82,
+            569,
+            239
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-073-figure-03.jpg",
+          "bbox": [
+            37,
+            241,
+            680,
+            574
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-073-figure-04.jpg",
+          "bbox": [
+            10,
+            711,
+            371,
+            993
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 74,
+      "printedPage": 73,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-074.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-074-figure-01.jpg",
+          "bbox": [
+            82,
+            40,
+            692,
+            482
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-074-figure-02.jpg",
+          "bbox": [
+            154,
+            682,
+            653,
+            961
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 75,
+      "printedPage": 74,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-075.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-075-figure-01.jpg",
+          "bbox": [
+            451,
+            70,
+            644,
+            236
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-075-figure-02.jpg",
+          "bbox": [
+            40,
+            249,
+            338,
+            515
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-075-figure-03.jpg",
+          "bbox": [
+            444,
+            246,
+            659,
+            641
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-075-figure-04.jpg",
+          "bbox": [
+            10,
+            711,
+            475,
+            993
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-075-figure-05.jpg",
+          "bbox": [
+            385,
+            756,
+            548,
+            877
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 76,
+      "printedPage": 75,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-076.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-076-figure-01.jpg",
+          "bbox": [
+            127,
+            43,
+            662,
+            449
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-076-figure-02.jpg",
+          "bbox": [
+            118,
+            646,
+            362,
+            990
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-076-figure-03.jpg",
+          "bbox": [
+            97,
+            801,
+            647,
+            1006
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 77,
+      "printedPage": 76,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-077.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-077-figure-01.jpg",
+          "bbox": [
+            10,
+            0,
+            713,
+            993
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 78,
+      "printedPage": 77,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-078.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-078-figure-01.jpg",
+          "bbox": [
+            82,
+            43,
+            641,
+            482
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-078-figure-02.jpg",
+          "bbox": [
+            0,
+            514,
+            710,
+            1025
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 79,
+      "printedPage": 78,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-079.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-079-figure-01.jpg",
+          "bbox": [
+            415,
+            106,
+            704,
+            565
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-079-figure-02.jpg",
+          "bbox": [
+            67,
+            337,
+            332,
+            583
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-079-figure-03.jpg",
+          "bbox": [
+            10,
+            711,
+            380,
+            973
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 80,
+      "printedPage": 79,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-080.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-080-figure-01.jpg",
+          "bbox": [
+            77,
+            43,
+            710,
+            511
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-080-figure-02.jpg",
+          "bbox": [
+            0,
+            525,
+            713,
+            1025
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 81,
+      "printedPage": 80,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-081.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-081-figure-01.jpg",
+          "bbox": [
+            22,
+            0,
+            707,
+            646
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-081-figure-02.jpg",
+          "bbox": [
+            10,
+            711,
+            305,
+            973
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-081-figure-03.jpg",
+          "bbox": [
+            379,
+            774,
+            590,
+            898
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 82,
+      "printedPage": 81,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-082.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-082-figure-01.jpg",
+          "bbox": [
+            0,
+            40,
+            701,
+            481
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-082-figure-02.jpg",
+          "bbox": [
+            82,
+            605,
+            554,
+            1009
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 83,
+      "printedPage": 82,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-083.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-083-figure-01.jpg",
+          "bbox": [
+            51,
+            259,
+            374,
+            491
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-083-figure-02.jpg",
+          "bbox": [
+            398,
+            254,
+            687,
+            595
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-083-figure-03.jpg",
+          "bbox": [
+            382,
+            774,
+            557,
+            895
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 84,
+      "printedPage": 83,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-084.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-084-figure-01.jpg",
+          "bbox": [
+            0,
+            43,
+            662,
+            509
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-084-figure-02.jpg",
+          "bbox": [
+            0,
+            546,
+            647,
+            1024
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 85,
+      "printedPage": 84,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-085.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-085-figure-01.jpg",
+          "bbox": [
+            18,
+            0,
+            269,
+            227
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-085-figure-02.jpg",
+          "bbox": [
+            472,
+            67,
+            611,
+            236
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-085-figure-03.jpg",
+          "bbox": [
+            83,
+            262,
+            707,
+            668
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-085-figure-04.jpg",
+          "bbox": [
+            10,
+            711,
+            396,
+            993
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-085-figure-05.jpg",
+          "bbox": [
+            385,
+            780,
+            557,
+            904
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 86,
+      "printedPage": 85,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-086.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-086-figure-01.jpg",
+          "bbox": [
+            0,
+            43,
+            704,
+            458
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-086-figure-02.jpg",
+          "bbox": [
+            0,
+            528,
+            684,
+            1029
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 87,
+      "printedPage": 86,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-087.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-087-figure-01.jpg",
+          "bbox": [
+            486,
+            70,
+            635,
+            224
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-087-figure-02.jpg",
+          "bbox": [
+            55,
+            237,
+            689,
+            595
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 88,
+      "printedPage": 87,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-088.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-088-figure-01.jpg",
+          "bbox": [
+            0,
+            28,
+            669,
+            509
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-088-figure-02.jpg",
+          "bbox": [
+            0,
+            555,
+            638,
+            1012
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 89,
+      "printedPage": 88,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-089.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-089-figure-01.jpg",
+          "bbox": [
+            21,
+            0,
+            692,
+            361
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-089-figure-02.jpg",
+          "bbox": [
+            183,
+            358,
+            677,
+            904
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 90,
+      "printedPage": 89,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-090.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-090-figure-01.jpg",
+          "bbox": [
+            94,
+            40,
+            653,
+            461
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-090-figure-02.jpg",
+          "bbox": [
+            0,
+            490,
+            710,
+            1025
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 91,
+      "printedPage": 90,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-091.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-091-figure-01.jpg",
+          "bbox": [
+            322,
+            274,
+            677,
+            598
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-091-figure-02.jpg",
+          "bbox": [
+            13,
+            329,
+            281,
+            598
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-091-figure-03.jpg",
+          "bbox": [
+            10,
+            711,
+            387,
+            993
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-091-figure-04.jpg",
+          "bbox": [
+            382,
+            759,
+            560,
+            883
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 92,
+      "printedPage": 91,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-092.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-092-figure-01.jpg",
+          "bbox": [
+            0,
+            43,
+            713,
+            479
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-092-figure-02.jpg",
+          "bbox": [
+            0,
+            552,
+            671,
+            1025
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 93,
+      "printedPage": 92,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-093.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-093-figure-01.jpg",
+          "bbox": [
+            406,
+            100,
+            590,
+            260
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-093-figure-02.jpg",
+          "bbox": [
+            10,
+            711,
+            389,
+            993
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-093-figure-03.jpg",
+          "bbox": [
+            376,
+            783,
+            560,
+            907
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 94,
+      "printedPage": 93,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-094.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-094-figure-01.jpg",
+          "bbox": [
+            0,
+            43,
+            704,
+            464
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-094-figure-02.jpg",
+          "bbox": [
+            145,
+            665,
+            600,
+            1015
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 95,
+      "printedPage": 94,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-095.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-095-figure-01.jpg",
+          "bbox": [
+            29,
+            109,
+            356,
+            613
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-095-figure-02.jpg",
+          "bbox": [
+            427,
+            322,
+            655,
+            539
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-095-figure-03.jpg",
+          "bbox": [
+            10,
+            711,
+            396,
+            993
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 96,
+      "printedPage": 95,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-096.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-096-figure-01.jpg",
+          "bbox": [
+            76,
+            46,
+            707,
+            485
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-096-figure-02.jpg",
+          "bbox": [
+            154,
+            698,
+            569,
+            1015
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 97,
+      "printedPage": 96,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-097.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-097-figure-01.jpg",
+          "bbox": [
+            23,
+            0,
+            332,
+            628
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-097-figure-02.jpg",
+          "bbox": [
+            448,
+            52,
+            662,
+            544
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-097-figure-03.jpg",
+          "bbox": [
+            10,
+            681,
+            373,
+            993
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 98,
+      "printedPage": 97,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-098.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-098-figure-01.jpg",
+          "bbox": [
+            97,
+            43,
+            668,
+            452
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-098-figure-02.jpg",
+          "bbox": [
+            106,
+            669,
+            635,
+            1006
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 99,
+      "printedPage": 98,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-099.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-099-figure-01.jpg",
+          "bbox": [
+            43,
+            304,
+            389,
+            562
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 100,
+      "printedPage": 99,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-100.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-100-figure-01.jpg",
+          "bbox": [
+            0,
+            40,
+            680,
+            415
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-100-figure-02.jpg",
+          "bbox": [
+            0,
+            555,
+            710,
+            1025
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 101,
+      "printedPage": 100,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-101.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-101-figure-01.jpg",
+          "bbox": [
+            135,
+            79,
+            266,
+            248
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-101-figure-02.jpg",
+          "bbox": [
+            472,
+            82,
+            614,
+            248
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-101-figure-03.jpg",
+          "bbox": [
+            52,
+            325,
+            332,
+            652
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-101-figure-04.jpg",
+          "bbox": [
+            151,
+            774,
+            347,
+            901
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-101-figure-05.jpg",
+          "bbox": [
+            385,
+            780,
+            575,
+            901
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 102,
+      "printedPage": 101,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-102.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-102-figure-01.jpg",
+          "bbox": [
+            0,
+            22,
+            704,
+            496
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-102-figure-02.jpg",
+          "bbox": [
+            0,
+            555,
+            686,
+            1025
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 103,
+      "printedPage": 102,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-103.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-103-figure-01.jpg",
+          "bbox": [
+            112,
+            88,
+            290,
+            245
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-103-figure-02.jpg",
+          "bbox": [
+            441,
+            97,
+            593,
+            251
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-103-figure-03.jpg",
+          "bbox": [
+            391,
+            254,
+            614,
+            712
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-103-figure-04.jpg",
+          "bbox": [
+            10,
+            714,
+            384,
+            990
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 104,
+      "printedPage": 103,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-104.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-104-figure-01.jpg",
+          "bbox": [
+            0,
+            41,
+            704,
+            509
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-104-figure-02.jpg",
+          "bbox": [
+            0,
+            522,
+            640,
+            1006
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 105,
+      "printedPage": 104,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-105.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-105-figure-01.jpg",
+          "bbox": [
+            10,
+            0,
+            671,
+            992
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 106,
+      "printedPage": 105,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-106.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-106-figure-01.jpg",
+          "bbox": [
+            112,
+            52,
+            660,
+            451
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-106-figure-02.jpg",
+          "bbox": [
+            0,
+            514,
+            689,
+            1029
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 107,
+      "printedPage": 106,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-107.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-107-figure-01.jpg",
+          "bbox": [
+            111,
+            91,
+            266,
+            251
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-107-figure-02.jpg",
+          "bbox": [
+            298,
+            82,
+            707,
+            607
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-107-figure-03.jpg",
+          "bbox": [
+            40,
+            282,
+            263,
+            491
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-107-figure-04.jpg",
+          "bbox": [
+            10,
+            669,
+            329,
+            916
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-107-figure-05.jpg",
+          "bbox": [
+            370,
+            738,
+            572,
+            859
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 108,
+      "printedPage": 107,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-108.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-108-figure-01.jpg",
+          "bbox": [
+            0,
+            43,
+            710,
+            373
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-108-figure-02.jpg",
+          "bbox": [
+            148,
+            630,
+            578,
+            961
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 109,
+      "printedPage": 108,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-109.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-109-figure-01.jpg",
+          "bbox": [
+            20,
+            0,
+            275,
+            248
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-109-figure-02.jpg",
+          "bbox": [
+            355,
+            79,
+            704,
+            637
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-109-figure-03.jpg",
+          "bbox": [
+            85,
+            361,
+            287,
+            643
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-109-figure-04.jpg",
+          "bbox": [
+            10,
+            639,
+            601,
+            996
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 110,
+      "printedPage": 109,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-110.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-110-figure-01.jpg",
+          "bbox": [
+            0,
+            43,
+            707,
+            488
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-110-figure-02.jpg",
+          "bbox": [
+            0,
+            558,
+            620,
+            1012
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 111,
+      "printedPage": 110,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-111.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-111-figure-01.jpg",
+          "bbox": [
+            157,
+            103,
+            299,
+            260
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-111-figure-02.jpg",
+          "bbox": [
+            424,
+            97,
+            623,
+            676
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-111-figure-03.jpg",
+          "bbox": [
+            82,
+            280,
+            305,
+            613
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-111-figure-04.jpg",
+          "bbox": [
+            10,
+            669,
+            353,
+            996
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-111-figure-05.jpg",
+          "bbox": [
+            373,
+            744,
+            560,
+            868
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 112,
+      "printedPage": 111,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-112.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-112-figure-01.jpg",
+          "bbox": [
+            91,
+            52,
+            618,
+            386
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-112-figure-02.jpg",
+          "bbox": [
+            0,
+            466,
+            683,
+            1032
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 113,
+      "printedPage": 112,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-113.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-113-figure-01.jpg",
+          "bbox": [
+            120,
+            94,
+            275,
+            254
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-113-figure-02.jpg",
+          "bbox": [
+            435,
+            85,
+            629,
+            254
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-113-figure-03.jpg",
+          "bbox": [
+            439,
+            280,
+            641,
+            625
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-113-figure-04.jpg",
+          "bbox": [
+            370,
+            750,
+            560,
+            874
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 114,
+      "printedPage": 113,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-114.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-114-figure-01.jpg",
+          "bbox": [
+            89,
+            60,
+            653,
+            524
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-114-figure-02.jpg",
+          "bbox": [
+            0,
+            546,
+            608,
+            1009
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 115,
+      "printedPage": 114,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-115.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-115-figure-01.jpg",
+          "bbox": [
+            56,
+            85,
+            707,
+            601
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-115-figure-02.jpg",
+          "bbox": [
+            136,
+            720,
+            347,
+            844
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-115-figure-03.jpg",
+          "bbox": [
+            370,
+            723,
+            581,
+            844
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 116,
+      "printedPage": 115,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-116.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-116-figure-01.jpg",
+          "bbox": [
+            0,
+            45,
+            662,
+            416
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-116-figure-02.jpg",
+          "bbox": [
+            0,
+            546,
+            685,
+            1032
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 117,
+      "printedPage": 116,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-117.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-117-figure-01.jpg",
+          "bbox": [
+            441,
+            61,
+            623,
+            221
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-117-figure-02.jpg",
+          "bbox": [
+            394,
+            343,
+            692,
+            613
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-117-figure-03.jpg",
+          "bbox": [
+            142,
+            717,
+            341,
+            841
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 118,
+      "printedPage": 117,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-118.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-118-figure-01.jpg",
+          "bbox": [
+            0,
+            40,
+            671,
+            377
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-118-figure-02.jpg",
+          "bbox": [
+            0,
+            537,
+            602,
+            994
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 119,
+      "printedPage": 118,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-119.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-119-figure-01.jpg",
+          "bbox": [
+            133,
+            94,
+            254,
+            251
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-119-figure-02.jpg",
+          "bbox": [
+            358,
+            94,
+            707,
+            592
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-119-figure-03.jpg",
+          "bbox": [
+            73,
+            316,
+            298,
+            573
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-119-figure-04.jpg",
+          "bbox": [
+            376,
+            744,
+            572,
+            865
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 120,
+      "printedPage": 119,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-120.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-120-figure-01.jpg",
+          "bbox": [
+            112,
+            34,
+            578,
+            446
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-120-figure-02.jpg",
+          "bbox": [
+            142,
+            818,
+            362,
+            995
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 121,
+      "printedPage": 120,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-121.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-121-figure-01.jpg",
+          "bbox": [
+            13,
+            0,
+            720,
+            989
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 122,
+      "printedPage": 121,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-122.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-122-figure-01.jpg",
+          "bbox": [
+            122,
+            43,
+            666,
+            458
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-122-figure-02.jpg",
+          "bbox": [
+            0,
+            456,
+            692,
+            1028
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 123,
+      "printedPage": 122,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-123.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-123-figure-01.jpg",
+          "bbox": [
+            22,
+            0,
+            707,
+            664
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 124,
+      "printedPage": 123,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-124.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-124-figure-01.jpg",
+          "bbox": [
+            92,
+            43,
+            674,
+            407
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-124-figure-02.jpg",
+          "bbox": [
+            142,
+            591,
+            569,
+            1015
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 125,
+      "printedPage": 124,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-125.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-125-figure-01.jpg",
+          "bbox": [
+            22,
+            0,
+            710,
+            713
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-125-figure-02.jpg",
+          "bbox": [
+            10,
+            669,
+            314,
+            943
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-125-figure-03.jpg",
+          "bbox": [
+            373,
+            756,
+            593,
+            880
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 126,
+      "printedPage": 125,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-126.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-126-figure-01.jpg",
+          "bbox": [
+            103,
+            43,
+            701,
+            473
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 127,
+      "printedPage": 126,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-127.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-127-figure-01.jpg",
+          "bbox": [
+            19,
+            0,
+            269,
+            218
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-127-figure-02.jpg",
+          "bbox": [
+            346,
+            67,
+            695,
+            695
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-127-figure-03.jpg",
+          "bbox": [
+            10,
+            687,
+            368,
+            916
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 128,
+      "printedPage": 127,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-128.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-128-figure-01.jpg",
+          "bbox": [
+            91,
+            40,
+            665,
+            428
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-128-figure-02.jpg",
+          "bbox": [
+            0,
+            537,
+            548,
+            1012
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 129,
+      "printedPage": 128,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-129.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-129-figure-01.jpg",
+          "bbox": [
+            19,
+            0,
+            266,
+            221
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-129-figure-02.jpg",
+          "bbox": [
+            337,
+            64,
+            686,
+            688
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-129-figure-03.jpg",
+          "bbox": [
+            85,
+            334,
+            317,
+            631
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-129-figure-04.jpg",
+          "bbox": [
+            10,
+            699,
+            323,
+            946
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-129-figure-05.jpg",
+          "bbox": [
+            376,
+            765,
+            566,
+            889
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 130,
+      "printedPage": 129,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-130.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-130-figure-01.jpg",
+          "bbox": [
+            85,
+            55,
+            632,
+            434
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-130-figure-02.jpg",
+          "bbox": [
+            0,
+            522,
+            599,
+            1018
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 131,
+      "printedPage": 130,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-131.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-131-figure-01.jpg",
+          "bbox": [
+            358,
+            79,
+            650,
+            640
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-131-figure-02.jpg",
+          "bbox": [
+            49,
+            310,
+            296,
+            605
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-131-figure-03.jpg",
+          "bbox": [
+            376,
+            738,
+            575,
+            859
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 132,
+      "printedPage": 131,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-132.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-132-figure-01.jpg",
+          "bbox": [
+            142,
+            61,
+            602,
+            470
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-132-figure-02.jpg",
+          "bbox": [
+            187,
+            683,
+            535,
+            1015
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 133,
+      "printedPage": 132,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-133.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-133-figure-01.jpg",
+          "bbox": [
+            22,
+            0,
+            689,
+            598
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-133-figure-02.jpg",
+          "bbox": [
+            10,
+            669,
+            356,
+            916
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-133-figure-03.jpg",
+          "bbox": [
+            433,
+            726,
+            605,
+            850
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 134,
+      "printedPage": 133,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-134.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-134-figure-01.jpg",
+          "bbox": [
+            145,
+            34,
+            639,
+            485
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-134-figure-02.jpg",
+          "bbox": [
+            0,
+            552,
+            704,
+            1035
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 135,
+      "printedPage": 134,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-135.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-135-figure-01.jpg",
+          "bbox": [
+            10,
+            97,
+            320,
+            719
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-135-figure-02.jpg",
+          "bbox": [
+            459,
+            103,
+            626,
+            257
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-135-figure-03.jpg",
+          "bbox": [
+            439,
+            289,
+            659,
+            619
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-135-figure-04.jpg",
+          "bbox": [
+            139,
+            789,
+            347,
+            910
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-135-figure-05.jpg",
+          "bbox": [
+            373,
+            789,
+            596,
+            910
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 136,
+      "printedPage": 135,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-136.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-136-figure-01.jpg",
+          "bbox": [
+            0,
+            46,
+            710,
+            437
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-136-figure-02.jpg",
+          "bbox": [
+            335,
+            633,
+            581,
+            997
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-136-figure-03.jpg",
+          "bbox": [
+            139,
+            689,
+            311,
+            1009
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 137,
+      "printedPage": 136,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-137.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-137-figure-01.jpg",
+          "bbox": [
+            10,
+            90,
+            692,
+            972
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 138,
+      "printedPage": 137,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-138.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-138-figure-01.jpg",
+          "bbox": [
+            136,
+            64,
+            632,
+            371
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-138-figure-02.jpg",
+          "bbox": [
+            0,
+            479,
+            659,
+            1025
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 139,
+      "printedPage": 138,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-139.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-139-figure-01.jpg",
+          "bbox": [
+            361,
+            226,
+            686,
+            556
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-139-figure-02.jpg",
+          "bbox": [
+            70,
+            250,
+            302,
+            542
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 140,
+      "printedPage": 139,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-140.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-140-figure-01.jpg",
+          "bbox": [
+            0,
+            40,
+            686,
+            631
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-140-figure-02.jpg",
+          "bbox": [
+            76,
+            654,
+            629,
+            1018
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 141,
+      "printedPage": 140,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-141.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-141-figure-01.jpg",
+          "bbox": [
+            415,
+            250,
+            698,
+            664
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-141-figure-02.jpg",
+          "bbox": [
+            25,
+            325,
+            344,
+            670
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-141-figure-03.jpg",
+          "bbox": [
+            10,
+            674,
+            314,
+            937
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-141-figure-04.jpg",
+          "bbox": [
+            385,
+            759,
+            560,
+            880
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 142,
+      "printedPage": 141,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-142.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-142-figure-01.jpg",
+          "bbox": [
+            199,
+            54,
+            521,
+            379
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-142-figure-02.jpg",
+          "bbox": [
+            127,
+            657,
+            629,
+            1003
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 143,
+      "printedPage": 142,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-143.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-143-figure-01.jpg",
+          "bbox": [
+            17,
+            0,
+            689,
+            613
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-143-figure-02.jpg",
+          "bbox": [
+            10,
+            681,
+            311,
+            934
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-143-figure-03.jpg",
+          "bbox": [
+            382,
+            741,
+            575,
+            865
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 144,
+      "printedPage": 143,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-144.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-144-figure-01.jpg",
+          "bbox": [
+            0,
+            46,
+            659,
+            408
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-144-figure-02.jpg",
+          "bbox": [
+            0,
+            561,
+            554,
+            985
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 145,
+      "printedPage": 144,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-145.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-145-figure-01.jpg",
+          "bbox": [
+            58,
+            91,
+            293,
+            559
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-145-figure-02.jpg",
+          "bbox": [
+            355,
+            263,
+            677,
+            616
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-145-figure-03.jpg",
+          "bbox": [
+            10,
+            649,
+            311,
+            916
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-145-figure-04.jpg",
+          "bbox": [
+            379,
+            741,
+            545,
+            865
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 146,
+      "printedPage": 145,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-146.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-146-figure-01.jpg",
+          "bbox": [
+            100,
+            49,
+            641,
+            371
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-146-figure-02.jpg",
+          "bbox": [
+            0,
+            490,
+            686,
+            1028
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 147,
+      "printedPage": 146,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-147.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-147-figure-01.jpg",
+          "bbox": [
+            43,
+            307,
+            335,
+            601
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-147-figure-02.jpg",
+          "bbox": [
+            376,
+            316,
+            698,
+            613
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-147-figure-03.jpg",
+          "bbox": [
+            10,
+            669,
+            376,
+            966
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 148,
+      "printedPage": 147,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-148.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-148-figure-01.jpg",
+          "bbox": [
+            0,
+            34,
+            661,
+            495
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-148-figure-02.jpg",
+          "bbox": [
+            0,
+            561,
+            656,
+            1006
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 149,
+      "printedPage": 148,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-149.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-149-figure-01.jpg",
+          "bbox": [
+            16,
+            253,
+            359,
+            580
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-149-figure-02.jpg",
+          "bbox": [
+            10,
+            690,
+            353,
+            937
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 150,
+      "printedPage": 149,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-150.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-150-figure-01.jpg",
+          "bbox": [
+            0,
+            49,
+            689,
+            424
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-150-figure-02.jpg",
+          "bbox": [
+            0,
+            531,
+            596,
+            1000
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 151,
+      "printedPage": 150,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-151.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-151-figure-01.jpg",
+          "bbox": [
+            22,
+            0,
+            266,
+            248
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-151-figure-02.jpg",
+          "bbox": [
+            310,
+            79,
+            710,
+            592
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-151-figure-03.jpg",
+          "bbox": [
+            10,
+            669,
+            344,
+            916
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 152,
+      "printedPage": 151,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-152.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-152-figure-01.jpg",
+          "bbox": [
+            213,
+            34,
+            482,
+            445
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-152-figure-02.jpg",
+          "bbox": [
+            0,
+            561,
+            638,
+            1015
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 153,
+      "printedPage": 152,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-153.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-153-figure-01.jpg",
+          "bbox": [
+            10,
+            0,
+            644,
+            996
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 154,
+      "printedPage": 153,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-154.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-154-figure-01.jpg",
+          "bbox": [
+            175,
+            43,
+            576,
+            395
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-154-figure-02.jpg",
+          "bbox": [
+            13,
+            609,
+            344,
+            1006
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-154-figure-03.jpg",
+          "bbox": [
+            376,
+            612,
+            701,
+            1009
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 155,
+      "printedPage": 154,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-155.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-155-figure-01.jpg",
+          "bbox": [
+            357,
+            250,
+            707,
+            640
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-155-figure-02.jpg",
+          "bbox": [
+            19,
+            318,
+            341,
+            625
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-155-figure-03.jpg",
+          "bbox": [
+            10,
+            684,
+            305,
+            931
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-155-figure-04.jpg",
+          "bbox": [
+            364,
+            759,
+            557,
+            883
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 156,
+      "printedPage": 155,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-156.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-156-figure-01.jpg",
+          "bbox": [
+            214,
+            58,
+            578,
+            407
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-156-figure-02.jpg",
+          "bbox": [
+            151,
+            618,
+            605,
+            985
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 157,
+      "printedPage": 156,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-157.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-157-figure-01.jpg",
+          "bbox": [
+            93,
+            243,
+            299,
+            686
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-157-figure-02.jpg",
+          "bbox": [
+            379,
+            319,
+            657,
+            592
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-157-figure-03.jpg",
+          "bbox": [
+            10,
+            693,
+            330,
+            966
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 158,
+      "printedPage": 157,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-158.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-158-figure-01.jpg",
+          "bbox": [
+            67,
+            102,
+            683,
+            443
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-158-figure-02.jpg",
+          "bbox": [
+            0,
+            541,
+            584,
+            1009
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 159,
+      "printedPage": 158,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-159.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-159-figure-01.jpg",
+          "bbox": [
+            16,
+            0,
+            344,
+            658
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-159-figure-02.jpg",
+          "bbox": [
+            406,
+            307,
+            668,
+            670
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-159-figure-03.jpg",
+          "bbox": [
+            10,
+            672,
+            374,
+            940
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-159-figure-04.jpg",
+          "bbox": [
+            412,
+            777,
+            602,
+            901
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 160,
+      "printedPage": 159,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-160.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-160-figure-01.jpg",
+          "bbox": [
+            0,
+            48,
+            695,
+            1032
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 161,
+      "printedPage": 160,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-161.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-161-figure-01.jpg",
+          "bbox": [
+            418,
+            82,
+            623,
+            583
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-161-figure-02.jpg",
+          "bbox": [
+            64,
+            267,
+            353,
+            634
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-161-figure-03.jpg",
+          "bbox": [
+            10,
+            666,
+            323,
+            956
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-161-figure-04.jpg",
+          "bbox": [
+            379,
+            756,
+            572,
+            880
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 162,
+      "printedPage": 161,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-162.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-162-figure-01.jpg",
+          "bbox": [
+            100,
+            49,
+            659,
+            392
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-162-figure-02.jpg",
+          "bbox": [
+            19,
+            612,
+            695,
+            1035
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 163,
+      "printedPage": 162,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-163.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-163-figure-01.jpg",
+          "bbox": [
+            412,
+            85,
+            662,
+            640
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-163-figure-02.jpg",
+          "bbox": [
+            10,
+            310,
+            347,
+            640
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-163-figure-03.jpg",
+          "bbox": [
+            142,
+            777,
+            341,
+            901
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 164,
+      "printedPage": 163,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-164.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-164-figure-01.jpg",
+          "bbox": [
+            79,
+            40,
+            659,
+            430
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-164-figure-02.jpg",
+          "bbox": [
+            0,
+            501,
+            686,
+            1035
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 165,
+      "printedPage": 164,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-165.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-165-figure-01.jpg",
+          "bbox": [
+            181,
+            61,
+            485,
+            661
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-165-figure-02.jpg",
+          "bbox": [
+            10,
+            669,
+            344,
+            916
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-165-figure-03.jpg",
+          "bbox": [
+            379,
+            723,
+            641,
+            844
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 166,
+      "printedPage": 165,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-166.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-166-figure-01.jpg",
+          "bbox": [
+            139,
+            56,
+            557,
+            425
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-166-figure-02.jpg",
+          "bbox": [
+            0,
+            585,
+            659,
+            1025
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 167,
+      "printedPage": 166,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-167.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-167-figure-01.jpg",
+          "bbox": [
+            133,
+            115,
+            254,
+            284
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-167-figure-02.jpg",
+          "bbox": [
+            352,
+            115,
+            596,
+            637
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-167-figure-03.jpg",
+          "bbox": [
+            78,
+            366,
+            296,
+            619
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-167-figure-04.jpg",
+          "bbox": [
+            10,
+            699,
+            327,
+            984
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 168,
+      "printedPage": 167,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-168.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-168-figure-01.jpg",
+          "bbox": [
+            136,
+            58,
+            677,
+            371
+          ]
+        },
+        {
+          "image": "/media/tv1-tap1/illustrations/page-168-figure-02.jpg",
+          "bbox": [
+            0,
+            546,
+            647,
+            1000
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 169,
+      "printedPage": 168,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-169.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-169-figure-01.jpg",
+          "bbox": [
+            10,
+            0,
+            689,
+            996
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 170,
+      "printedPage": 169,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-170.jpg",
+      "illustrations": [
+        {
+          "image": "/media/tv1-tap1/illustrations/page-170-figure-01.jpg",
+          "bbox": [
+            154,
+            40,
+            621,
+            359
+          ]
+        }
+      ]
+    },
+    {
+      "pdfPage": 171,
+      "printedPage": 170,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-171.jpg",
+      "illustrations": []
+    },
+    {
+      "pdfPage": 172,
+      "printedPage": 171,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-172.jpg",
+      "illustrations": []
+    },
+    {
+      "pdfPage": 173,
+      "printedPage": 172,
+      "width": 720,
+      "height": 1058,
+      "image": "/media/tv1-tap1/pages/page-173.jpg",
+      "illustrations": []
+    }
+  ]
+}
