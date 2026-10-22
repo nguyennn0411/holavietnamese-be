@@ -38,16 +38,16 @@ class VocabularyIntegrationTests {
         }
     }
     private JsonNode body(MvcResult result) throws Exception { return json.readTree(result.getResponse().getContentAsString()); }
-    private String word(String status, Long topicId) throws Exception {
-        return json.writeValueAsString(Map.of("word", "tạm biệt", "partOfSpeech", "PHRASE", "cefrLevel", "A1",
+    private String word(String status) throws Exception {
+        return json.writeValueAsString(Map.of("word", "tạm biệt", "partOfSpeech", "PHRASE",
                 "pronunciation", "/tam biet/", "audioUrl", "/audio/goodbye.mp3", "status", status,
-                "topicIds", topicId == null ? List.of() : List.of(topicId), "meanings", List.of(
+                "meanings", List.of(
                         Map.of("translationEn", "goodbye", "usageNote", "Southern and Northern greeting",
                                 "examples", List.of(Map.of("exampleVi", "Tạm biệt!", "translationEn", "Goodbye!"))),
                         Map.of("translationEn", "farewell"))));
     }
     private long master(String status) throws Exception {
-        String payload = word(status, null);
+        String payload = word(status);
         if (!"PUBLISHED".equals(status)) payload = payload.replace("tạm biệt", "tạm biệt " + status);
         return body(mvc.perform(post("/api/admin/vocabulary").with(user(admin)).with(csrf())
                 .contentType("application/json").content(payload)).andExpect(status().isCreated()).andReturn()).path("result").path("id").asLong();
@@ -67,30 +67,33 @@ class VocabularyIntegrationTests {
                 .contentType("application/json").content(json.writeValueAsString(Map.of("sessionId", session, "rating", rating))));
     }
 
-    @Test void catalogSearchesBothLanguagesCombinesFiltersAndProtectsUnpublishedContent() throws Exception {
-        var topic = body(mvc.perform(post("/api/admin/vocabulary-topics").with(user(admin)).with(csrf())
-                .contentType("application/json").content("{\"name\":\"Greetings\",\"slug\":\"vocabulary-test-greetings\",\"status\":\"PUBLISHED\"}"))
-                .andExpect(status().isCreated()).andReturn()).path("result").path("id").asLong();
-        var published = body(mvc.perform(post("/api/admin/vocabulary").with(user(admin)).with(csrf()).contentType("application/json")
-                .content(word("PUBLISHED", topic))).andExpect(status().isCreated()).andReturn()).path("result").path("id").asLong();
+    @Test void bilingualSearchAndAdminFiltersProtectUnpublishedContent() throws Exception {
+        var published = master("PUBLISHED");
         for (String state : List.of("DRAFT", "PENDING_REVIEW", "ARCHIVED")) {
             long hidden = master(state);
             mvc.perform(get("/api/vocabulary/" + hidden).with(user(learner))).andExpect(status().isNotFound());
         }
-        for (String query : List.of("tạm", "GOODBYE", "farewell")) {
-            mvc.perform(get("/api/vocabulary").with(user(learner)).param("keyword", query).param("cefrLevel", "a1")
-                    .param("partOfSpeech", "phrase").param("topicId", String.valueOf(topic)))
+        for (String query : List.of("tạm", "GOODBYE", "farewell", "tam biet")) {
+            mvc.perform(get("/api/vocabulary").with(user(learner)).param("keyword", query))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.result.length()").value(1))
-                    .andExpect(jsonPath("$.result[0].id").value(published)).andExpect(jsonPath("$.result[0].meanings.length()").value(2));
+                    .andExpect(jsonPath("$.result[0].id").value(published)).andExpect(jsonPath("$.result[0].meanings.length()").value(2))
+                    .andExpect(jsonPath("$.result[0].cefrLevel").doesNotExist()).andExpect(jsonPath("$.result[0].topics").doesNotExist());
         }
         mvc.perform(get("/api/vocabulary").with(user(learner)).param("keyword", "%")).andExpect(jsonPath("$.result.length()").value(0));
-        mvc.perform(get("/api/vocabulary").with(user(learner)).param("cefrLevel", "C2")).andExpect(jsonPath("$.result.length()").value(0));
-        mvc.perform(put("/api/admin/vocabulary/" + published).with(user(admin)).with(csrf()).contentType("application/json").content(word("ARCHIVED", topic)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.result.meanings.length()").value(2));
+        mvc.perform(get("/api/admin/vocabulary/search").with(user(admin)).param("keyword","goodbye").param("status","PUBLISHED").param("partOfSpeech","phrase"))
+                .andExpect(jsonPath("$.result.totalElements").value(1));
+        mvc.perform(get("/api/admin/vocabulary/search").with(user(admin)).param("status","PUBLISHED").param("partOfSpeech","noun"))
+                .andExpect(jsonPath("$.result.totalElements").value(0));
+        jdbc.update("UPDATE vocabularies SET cefr_level='A1',source_metadata=?,lexical_data=? WHERE id=?",
+                "{\"name\":\"Nguồn lịch sử\",\"edited\":false}","{\"notes\":[\"Nội dung đã có\"]}",published);
+        em.clear();
+        mvc.perform(put("/api/admin/vocabulary/" + published).with(user(admin)).with(csrf()).contentType("application/json").content(word("ARCHIVED")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.result.meanings.length()").value(2))
+                .andExpect(jsonPath("$.result.source.name").value("Nguồn lịch sử"))
+                .andExpect(jsonPath("$.result.source.edited").value(true))
+                .andExpect(jsonPath("$.result.lexical.notes[0]").value("Nội dung đã có"));
+        assertThat(jdbc.queryForObject("SELECT cefr_level FROM vocabularies WHERE id=?",String.class,published)).isEqualTo("A1");
         mvc.perform(get("/api/vocabulary/" + published).with(user(learner))).andExpect(status().isNotFound());
-        mvc.perform(put("/api/admin/vocabulary-topics/" + topic).with(user(admin)).with(csrf()).contentType("application/json")
-                .content("{\"name\":\"Greetings edited\",\"slug\":\"vocabulary-test-greetings\",\"status\":\"ARCHIVED\"}"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.result.name").value("Greetings edited"));
     }
 
     @Test void notebookValidatesMasterAndPreservesLinkAndOwnerOnNoteUpdates() throws Exception {
@@ -155,7 +158,7 @@ class VocabularyIntegrationTests {
         mvc.perform(get("/api/me/vocabulary/review")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/vocabulary")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/admin/vocabulary").with(user(learner))).andExpect(status().isForbidden());
-        mvc.perform(post("/api/admin/vocabulary-topics").with(user(learner)).with(csrf()).contentType("application/json").content("{}"))
+        mvc.perform(post("/api/admin/vocabulary").with(user(learner)).with(csrf()).contentType("application/json").content("{}"))
                 .andExpect(status().isForbidden());
         rate(entry, UUID.randomUUID(), "GOOD", other).andExpect(status().isNotFound());
         rate(entry, UUID.randomUUID(), "GOOD", admin).andExpect(status().isNotFound());
@@ -166,7 +169,7 @@ class VocabularyIntegrationTests {
                 .content("{\"sessionId\":\"" + UUID.randomUUID() + "\",\"rating\":\"GOOD\"}")).andExpect(status().isForbidden());
         mvc.perform(get("/api/me/vocabulary/review").with(user(learner)).param("sessionId", "bad-id")).andExpect(status().isBadRequest());
         mvc.perform(post("/api/admin/vocabulary").with(user(admin)).with(csrf()).contentType("application/json")
-                .content(word("PUBLISHED", null).replace("\"meanings\":[", "\"meanings\":[null,"))).andExpect(status().isBadRequest());
+                .content(word("PUBLISHED").replace("\"meanings\":[", "\"meanings\":[null,"))).andExpect(status().isBadRequest());
     }
 
     @Test @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)

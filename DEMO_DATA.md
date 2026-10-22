@@ -17,7 +17,7 @@ docker compose --env-file .env.mysql -f compose.yml -f compose.demo.yml -f compo
 
 Bộ nạp bật các course A1, nền tảng, phát âm, chương 1–3, TV123 và gói TV123 LMS. Seed dùng lại course đã tồn tại; nếu cấu trúc course trùng mã nhưng khác dữ liệu biên soạn, seed dừng để người phụ trách kiểm tra, không ghi đè tiến độ học. Xem [TV123](TV123_COURSES.md) và [gói LMS](TV123_PACKAGE_COURSES.md).
 
-Các bộ demo điểm đến và từ vựng liên kết đã được gỡ. Khám phá và danh mục từ vựng không tự nạp dữ liệu mẫu; Admin tạo hoặc import nội dung qua chức năng quản lý. Bộ từ điển có nguồn Wiktionary và công cụ import được giữ riêng, không tự nạp khi khởi động.
+Từ vựng không tự nạp dữ liệu mẫu; Admin tạo nội dung qua chức năng quản lý hoặc import Excel. Bộ seed điểm đến hiện tại chỉ đọc `demo/destinations.json`, không tạo từ vựng hay liên kết nội dung.
 
 Các tài khoản mẫu chỉ được tạo với profile `dev-demo`: `admin / admin123`, `contentmanager / contentmanager123`, `learner / learner123`. Khóa Cloudinary, SMTP, AI và cấu hình riêng phải đặt trong `.env.mysql` hoặc `.env.cloudinary` cục bộ; file mẫu để trống các khóa dịch vụ.
 

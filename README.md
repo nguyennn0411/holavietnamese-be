@@ -49,14 +49,16 @@ Yêu cầu Java 21 và Maven. Cache dependency dùng mặc định `%USERPROFILE
 - [DEMO_DATA.md](DEMO_DATA.md): nạp lại toàn bộ dữ liệu nội dung/demo từ nhánh backup trên máy của nhóm.
 - [INTEGRATION_DEMO.md](INTEGRATION_DEMO.md): luồng Khám phá Việt Nam hiện tại và lưu ý đối chiếu lịch sử migration.
 
-### Pilot từ điển tiếng Việt
+### Từ vựng song ngữ và Excel
 
-- `python tools/prepare_dictionary_pilot.py --groups 200` đọc streaming raw JSONL gzip của Kaikki/Wiktextract, lọc tiếng Việt và tạo pilot 100–300 nhóm từ/từ loại trong `src/main/resources/dictionary/`. Script không kết nối DB. Cache dump nằm trong `.verification/`.
-- Manifest lưu ngày dump/trích xuất, SHA-256, thống kê loại bỏ, giấy phép CC BY-SA 4.0 và thông báo chuẩn hóa. `LICENSE.txt` áp dụng cho nội dung từ điển, không đổi giấy phép phần mềm. Audio/hình và ví dụ có trích dẫn riêng bị loại; dữ liệu chưa được duyệt nội dung.
-- Sau khi backup và triển khai migration V20, Admin vào trang import hiện có, chọn **Từ điển Wiktionary · JSONL**, tải pilot được cung cấp, xem preview rồi xác nhận. Chỉ file có checksum trong manifest triển khai mới được xác nhận. File sửa đổi hoặc nguồn mới cần xác minh manifest ở Backend trước.
-- Preview chỉ lưu job và diagnostics. Xác nhận tạo mục mới ở `PENDING_REVIEW`, bỏ qua từ/từ loại đã có, không ghi đè nội dung Admin/Notebook/Review. Admin sửa và xuất bản từng mục qua Vocabulary CRUD hiện có. Không tự gán CEFR hoặc dịch cho nghĩa chưa đối chiếu được.
-- Learner tra cứu qua `GET /api/vocabulary/search` (`keyword`, `partOfSpeech`, `cefrLevel`, `topicId`, `exact`, `page`, `size`; tối đa 100 mục/trang). `/filters` và `/{id}/links` chỉ dùng nội dung đã xuất bản. Catalog/Detail hiển thị nguồn, trang gốc, lịch sử người đóng góp và giấy phép.
-- Chỉ thử import vào H2 hoặc `hola_features_test`; chưa có thao tác tự nạp pilot vào DB ứng dụng. Quy mô 2.000–3.000 mục cần kiểm duyệt nguồn/nội dung và đo hiệu năng riêng trước khi mở rộng.
+- Learner tra cứu qua `GET /api/vocabulary/search` với `keyword`, `page`, `size`. Tìm tên tiếng Việt hoặc thông tin nghĩa tiếng Anh đã lưu; không tự dịch. Chỉ hiển thị mục `PUBLISHED`.
+- Admin tìm theo `keyword`, `status`, `partOfSpeech`. Không còn phân loại từ theo trình độ hoặc chủ đề. Các bảng/cột cũ được giữ trong DB và migration để bảo toàn lịch sử; ứng dụng không đọc/ghi chúng.
+- Mẫu XLSX có sheet `VOCABULARY`. Header bắt buộc: `word`, `part_of_speech`. Mỗi nghĩa cần ít nhất một trường: `definition_vi`, `translation_en`, `definition_en`.
+- Header đầy đủ: `word`, `part_of_speech`, `pronunciation`, `audio_url`, `status`, `meaning_order`, `definition_vi`, `translation_en`, `definition_en`, `usage_note`, `labels`, `example_order`, `example_vi`, `example_en`, `example_audio_url`.
+- Ghi `word` và `part_of_speech` trên mỗi dòng. Các dòng cùng từ/từ loại được gom thành một mục. `meaning_order` (mặc định 0) phân biệt các nghĩa; `example_order` sắp xếp ví dụ, để trống thì nối tiếp. Các trường lặp có thể để trống; nếu giá trị khác nhau trong cùng mục/nghĩa, preview báo lỗi. `labels`: mỗi nhãn một dòng trong ô.
+- Ví dụ cần `example_vi`; bản dịch và audio ví dụ là tùy chọn. Không tự tạo bản dịch còn thiếu. Trạng thái trống là `DRAFT`.
+- Preview không ghi mục từ. Confirm kiểm tra lại và nhập toàn bộ trong một giao dịch; từ/từ loại đã tồn tại bị từ chối, không ghi đè. `importedRows` đếm số mục từ tạo mới, có thể ít hơn số dòng Excel.
+- Nội dung, thông tin nguồn lịch sử và liên kết của các mục từ đã có vẫn được giữ. Không còn phương thức import JSONL hoặc dữ liệu pilot kèm source.
 
 - [LEARNER_FEATURES.md](LEARNER_FEATURES.md): API học viên và kiểm thử.
 - [COURSE_IMPORT.md](COURSE_IMPORT.md): import Excel dành cho ADMIN.

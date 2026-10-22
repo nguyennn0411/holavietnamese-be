@@ -13,7 +13,7 @@ Khám phá mở tự do các điểm đã xuất bản cho người dùng đã �
 - Scenario phải tồn tại trong DB, đang `ACTIVE` và có đúng ID mà màn scenario hiện tại của Tuyển hỗ trợ. Không dùng fallback sang scenario đầu tiên khi ID không khớp. Màn hội thoại/đánh giá của Tuyển được giữ nguyên; chưa coi phần thực hành hiện có là đánh giá AI thật.
 - Kiểm tra hồi quy: `DestinationExploreIntegrationTests`, `RegionalVocabularyIntegrationTests` và `qa/explore-contract.test.mjs`. Thử lưu liên kết trong chi tiết điểm đến rồi mở bằng tài khoản Learner chưa học bài nào.
 
-Các bộ dữ liệu demo điểm đến và từ vựng liên kết đã được gỡ cùng code seed, script kiểm tra và cấu hình bật seed. Admin tạo điểm đến và từ vựng mới qua chức năng quản lý hoặc import. Dữ liệu từ điển Wiktionary và công cụ import được giữ riêng.
+Các bộ demo tích hợp cũ đã được gỡ. Bộ seed điểm đến hiện tại đồng bộ `demo/destinations.json` theo slug khi khởi động nếu bật cấu hình seed; không tạo từ vựng hoặc liên kết nội dung. Vocabulary dùng quản lý thủ công và import Excel, không có bộ từ mẫu tự nạp. Các mục từ đã nhập trước đây vẫn được giữ nguyên.
 
 ## Đối chiếu migration MySQL ngày 20/10/2026
 
