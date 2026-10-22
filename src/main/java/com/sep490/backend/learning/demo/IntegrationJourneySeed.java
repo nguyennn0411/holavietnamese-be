@@ -76,12 +76,12 @@ public class IntegrationJourneySeed {
         number++;
         long lesson = courses.addLesson(module, new ContentRequests.Lesson(
             CODE + "-L" + number, "demo-vietnam-links-" + number,
-            lessonData.path("titleEn").asText(), lessonData.path("textEn").asText(), "NORMAL", 5,
+            lessonData.path("titleEn").asText(), lessonData.path("descriptionEn").asText(lessonData.path("textEn").asText()), "NORMAL", lessonData.path("estimatedMinutes").asInt(20),
             previous == null ? List.of() : List.of(previous), lessonData.path("objectiveEn").asText(),
-            lessonData.path("titleVi").asText(), lessonData.path("textVi").asText(), lessonData.path("objectiveVi").asText()));
+            lessonData.path("titleVi").asText(), lessonData.path("descriptionVi").asText(lessonData.path("textVi").asText()), lessonData.path("objectiveVi").asText()));
         previous = lesson;
         lessonIds.add(lesson);
-        activity(lesson, "TEXT", "Tình huống giao tiếp", "Communication situation",
+        activity(lesson, "TEXT", "Khám phá địa phương và thực hành giao tiếp", "Local culture and communication practice",
             json.createObjectNode().put("textVi", lessonData.path("textVi").asText()).put("textEn", lessonData.path("textEn").asText()), null);
         var content = json.createObjectNode();
         var items = content.putArray("items");

@@ -1,6 +1,6 @@
 # Bộ dữ liệu demo bài học, từ vựng và hành trình
 
-Khóa học **Hành trình Việt Nam — Demo liên kết**, mã `DEMO-VIETNAM-LINKS`, slug `demo-hanh-trinh-tieng-viet`.
+Khóa học **Hành trình Việt Nam — Văn hóa và giao tiếp**, mã `DEMO-VIETNAM-LINKS`, slug `demo-hanh-trinh-tieng-viet`.
 
 | Chặng | Bài học | Từ vựng dùng chung |
 | --- | --- | --- |
@@ -8,7 +8,37 @@ Khóa học **Hành trình Việt Nam — Demo liên kết**, mã `DEMO-VIETNAM-
 | Hội An | Hỏi đường tại Hội An; Mua sắm ở Hội An | ở đâu, rẽ trái, đi thẳng, bao nhiêu, đắt, giảm giá |
 | TP.HCM | Di chuyển tại TP.HCM; Nhận phòng và kết thúc hành trình | xe buýt, vé, sân bay, đặt phòng, chìa khóa, hẹn gặp lại |
 
-Mỗi bài có tình huống, ba từ với câu ví dụ, hội thoại và quiz ba câu. Quiz cuối khóa có sáu câu, dùng lại câu hỏi của từng bài; điểm đạt là 70%. Khóa học được tạo dưới Content Manager, gửi duyệt và phê duyệt qua service Admin. Tất cả ID được lấy từ database, không cố định ID giữa các máy.
+Mỗi bài khoảng 20 phút, có bài đọc song ngữ về địa phương, ba từ với câu ví dụ, hội thoại 9–11 lượt, mẫu câu, ứng xử và nhiệm vụ đóng vai. Quiz ba câu kết hợp giao tiếp và hiểu biết văn hóa, có giải thích song ngữ; vị trí đáp án đúng được thay đổi. Quiz cuối khóa có sáu câu, dùng lại câu hỏi của từng bài; điểm đạt là 70%. Khóa học được tạo dưới Content Manager, gửi duyệt và phê duyệt qua service Admin. Tất cả ID được lấy từ database, không cố định ID giữa các máy.
+
+## Nội dung văn hóa và du lịch — cập nhật 20/10/2026
+
+| Chặng | Bài | Chủ đề và nhiệm vụ |
+| --- | --- | --- |
+| Hà Nội | Chào hỏi bên hồ Hoàn Kiếm và phố cổ | Hồ, phố nghề, Văn Miếu; xưng hô theo người nghe; xin phép chụp ảnh; đóng vai cuộc gặp một phút. |
+| Hà Nội | Gọi phở và văn hóa quán ăn | Phở, bún chả, cà phê trứng; đọc thực đơn, hỏi nguyên liệu, xác nhận đơn và thanh toán. |
+| Hội An | Hỏi đường giữa phố cổ và Chùa Cầu | Di sản thương cảng, hội quán; chỉ đường trên bản đồ giả định và nhắc lại để xác nhận. |
+| Hội An | Đèn lồng, nghề thủ công và mua sắm | Hỏi chất liệu, cách gấp, giá; tôn trọng giá cố định; nhận biết cao lầu; giới thiệu món quà. |
+| TP.HCM | Di chuyển và nhịp sống đô thị | Phân biệt chợ Bến Thành, Chợ Lớn, sân bay; hỏi vé, điểm đón/điểm xuống và sửa nhầm điểm đến. |
+| TP.HCM | Nhận phòng, cà phê và tổng kết | Xác nhận đặt phòng/chìa khóa; gọi cà phê sữa đá; kể 4–6 câu nối ba chặng. |
+
+Giá, tuyến đường và hội thoại là tình huống học tập giả định, không phải thông tin vận hành du lịch hiện hành. Nguồn tham khảo văn hóa từ Vietnam Tourism được lưu trong `sources` của JSON; phần hội thoại, câu hỏi và nhiệm vụ được biên soạn cho khóa học.
+
+### Cập nhật database đã có khóa mẫu
+
+Seed chỉ tạo khóa khi chưa có; không tự ghi đè nội dung đã tồn tại. Để nạp bản nội dung mới vào khóa hiện tại:
+
+```powershell
+node scripts/update-journey-content.cjs          # Chỉ xem kế hoạch
+node scripts/update-journey-content.cjs --apply  # Sao lưu rồi cập nhật qua API
+```
+
+Script dùng cùng biến `DEMO_API_URL`, `DEMO_ADMIN_*`, `DEMO_MANAGER_*` với script kiểm tra; tài khoản manager phải là tác giả khóa. `DEMO_BACKUP_DIR` chọn thư mục sao lưu, mặc định `.verification/journey-content` (không đưa vào Git).
+
+Luồng cập nhật: đọc/kiểm tra liên kết → sao lưu nội dung → Admin chuyển khóa về DRAFT → Content Manager sửa → gửi duyệt → Admin phê duyệt. Không thay đổi schema/Flyway, điều kiện đạt quiz hoặc dữ liệu tiến độ. Câu hỏi được tạo phiên bản mới; bài làm cũ tiếp tục giữ snapshot phiên bản cũ. Nếu lỗi, script thử khôi phục nội dung từ bản sao và xuất bản lại.
+
+Hoạt động đã có tiến độ được backend bảo vệ. Script giữ hoạt động gốc và thêm phần mở rộng **tự chọn** thay vì buộc học viên làm lại; các bài chưa có tiến độ được cập nhật tại chỗ. Trên máy hiện tại đã thêm tám hoạt động mở rộng, còn toàn bộ liên kết bài/từ vựng và ID gốc giữ nguyên. Chạy lại không nhân đôi phần mở rộng hoặc tạo thêm phiên bản câu hỏi khi nội dung không đổi.
+
+Bản sao tại `D:\DO_AN\outputs\journey-culture-20261020`. Đã đối chiếu bản xuất của sáu bảng enrollments, lesson_progress, activity_progress, user_journey_progress, quiz_attempts, quiz_answers trước/sau: SHA-256 giống nhau.
 
 ## Dữ liệu đã nạp trên máy này
 
