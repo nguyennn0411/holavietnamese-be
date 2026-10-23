@@ -25,7 +25,7 @@ public class SecurityConfig {
             .requestMatchers("/api/auth/**", "/api/users/register", "/api/login", "/error",
                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
             .requestMatchers(HttpMethod.GET, "/media/**", "/api/csrf", "/api/courses", "/api/courses/{id}",
-                "/api/grammar", "/api/grammar/{id}", "/api/lessons/public/**", "/api/topics/public/**", "/api/notifications/stream",
+                "/api/site-content", "/api/grammar", "/api/grammar/{id}", "/api/lessons/public/**", "/api/topics/public/**", "/api/notifications/stream",
                 "/api/ai/scenarios", "/api/ai/scenarios/*").permitAll()
             .requestMatchers("/api/ai/roleplay/scenarios/*/complete", "/api/ai/roleplay/sessions/*/finish").permitAll()
             .requestMatchers("/api/admin/courses/**", "/api/admin/modules/**",
