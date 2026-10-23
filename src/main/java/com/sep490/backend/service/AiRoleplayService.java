@@ -216,6 +216,11 @@ public class AiRoleplayService {
      */
     @Transactional
     public Map<String, Object> finishRoleplay(String sessionId) {
+        return finishRoleplay(sessionId, null);
+    }
+
+    @Transactional
+    public Map<String, Object> finishRoleplay(String sessionId, Integer providedScore) {
         User currentUser = null;
         try {
             currentUser = getCurrentUser();
@@ -231,12 +236,12 @@ public class AiRoleplayService {
         // If not found by sessionId, check if caller passed scenarioId directly or prefixed
         if (session == null) {
             if (scenarioRepository.existsById(sessionId)) {
-                return completeScenario(sessionId, 85);
+                return completeScenario(sessionId, providedScore);
             }
             if (sessionId != null) {
                 for (AiScenario sc : scenarioRepository.findAll()) {
                     if (sessionId.contains(sc.getId())) {
-                        return completeScenario(sc.getId(), 85);
+                        return completeScenario(sc.getId(), providedScore);
                     }
                 }
             }
@@ -254,16 +259,22 @@ public class AiRoleplayService {
         AiScenario scenario = session.getScenario();
 
         List<AiMessage> messages = messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId);
-        long userTurns = messages.stream().filter(m -> "user".equalsIgnoreCase(m.getSender())).count();
+        List<AiMessage> userMessages = messages.stream().filter(m -> "user".equalsIgnoreCase(m.getSender())).toList();
+        long userTurns = userMessages.size();
+        int totalWords = userMessages.stream()
+                .mapToInt(m -> m.getText() == null || m.getText().isBlank() ? 0 : m.getText().trim().split("\\s+").length)
+                .sum();
 
-        // Calculate evaluation scores
-        int fluency = (int) Math.min(95, 75 + userTurns * 5);
-        int vocabulary = (int) Math.min(92, 78 + userTurns * 4);
-        int grammar = (int) Math.min(90, 80 + userTurns * 3);
-        int culture = (int) Math.min(98, 85 + userTurns * 3);
-        int totalScore = Math.round((fluency + vocabulary + grammar + culture) / 4.0f);
+        // Calculate evaluation scores dynamically from turns & word count, or use providedScore
+        int fluency = userTurns == 0 ? 0 : (int) Math.min(98, 45 + userTurns * 8 + Math.min(25, totalWords));
+        int vocabulary = userTurns == 0 ? 0 : (int) Math.min(96, 48 + userTurns * 7 + Math.min(25, totalWords));
+        int grammar = userTurns == 0 ? 0 : (int) Math.min(95, 50 + userTurns * 6 + Math.min(25, totalWords));
+        int culture = userTurns == 0 ? 0 : (int) Math.min(98, 52 + userTurns * 7 + Math.min(25, totalWords));
+        int computedScore = Math.round((fluency + vocabulary + grammar + culture) / 4.0f);
+        int totalScore = (providedScore != null && providedScore >= 0 && providedScore <= 100) ? providedScore : computedScore;
 
         session.setScore(totalScore);
+        session.setTotalScore(totalScore);
         String scenarioTitle = scenario != null ? scenario.getTitle() : "Tình huống giao tiếp";
         session.setFeedbackSummary("Hoàn thành kịch bản " + scenarioTitle + " với điểm số " + totalScore + "/100.");
         sessionRepository.save(session);

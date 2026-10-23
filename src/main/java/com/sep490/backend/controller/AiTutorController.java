@@ -139,8 +139,17 @@ public class AiTutorController {
     }
 
     @PostMapping("/roleplay/sessions/{id}/finish")
-    public ApiResponse<Map<String, Object>> finishRoleplay(@PathVariable String id) {
-        Map<String, Object> response = aiRoleplayService.finishRoleplay(id);
+    public ApiResponse<Map<String, Object>> finishRoleplay(
+            @PathVariable String id,
+            @RequestBody(required = false) Map<String, Object> body
+    ) {
+        Integer score = null;
+        if (body != null && body.containsKey("score")) {
+            try {
+                score = Integer.parseInt(body.get("score").toString());
+            } catch (Exception ignored) {}
+        }
+        Map<String, Object> response = aiRoleplayService.finishRoleplay(id, score);
         return ApiResponse.<Map<String, Object>>builder()
                 .result(response)
                 .message("Hoàn thành kịch bản Roleplay")
