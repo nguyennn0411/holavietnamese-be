@@ -137,6 +137,11 @@ public class AiRoleplayService {
                         + ": " + message.getText())
                 .collect(Collectors.joining("\n"));
 
+        boolean isEnglish = aiTutorService.isEnglishMessage(userText);
+        String languageRule = isEnglish
+                ? "- NGÔN NGỮ PHẢN HỒI BẮT BUỘC: Người học vừa nhắn bằng TIẾNG ANH (English). Bạn BẮT BUỘC phải trả lời bằng TIẾNG ANH trong vai nhân vật (có thể kèm cụm từ tiếng Việt ngắn trong ngoặc nếu phù hợp)."
+                : "- NGÔN NGỮ PHẢN HỒI BẮT BUỘC: Người học vừa nhắn bằng TIẾNG VIỆT. Bạn BẮT BUỘC phải trả lời bằng TIẾNG VIỆT trong vai nhân vật.";
+
         String systemPrompt = """
                 # VAI DIỄN
                 Bạn đang nhập vai %s trong tình huống: %s.
@@ -150,6 +155,7 @@ public class AiRoleplayService {
                 Nếu chưa hiểu, hãy hỏi lại ngắn gọn trong vai nhân vật thay vì tự đoán.
 
                 # QUY TẮC HỘI THOẠI
+                %s
                 - Phản hồi 1-4 câu ngắn, tự nhiên như giao tiếp đời thực.
                 - Bám sát lời người học, phản ứng có cảm xúc phù hợp và đẩy tình huống tiến lên.
                 - Không khen sáo rỗng sau mọi câu, không lặp lại cùng một kiểu hỏi.
@@ -160,7 +166,7 @@ public class AiRoleplayService {
 
                 # LỊCH SỬ GẦN ĐÂY
                 %s
-                """.formatted(personaName, contextStory, tone, conversationHistory);
+                """.formatted(personaName, contextStory, tone, languageRule, conversationHistory);
 
         AiSetting aiSetting = settingRepository.findById(1L).orElse(null);
         String activeModel = aiSetting != null && aiSetting.getActiveModel() != null
@@ -168,9 +174,12 @@ public class AiRoleplayService {
         if (aiSetting != null && aiSetting.getApiKey() != null && !aiSetting.getApiKey().isBlank()) {
             aiProviderService.setRuntimeApiKey(activeModel, aiSetting.getApiKey());
         }
+        String userPrompt = isEnglish
+                ? "The learner just said in English: \"" + userText + "\". Reply naturally in ENGLISH in character and advance the scenario."
+                : "Người học vừa nói bằng tiếng Việt: \"" + userText + "\". Hãy đáp lại tự nhiên bằng TIẾNG VIỆT theo đúng vai diễn và ngữ cảnh.";
         GeminiApiClient.GeminiResponse geminiRes = aiProviderService.generateContent(
                 systemPrompt,
-                "Người học vừa nói: \"" + userText + "\". Hãy đáp lại tự nhiên theo đúng vai diễn và ngữ cảnh.",
+                userPrompt,
                 activeModel
         );
 
@@ -185,7 +194,7 @@ public class AiRoleplayService {
             tokensOut = geminiRes.tokensOut();
             latency = (int) geminiRes.latencyMs();
         } else {
-            replyText = generateFallbackRoleplayTurn(scenario, userText);
+            replyText = generateFallbackRoleplayTurn(scenario, userText, isEnglish);
         }
 
         AiMessage aiMsg = AiMessage.builder()
@@ -371,14 +380,20 @@ public class AiRoleplayService {
         return result;
     }
 
-    private String generateFallbackRoleplayTurn(AiScenario scenario, String userText) {
+    private String generateFallbackRoleplayTurn(AiScenario scenario, String userText, boolean isEnglish) {
         if (scenario != null && "goi-mon-pho-ha-noi".equalsIgnoreCase(scenario.getId())) {
-            return "Được rồi cháu ơi! Cô ghi nhận món rồi nhé. Cháu có muốn dùng thêm quẩy giòn nhúng nước dùng hay uống trà đá mát lạnh không?";
+            return isEnglish
+                    ? "Got it, dear! I've noted your pho order. Would you like some crispy fried dough sticks (quẩy giòn) to dip in the broth, or a cold iced tea (trà đá)?"
+                    : "Được rồi cháu ơi! Cô ghi nhận món rồi nhé. Cháu có muốn dùng thêm quẩy giòn nhúng nước dùng hay uống trà đá mát lạnh không?";
         }
         if (scenario != null && "tra-gia-cho-ben-thanh".equalsIgnoreCase(scenario.getId())) {
-            return "Trời ơi cưng khéo trả giá quá hà! Thôi chị bớt cho cưng một chút lấy may mắn mở hàng nghen!";
+            return isEnglish
+                    ? "Oh my, you are such a charming bargainer! Alright, I'll give you a special discount as my lucky first customer of the day (mở hàng)!"
+                    : "Trời ơi cưng khéo trả giá quá hà! Thôi chị bớt cho cưng một chút lấy may mắn mở hàng nghen!";
         }
-        return "Tuyệt vời lắm! Tôi hiểu ý bạn rồi, chúng ta cùng tiếp tục nhé!";
+        return isEnglish
+                ? "Got it! I understand what you mean—let's continue with the next step!"
+                : "Tuyệt vời lắm! Tôi hiểu ý bạn rồi, chúng ta cùng tiếp tục nhé!";
     }
 
     private User getCurrentUser() {

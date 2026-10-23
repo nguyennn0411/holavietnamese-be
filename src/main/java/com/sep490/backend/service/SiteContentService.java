@@ -52,6 +52,7 @@ public class SiteContentService {
 
         List<SiteMenuItemResponse> menuItems = menuRepository.findAll(CONTENT_SORT).stream()
                 .filter(item -> Boolean.TRUE.equals(item.getEnabled()))
+                .filter(item -> !"/blog".equalsIgnoreCase(item.getPath()) && !"BLOG".equalsIgnoreCase(item.getFeatureKey()))
                 .filter(item -> featureAllows(item.getFeatureKey(), features))
                 .map(SiteContentService::toMenuResponse)
                 .toList();

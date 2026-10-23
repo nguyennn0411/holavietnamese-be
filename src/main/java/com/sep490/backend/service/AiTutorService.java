@@ -173,7 +173,7 @@ public class AiTutorService {
             throw new IllegalStateException("Hội thoại này đã kết thúc.");
         }
 
-        String userText = request.getText().trim();
+        String userText = request.getText().replaceAll("(?s)\\n*\\[(?:Language rule|Quy tắc ngôn ngữ):.*\\]\\s*$", "").trim();
         if (userText.isEmpty() || userText.length() > 2000) {
             throw new IllegalArgumentException("Nội dung tin nhắn không hợp lệ (VAL-10).");
         }
@@ -195,7 +195,7 @@ public class AiTutorService {
         // 2. Classify intent and build learner profile & working memory
         ConversationIntent intent = intentClassifier.classify(userText, previousMessages);
         String learnerLevel = currentUser.getTargetLevel() != null ? currentUser.getTargetLevel() : "A1";
-        String nativeLang = resolveResponseLanguage(request.getLanguage(), currentUser.getNativeLanguage());
+        String nativeLang = resolveResponseLanguage(userText, request.getLanguage(), currentUser.getNativeLanguage());
         String learningGoal = currentUser.getLearningGoal() != null ? currentUser.getLearningGoal() : "Everyday conversations";
         String mode = (request.getMode() != null && !request.getMode().isBlank()) ? request.getMode() : session.getMode();
 
@@ -203,7 +203,7 @@ public class AiTutorService {
         updateContextSummaryIfNeeded(session, previousMessages, userText);
 
         String systemPrompt = buildSystemPrompt(mode, learnerLevel, nativeLang, learningGoal, intent, session.getContextSummary());
-        List<Map<String, Object>> multiTurnContents = buildMultiTurnContents(previousMessages, userText);
+        List<Map<String, Object>> multiTurnContents = buildMultiTurnContents(previousMessages, userText, nativeLang);
 
         // 3. Invoke Gemini with official systemInstruction & native multi-turn conversation memory
         GeminiApiClient.GeminiResponse geminiRes = aiProviderService.generateMultiTurn(
@@ -218,10 +218,10 @@ public class AiTutorService {
             tokensIn = geminiRes.tokensIn();
             tokensOut = geminiRes.tokensOut();
             latencyMs = (int) geminiRes.latencyMs();
-            aiMessage = parseAndBuildAiMessage(session, geminiRes.text(), mode);
+            aiMessage = parseAndBuildAiMessage(session, geminiRes.text(), mode, nativeLang);
         } else {
             // High quality fallback responder matching intent, context, and previous messages
-            aiMessage = generateOfflineTutorResponse(session, userText, mode, learnerLevel, intent, previousMessages);
+            aiMessage = generateOfflineTutorResponse(session, userText, mode, learnerLevel, intent, previousMessages, nativeLang);
         }
 
         messageRepository.save(aiMessage);
@@ -523,16 +523,66 @@ public class AiTutorService {
                 .replace("{{currentTopic}}", currentTopic)
                 .replace("{{learningGoal}}", goal)
                 .replace("{{detectedIntent}}", detectedIntent)
-                .replace("{{contextMemory}}", contextMemory);
+                .replace("{{contextMemory}}", contextMemory)
+                + ("English".equalsIgnoreCase(preferredLanguage)
+                ? "\n\n# MANDATORY LANGUAGE INSTRUCTION\nThe learner asked in ENGLISH. You MUST write your response (`text` and `explanation`), all section headers (use '**Example:**' or '**Examples:**', NEVER '**Ví dụ:**'), parenthetical definitions, and the closing follow-up question (e.g., 'Have you used this phrase in any sentence? Or would you like me to help with pronunciation?') in ENGLISH."
+                : "\n\n# QUY TẮC NGÔN NGỮ BẮT BUỘC\nNgười học đang hỏi bằng TIẾNG VIỆT. Bạn BẮT BUỘC phải trả lời (`text` và `explanation`), các tiêu đề mục (dùng '**Ví dụ:**', KHÔNG dùng '**Example:**') và câu hỏi gợi mở cuối câu (ví dụ: 'Bạn có dùng cụm từ này trong câu nào không? Hay muốn mình giúp phát âm?') hoàn toàn bằng TIẾNG VIỆT.");
     }
 
-    private String resolveResponseLanguage(String requestedLanguage, String userNativeLanguage) {
+    public boolean isEnglishMessage(String text) {
+        if (text == null || text.isBlank()) return false;
+        String trimmed = text.trim();
+        boolean hasViDiacritics = trimmed.matches(".*[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ].*");
+        String lower = trimmed.toLowerCase(Locale.ROOT);
+        String[] tokens = lower.replaceAll("[^a-zàáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ\\s]", " ").trim().split("\\s+");
+
+        Set<String> enMarkers = Set.of(
+                "hello", "hi", "hey", "what", "whats", "how", "why", "where", "when", "who", "which",
+                "can", "could", "would", "should", "will", "please", "thank", "thanks",
+                "help", "tell", "explain", "define", "pronounce", "pronunciation", "mean", "means", "meaning",
+                "translate", "translation", "difference", "between", "about", "want", "need", "like", "know",
+                "speak", "learn", "learning", "vietnamese", "english", "good", "morning", "afternoon",
+                "evening", "night", "much", "many", "price", "cost", "order", "food", "coffee", "drink", "eat",
+                "is", "are", "am", "was", "were", "do", "does", "did", "have", "has", "had",
+                "my", "your", "his", "her", "our", "their", "this", "that", "these", "those",
+                "with", "for", "from", "to", "in", "of", "the", "a", "an", "and", "or", "but",
+                "i", "you", "we", "they", "he", "she", "it", "me", "us", "them", "say", "said", "use", "sentence", "example"
+        );
+        Set<String> viQuestionOrFunctionMarkers = Set.of(
+                "xin", "chao", "ban", "toi", "minh", "anh", "chi", "em", "chau", "bac",
+                "khong", "duoc", "chua", "nhung", "nhu", "the", "nao", "bao", "nhieu", "tien",
+                "lam", "on", "giup", "voi", "nhe", "nha", "vang", "cam", "ngon", "qua",
+                "muon", "hoc", "tieng", "viet", "nghia", "la", "gi", "sao", "vay", "ha", "nhi"
+        );
+
+        int enCount = 0;
+        int viFuncCount = 0;
+        for (String tok : tokens) {
+            if (tok.isEmpty()) continue;
+            String unacc = removeAccents(tok);
+            if (enMarkers.contains(tok)) enCount++;
+            if (viQuestionOrFunctionMarkers.contains(unacc) && !enMarkers.contains(tok)) viFuncCount++;
+        }
+
+        if (hasViDiacritics) {
+            // E.g. "what does đi bơi mean?", "explain đi bơi", "đi bơi meaning" -> enCount >= 1 and dominates
+            return enCount >= 1 && enCount >= viFuncCount;
+        }
+        if (enCount > 0 && enCount >= viFuncCount) return true;
+        if (viFuncCount > 0) return false;
+        return lower.matches("^[a-z0-9\\s?,!.'\"-]+$");
+    }
+
+    private String resolveResponseLanguage(String userText, String requestedLanguage, String userNativeLanguage) {
+        if (userText != null && !userText.isBlank()) {
+            return isEnglishMessage(userText) ? "English" : "Vietnamese";
+        }
         if (requestedLanguage != null && !requestedLanguage.isBlank()) {
             String language = requestedLanguage.trim().toLowerCase(Locale.ROOT);
             if (language.startsWith("en")) return "English";
             if (language.startsWith("vi")) return "Vietnamese";
         }
-        return (userNativeLanguage != null && !userNativeLanguage.isBlank()) ? userNativeLanguage : "English";
+        return (userNativeLanguage != null && !userNativeLanguage.isBlank()) ? userNativeLanguage : "Vietnamese";
     }
 
     /**
@@ -594,7 +644,11 @@ public class AiTutorService {
      * Enforces strictly alternating roles: user -> model -> user -> model -> ... -> user.
      * Keeps a sliding window of the most recent turns and ensures contents strictly begins with a user turn.
      */
-    private List<Map<String, Object>> buildMultiTurnContents(List<AiMessage> previousMessages, String currentUserText) {
+    private List<Map<String, Object>> buildMultiTurnContents(List<AiMessage> previousMessages, String currentUserText, String preferredLanguage) {
+        String langInstruction = "English".equalsIgnoreCase(preferredLanguage)
+                ? "\n\n[Instruction: Reply in ENGLISH. Use '**Example:**' (not '**Ví dụ:**'), explain meanings in English, and write your closing follow-up question in English (e.g., 'Have you used this phrase in any sentence? Or would you like me to help with pronunciation?').]"
+                : "\n\n[Hướng dẫn: Trả lời hoàn toàn bằng TIẾNG VIỆT. Dùng '**Ví dụ:**' (không dùng '**Example:**') và đặt câu hỏi gợi mở cuối câu bằng tiếng Việt (ví dụ: 'Bạn có dùng cụm từ này trong câu nào không? Hay muốn mình giúp phát âm?').]";
+        String effectiveUserText = currentUserText + langInstruction;
         List<Map<String, Object>> contents = new ArrayList<>();
 
         if (previousMessages != null && !previousMessages.isEmpty()) {
@@ -640,27 +694,55 @@ public class AiTutorService {
             if (!contents.isEmpty() && "user".equals(contents.get(contents.size() - 1).get("role"))) {
                 Map<String, Object> lastTurn = contents.get(contents.size() - 1);
                 String merged = lastTurn.get("parts") != null && !((List<?>) lastTurn.get("parts")).isEmpty()
-                        ? ((Map<?, ?>) ((List<?>) lastTurn.get("parts")).get(0)).get("text") + "\n" + currentUserText
-                        : currentUserText;
+                        ? ((Map<?, ?>) ((List<?>) lastTurn.get("parts")).get(0)).get("text") + "\n" + effectiveUserText
+                        : effectiveUserText;
                 lastTurn.put("parts", List.of(Map.of("text", merged)));
             } else {
                 Map<String, Object> currentTurn = new HashMap<>();
                 currentTurn.put("role", "user");
-                currentTurn.put("parts", List.of(Map.of("text", currentUserText)));
+                currentTurn.put("parts", List.of(Map.of("text", effectiveUserText)));
                 contents.add(currentTurn);
             }
         } else {
             // First turn in a session
             Map<String, Object> currentTurn = new HashMap<>();
             currentTurn.put("role", "user");
-            currentTurn.put("parts", List.of(Map.of("text", currentUserText)));
+            currentTurn.put("parts", List.of(Map.of("text", effectiveUserText)));
             contents.add(currentTurn);
         }
 
         return contents;
     }
 
+    private String enforceLanguageConsistency(String text, String preferredLanguage) {
+        if (text == null || text.isBlank()) return text;
+        boolean isEn = "English".equalsIgnoreCase(preferredLanguage);
+        if (isEn) {
+            return text
+                    .replaceAll("(?i)\\*\\*Ví dụ:\\*\\*", "**Example:**")
+                    .replaceAll("(?i)\\bVí dụ:", "Example:")
+                    .replaceAll("(?i)Bạn có dùng cụm từ này trong câu nào không\\?\\s*Hay muốn (tôi|mình) giúp phát âm\\?",
+                            "Have you used this phrase in any sentence? Or would you like me to help with pronunciation?")
+                    .replaceAll("(?i)Bạn có dùng từ này trong câu nào không\\?\\s*Hay muốn (tôi|mình) giúp phát âm\\?",
+                            "Have you used this word in any sentence? Or would you like me to help with pronunciation?")
+                    .replaceAll("(?i)Bạn có muốn thử đặt câu với cụm từ này không\\?",
+                            "Would you like to try making a sentence with this phrase?")
+                    .replaceAll("(?i)Hay muốn (tôi|mình) giúp phát âm\\?",
+                            "Or would you like me to help with pronunciation?");
+        } else {
+            return text
+                    .replaceAll("(?i)\\*\\*Examples?:\\*\\*", "**Ví dụ:**")
+                    .replaceAll("(?m)^Examples?:", "Ví dụ:")
+                    .replaceAll("(?i)Have you used this (phrase|word) in (any|a) sentence( yet)?\\?\\s*Or would you like( me to)? help with pronunciation\\?",
+                            "Bạn có dùng cụm từ này trong câu nào không? Hay muốn mình giúp phát âm?");
+        }
+    }
+
     private AiMessage parseAndBuildAiMessage(AiSession session, String reply, String mode) {
+        return parseAndBuildAiMessage(session, reply, mode, "Vietnamese");
+    }
+
+    private AiMessage parseAndBuildAiMessage(AiSession session, String reply, String mode, String preferredLanguage) {
         String cleaned = reply.trim();
         if (cleaned.startsWith("```json")) {
             cleaned = cleaned.substring(7);
@@ -674,12 +756,12 @@ public class AiTutorService {
 
         try {
             Map<String, Object> map = objectMapper.readValue(cleaned, new TypeReference<Map<String, Object>>() {});
-            String text = (String) map.getOrDefault("text", cleaned);
+            String text = enforceLanguageConsistency((String) map.getOrDefault("text", cleaned), preferredLanguage);
             String translation = (String) map.get("translation");
-            String explanation = (String) map.get("explanation");
+            String explanation = enforceLanguageConsistency((String) map.get("explanation"), preferredLanguage);
             String nativeAlternative = (String) map.get("nativeAlternative");
-            String culturalNote = (String) map.get("culturalNote");
-            String grammarCorrection = (String) map.get("grammarCorrection");
+            String culturalNote = enforceLanguageConsistency((String) map.get("culturalNote"), preferredLanguage);
+            String grammarCorrection = enforceLanguageConsistency((String) map.get("grammarCorrection"), preferredLanguage);
             Object savedWordsObj = map.get("savedWords");
             String savedWordsJson = savedWordsObj != null ? objectMapper.writeValueAsString(savedWordsObj) : null;
 
@@ -707,16 +789,19 @@ public class AiTutorService {
                     .name("Hola AI Tutor")
                     .avatar(getModeIcon(mode))
                     .mode(mode)
-                    .text(cleaned)
-                    .explanation("Phản hồi thông minh theo chế độ " + getModeTitle(mode))
+                    .text(enforceLanguageConsistency(cleaned, preferredLanguage))
+                    .explanation("English".equalsIgnoreCase(preferredLanguage)
+                            ? "Smart response in " + mode + " mode"
+                            : "Phản hồi thông minh theo chế độ " + getModeTitle(mode))
                     .build();
         }
     }
 
-    private AiMessage generateOfflineTutorResponse(AiSession session, String userText, String mode, String level, ConversationIntent intent, List<AiMessage> previousMessages) {
+    private AiMessage generateOfflineTutorResponse(AiSession session, String userText, String mode, String level, ConversationIntent intent, List<AiMessage> previousMessages, String responseLang) {
         String trimmed = userText.trim();
         String lower = trimmed.toLowerCase();
         String unaccented = removeAccents(lower);
+        boolean isEn = "English".equalsIgnoreCase(responseLang) || isEnglishMessage(trimmed);
 
         String reply;
         String explanation = null;
@@ -728,108 +813,179 @@ public class AiTutorService {
 
         // 1. Check Age Error: "tôi có 20 tuổi" / "tôi có ... tuổi"
         if (unaccented.matches(".*(toi|minh|em)\\s+(co|la)\\s+\\d+\\s+tuoi.*") || lower.contains("có 20 tuổi") || lower.contains("có 18 tuổi") || lower.contains("có 25 tuổi")) {
-            reply = "Trong tiếng Việt, khi nói về số tuổi, chúng ta **không dùng từ 'có'** (khác với tiếng Anh 'I am...' hay tiếng Pháp 'J'ai...'). Người Việt nói trực tiếp số tuổi ngay sau đại từ!";
-            grammarCorrection = "Không dùng 'có + [số] tuổi'. Cấu trúc đúng: [Đại từ] + [năm nay] + [số tuổi] + tuổi.";
+            reply = isEn
+                    ? "In Vietnamese, when stating your age, we **do not use 'có' (have)** or **'là' (am/is)**. Instead, place your age directly after the pronoun!"
+                    : "Trong tiếng Việt, khi nói về số tuổi, chúng ta **không dùng từ 'có'** (khác với tiếng Anh 'I am...' hay tiếng Pháp 'J'ai...'). Người Việt nói trực tiếp số tuổi ngay sau đại từ!";
+            grammarCorrection = isEn
+                    ? "Do not use 'có + [number] tuổi'. Correct structure: [Pronoun] + [năm nay] + [age] + tuổi."
+                    : "Không dùng 'có + [số] tuổi'. Cấu trúc đúng: [Đại từ] + [năm nay] + [số tuổi] + tuổi.";
             nativeAlternative = "Năm nay tôi " + extractAgeOrFallback(trimmed) + " tuổi ạ.";
-            explanation = "Ví dụ: Thay vì nói 'Tôi có 20 tuổi', bạn hãy nói 'Tôi 20 tuổi' hoặc lịch sự hơn là 'Năm nay tôi 20 tuổi ạ'.";
+            explanation = isEn
+                    ? "Example: Instead of 'Tôi có 20 tuổi', say 'Tôi 20 tuổi' or more politely 'Năm nay tôi 20 tuổi ạ'."
+                    : "Ví dụ: Thay vì nói 'Tôi có 20 tuổi', bạn hãy nói 'Tôi 20 tuổi' hoặc lịch sự hơn là 'Năm nay tôi 20 tuổi ạ'.";
             words.add(Map.of("word", "Năm nay", "meaning", "This year (used commonly before stating age)"));
             words.add(Map.of("word", "Tuổi", "meaning", "Years old / Age"));
         }
         // 2. Check "bị" vs "được" (Passive Voice with positive/negative emotions)
         else if (lower.contains("bị khen") || lower.contains("bị điểm 10") || lower.contains("bị thưởng") || lower.contains("bị trúng số") || lower.contains("bị tăng lương")) {
-            reply = "Người Việt rất tinh tế trong việc thể hiện cảm xúc qua câu bị động! Từ **'bị'** chỉ dùng cho những điều xui xẻo, mất mát hoặc không mong muốn. Đối với tin vui hay điều tích cực, bạn nhất định phải dùng **'được'** nhé!";
-            grammarCorrection = "Sai sắc thái biểu cảm: Thay 'bị' bằng 'được' khi nhận điều tích cực.";
+            reply = isEn
+                    ? "Vietnamese distinguishes between positive and negative passive voice! **'Bị'** is only used for unfortunate or unwanted events. For good news or compliments, always use **'được'**!"
+                    : "Người Việt rất tinh tế trong việc thể hiện cảm xúc qua câu bị động! Từ **'bị'** chỉ dùng cho những điều xui xẻo, mất mát hoặc không mong muốn. Đối với tin vui hay điều tích cực, bạn nhất định phải dùng **'được'** nhé!";
+            grammarCorrection = isEn
+                    ? "Tone mismatch: Replace 'bị' with 'được' for positive outcomes."
+                    : "Sai sắc thái biểu cảm: Thay 'bị' bằng 'được' khi nhận điều tích cực.";
             nativeAlternative = trimmed.replace("bị", "được");
-            explanation = "• 'Được': Nhận điều may mắn, tốt lành (được khen, được thưởng, được tăng lương).\n• 'Bị': Gặp điều rủi ro, tiêu cực (bị ốm, bị phạt, bị trễ giờ).";
+            explanation = isEn
+                    ? "• 'Được': Positive/fortunate events (được khen, được thưởng).\n• 'Bị': Negative/unfortunate events (bị ốm, bị phạt)."
+                    : "• 'Được': Nhận điều may mắn, tốt lành (được khen, được thưởng, được tăng lương).\n• 'Bị': Gặp điều rủi ro, tiêu cực (bị ốm, bị phạt, bị trễ giờ).";
             words.add(Map.of("word", "Được khen", "meaning", "To be praised / complimented (positive)"));
             words.add(Map.of("word", "Bị phạt", "meaning", "To be fined / penalized (negative)"));
         }
         // 3. Check Adjective before Noun (Word order error)
         else if (lower.contains("đỏ xe") || lower.contains("to nhà") || lower.contains("đẹp áo") || lower.contains("ngon phở") || lower.contains("lớn trường")) {
-            reply = "Trong ngữ pháp tiếng Việt, **Tính từ luôn đứng SAU Danh từ** để bổ nghĩa cho danh từ đó. Điều này ngược lại với tiếng Anh (*red car* -> *xe đỏ*).";
-            grammarCorrection = "Trật tự từ sai: Tính từ bổ nghĩa phải đứng sau danh từ.";
+            reply = isEn
+                    ? "In Vietnamese grammar, **Adjectives always come AFTER the Noun** they modify—the opposite of English (*red car* -> *xe đỏ*)."
+                    : "Trong ngữ pháp tiếng Việt, **Tính từ luôn đứng SAU Danh từ** để bổ nghĩa cho danh từ đó. Điều này ngược lại với tiếng Anh (*red car* -> *xe đỏ*).";
+            grammarCorrection = isEn
+                    ? "Word order: Descriptive adjectives must follow the noun."
+                    : "Trật tự từ sai: Tính từ bổ nghĩa phải đứng sau danh từ.";
             nativeAlternative = fixAdjectiveOrder(trimmed);
-            explanation = "Quy tắc cốt lõi: [Danh từ] + [Tính từ]. Ví dụ: 'xe đỏ', 'nhà to', 'áo đẹp', 'phở ngon'.";
+            explanation = isEn
+                    ? "Core rule: [Noun] + [Adjective]. E.g., 'xe đỏ' (red car), 'nhà to' (big house), 'phở ngon' (delicious pho)."
+                    : "Quy tắc cốt lõi: [Danh từ] + [Tính từ]. Ví dụ: 'xe đỏ', 'nhà to', 'áo đẹp', 'phở ngon'.";
             words.add(Map.of("word", "Xe đỏ", "meaning", "Red vehicle (Noun + Adjective)"));
             words.add(Map.of("word", "Áo đẹp", "meaning", "Beautiful shirt / clothing"));
         }
         // 4. Redundant pronoun "nó"
         else if (lower.contains("ăn nó ngon") || lower.contains("uống nó ngon") || lower.contains("mua nó rẻ")) {
-            reply = "Tiếng Việt có đặc điểm rất thú vị là thường **tỉnh lược tân ngữ** khi đối tượng đã được nhắc đến ở vế trước. Việc lặp lại từ 'nó' sẽ làm câu nghe hơi cứng nhắc và gượng gạo.";
-            grammarCorrection = "Lược bỏ đại từ tân ngữ 'nó' không cần thiết.";
+            reply = isEn
+                    ? "Vietnamese naturally **omits object pronouns** ('it' / 'nó') when the object was already mentioned in the first clause. Repeating 'nó' sounds unnatural."
+                    : "Tiếng Việt có đặc điểm rất thú vị là thường **tỉnh lược tân ngữ** khi đối tượng đã được nhắc đến ở vế trước. Việc lặp lại từ 'nó' sẽ làm câu nghe hơi cứng nhắc và gượng gạo.";
+            grammarCorrection = isEn
+                    ? "Omit redundant object pronoun 'nó'."
+                    : "Lược bỏ đại từ tân ngữ 'nó' không cần thiết.";
             nativeAlternative = trimmed.replace("ăn nó ngon", "ăn rất ngon").replace("uống nó ngon", "uống rất ngon");
-            explanation = "Người bản xứ nói: 'Quả chuối này ngọt lắm, ăn rất ngon!' thay vì 'ăn nó ngon'.";
+            explanation = isEn
+                    ? "Native speakers say: 'Quả chuối này ngọt lắm, ăn rất ngon!' instead of 'ăn nó ngon'."
+                    : "Người bản xứ nói: 'Quả chuối này ngọt lắm, ăn rất ngon!' thay vì 'ăn nó ngon'.";
             words.add(Map.of("word", "Ngon lắm", "meaning", "Very delicious (natural spoken tone)"));
         }
         // 5. Tone check: "hỏi" vs "ngã"
         else if (unaccented.contains("dau hoi") || unaccented.contains("dau nga") || unaccented.contains("thanh dieu") || (lower.contains("sữa") && lower.contains("sửa"))) {
-            reply = "Phân biệt dấu hỏi (?) và dấu ngã (~) là một trong những nét duyên dáng nhất của tiếng Việt:\n\n" +
-                    "• **Dấu hỏi (?)**: Âm điệu trầm xuống rồi lượn nhẹ lên (như đang thắc mắc: *'sửa xe'*, *'nghỉ ngơi'*, *'quả ổi'*).\n" +
-                    "• **Dấu ngã (~)**: Âm điệu gãy gập ở giữa rồi vút cao lên (như bị nghẹn lại một nhịp: *'sữa tươi'*, *'suy nghĩ'*, *'ngã giá'*).";
-            explanation = "Mẹo phương ngữ: Người miền Nam và miền Trung thường phát âm dấu ngã tương tự dấu hỏi, nhưng khi viết văn bản chuẩn thì vẫn phân biệt rõ rệt!";
+            reply = isEn
+                    ? "Distinguishing **Dấu hỏi (?)** and **Dấu ngã (~)** is key in Vietnamese pronunciation:\n\n" +
+                      "• **Dấu hỏi (?)**: Dips down smoothly and rises gently (e.g., *'sửa xe'*, *'nghỉ ngơi'*).\n" +
+                      "• **Dấu ngã (~)**: Dips, breaks with a brief glottal stop in the middle, then rises sharply (e.g., *'sữa tươi'*, *'suy nghĩ'*)."
+                    : "Phân biệt dấu hỏi (?) và dấu ngã (~) là một trong những nét duyên dáng nhất của tiếng Việt:\n\n" +
+                      "• **Dấu hỏi (?)**: Âm điệu trầm xuống rồi lượn nhẹ lên (như đang thắc mắc: *'sửa xe'*, *'nghỉ ngơi'*, *'quả ổi'*).\n" +
+                      "• **Dấu ngã (~)**: Âm điệu gãy gập ở giữa rồi vút cao lên (như bị nghẹn lại một nhịp: *'sữa tươi'*, *'suy nghĩ'*, *'ngã giá'*).";
+            explanation = isEn
+                    ? "Dialect tip: Southern and Central speakers often pronounce dấu ngã similarly to dấu hỏi in casual speech, though spelling remains distinct!"
+                    : "Mẹo phương ngữ: Người miền Nam và miền Trung thường phát âm dấu ngã tương tự dấu hỏi, nhưng khi viết văn bản chuẩn thì vẫn phân biệt rõ rệt!";
             words.add(Map.of("word", "Sữa (dấu ngã)", "meaning", "Milk"));
             words.add(Map.of("word", "Sửa (dấu hỏi)", "meaning", "To fix / repair"));
         }
         // 6. Food & Drink: Phở, Cà phê, Bánh mì
         else if (unaccented.contains("ca phe") || unaccented.contains("coffee")) {
-            reply = "Văn hóa cà phê Việt Nam cực kỳ phong phú và đậm đà! Khi vào quán, đây là những cách gọi cà phê chuẩn gu người Việt:\n\n" +
-                    "1. **Cà phê sữa đá** (Miền Bắc hay gọi là *'Nâu đá'*): Cà phê phin đậm vị pha cùng sữa đặc ngọt béo.\n" +
-                    "2. **Cà phê đen đá**: Cà phê nguyên chất, có thể dặn thêm ít đường hoặc không đường.\n" +
-                    "3. **Bạc xỉu**: Dành cho người thích ngọt và ít vị đắng (nhiều sữa tươi + sữa đặc, chút xíu cà phê).\n" +
-                    "4. **Cà phê trứng**: Đặc sản nổi tiếng của Hà Nội với lớp kem trứng béo ngậy đánh bông.";
+            reply = isEn
+                    ? "Vietnamese coffee culture is rich and iconic! Here are the most popular ways to order coffee like a local:\n\n" +
+                      "1. **Cà phê sữa đá** (called *'Nâu đá'* in Hanoi): Strong phin-filter coffee with sweet condensed milk over ice.\n" +
+                      "2. **Cà phê đen đá**: Bold iced black coffee (you can ask for *'ít đường'* = less sugar).\n" +
+                      "3. **Bạc xỉu**: Sweet milk with a light splash of coffee—great if you prefer a milder taste.\n" +
+                      "4. **Cà phê trứng**: Hanoi's famous egg coffee topped with creamy whipped egg yolk."
+                    : "Văn hóa cà phê Việt Nam cực kỳ phong phú và đậm đà! Khi vào quán, đây là những cách gọi cà phê chuẩn gu người Việt:\n\n" +
+                      "1. **Cà phê sữa đá** (Miền Bắc hay gọi là *'Nâu đá'*): Cà phê phin đậm vị pha cùng sữa đặc ngọt béo.\n" +
+                      "2. **Cà phê đen đá**: Cà phê nguyên chất, có thể dặn thêm ít đường hoặc không đường.\n" +
+                      "3. **Bạc xỉu**: Dành cho người thích ngọt và ít vị đắng (nhiều sữa tươi + sữa đặc, chút xíu cà phê).\n" +
+                      "4. **Cà phê trứng**: Đặc sản nổi tiếng của Hà Nội với lớp kem trứng béo ngậy đánh bông.";
             nativeAlternative = "Cho mình một ly cà phê sữa đá ít ngọt nhé!";
-            culturalNote = "Người Việt thường ngồi cà phê vỉa hè để ngắm phố phường hoặc trò chuyện cùng bạn bè hàng giờ đồng hồ.";
+            culturalNote = isEn
+                    ? "Locals love sitting on low sidewalk stools sipping coffee and chatting with friends for hours."
+                    : "Người Việt thường ngồi cà phê vỉa hè để ngắm phố phường hoặc trò chuyện cùng bạn bè hàng giờ đồng hồ.";
             words.add(Map.of("word", "Cà phê sữa đá", "meaning", "Vietnamese iced coffee with condensed milk"));
             words.add(Map.of("word", "Bạc xỉu", "meaning", "Sweet milk with a splash of coffee"));
             words.add(Map.of("word", "Ít ngọt / Ít đường", "meaning", "Less sweet / less sugar"));
         }
         else if (unaccented.contains("pho") || unaccented.contains("banh mi")) {
-            reply = "Ẩm thực đường phố Việt Nam luôn khiến thực khách say đắm! Để gọi món ngon đúng ý, bạn hãy lưu lại các mẫu câu này nhé:\n\n" +
-                    "• Khi ăn Phở: *'Cho cháu một bát phở tái nạm gầu, ít hành, kèm đĩa quẩy giòn ạ!'*\n" +
-                    "• Khi mua Bánh mì: *'Bán cho em một ổ bánh mì thập cẩm, không cay, nhiều dưa chuột nhé chị!'*";
+            reply = isEn
+                    ? "Vietnamese street food is unforgettable! Here are natural phrases you can use to order like a local:\n\n" +
+                      "• Ordering Phở: *'Cho cháu một bát phở tái nạm gầu, ít hành, kèm đĩa quẩy giòn ạ!'* (One bowl of rare & brisket beef pho, less scallions, with crispy dough sticks please!)\n" +
+                      "• Ordering Bánh mì: *'Bán cho em một ổ bánh mì thập cẩm, không cay, nhiều dưa chuột nhé chị!'* (One mixed bánh mì, not spicy, extra cucumber please!)"
+                    : "Ẩm thực đường phố Việt Nam luôn khiến thực khách say đắm! Để gọi món ngon đúng ý, bạn hãy lưu lại các mẫu câu này nhé:\n\n" +
+                      "• Khi ăn Phở: *'Cho cháu một bát phở tái nạm gầu, ít hành, kèm đĩa quẩy giòn ạ!'*\n" +
+                      "• Khi mua Bánh mì: *'Bán cho em một ổ bánh mì thập cẩm, không cay, nhiều dưa chuột nhé chị!'*";
             nativeAlternative = "Cho em một bát phở bò chín, nước trong, ít hành nhé ạ!";
-            culturalNote = "Ở miền Bắc, phở thường ăn kèm quẩy giòn và giấm tỏi; trong khi ở miền Nam phở ăn kèm tương đen, tương đỏ và rất nhiều loại rau thơm (húng quế, ngò gai).";
+            culturalNote = isEn
+                    ? "In Northern Vietnam, phở is served with crispy dough sticks (quẩy) and garlic vinegar; in the South, it comes with hoisin/chili sauce and a generous basket of fresh herbs."
+                    : "Ở miền Bắc, phở thường ăn kèm quẩy giòn và giấm tỏi; trong khi ở miền Nam phở ăn kèm tương đen, tương đỏ và rất nhiều loại rau thơm (húng quế, ngò gai).";
             words.add(Map.of("word", "Phở tái chín", "meaning", "Pho with rare and well-done beef"));
             words.add(Map.of("word", "Bánh mì thập cẩm", "meaning", "Combo Vietnamese baguette with pate, meats & herbs"));
         }
         // 7. Shopping & Bargaining: Giá cả, Bao nhiêu tiền
         else if (unaccented.contains("bao nhieu") || unaccented.contains("tra gia") || unaccented.contains("mac ca") || unaccented.contains("gia tien") || unaccented.contains("how much")) {
-            reply = "Khi đi chợ truyền thống hoặc mua sắm tại Việt Nam, để hỏi giá và mặc cả vừa lịch sự vừa được lòng người bán, bạn có thể áp dụng công thức sau:\n\n" +
-                    "1. **Hỏi giá:** *'Dạ cô/chị ơi, cái này giá bao nhiêu một cái/kg ạ?'*\n" +
-                    "2. **Thương lượng nhẹ nhàng:** *'Cô bớt cho cháu một chút lấy may nhé! Cháu mở hàng cho cô nha!'*\n" +
-                    "3. **Chốt giá:** *'150 nghìn được không cô, cháu lấy hai cái luôn ạ!'*";
+            reply = isEn
+                    ? "When shopping at traditional Vietnamese markets, here is how to ask for prices and bargain politely:\n\n" +
+                      "1. **Ask the price:** *'Dạ cô/chị ơi, cái này giá bao nhiêu một cái ạ?'* (Excuse me, how much is this per item?)\n" +
+                      "2. **Bargain warmly:** *'Cô bớt cho cháu một chút lấy may nhé!'* (Could you give me a small discount for good luck?)\n" +
+                      "3. **Close the deal:** *'150 nghìn được không cô, cháu lấy hai cái luôn ạ!'* (Is 150k okay? I'll take two!)"
+                    : "Khi đi chợ truyền thống hoặc mua sắm tại Việt Nam, để hỏi giá và mặc cả vừa lịch sự vừa được lòng người bán, bạn có thể áp dụng công thức sau:\n\n" +
+                      "1. **Hỏi giá:** *'Dạ cô/chị ơi, cái này giá bao nhiêu một cái/kg ạ?'*\n" +
+                      "2. **Thương lượng nhẹ nhàng:** *'Cô bớt cho cháu một chút lấy may nhé! Cháu mở hàng cho cô nha!'*\n" +
+                      "3. **Chốt giá:** *'150 nghìn được không cô, cháu lấy hai cái luôn ạ!'*";
             nativeAlternative = "Dạ cái này bao nhiêu tiền một cái hả chị? Bớt chút cho em mở hàng may mắn nhé!";
-            culturalNote = "Quan niệm 'Mở hàng': Người buôn bán Việt Nam rất coi trọng vị khách đầu tiên trong ngày. Mua bán nhanh nhẹn, xởi lởi vào sáng sớm sẽ mang lại may mắn cho cả ngày!";
+            culturalNote = isEn
+                    ? "'Mở hàng' (first sale of the day): Vietnamese vendors value a smooth, cheerful first purchase in the morning as a sign of good luck for the whole day."
+                    : "Quan niệm 'Mở hàng': Người buôn bán Việt Nam rất coi trọng vị khách đầu tiên trong ngày. Mua bán nhanh nhẹn, xởi lởi vào sáng sớm sẽ mang lại may mắn cho cả ngày!";
             words.add(Map.of("word", "Bao nhiêu tiền?", "meaning", "How much does it cost?"));
             words.add(Map.of("word", "Bớt một chút", "meaning", "Give a small discount please"));
             words.add(Map.of("word", "Mở hàng", "meaning", "First purchase of the day (brings luck)"));
         }
         // 8. Directions & Transport: Hỏi đường, Taxi, Xe ôm
         else if (unaccented.contains("o dau") || unaccented.contains("hoi duong") || unaccented.contains("xe om") || unaccented.contains("taxi") || unaccented.contains("san bay")) {
-            reply = "Khi cần hỏi đường tại Việt Nam, người dân luôn rất nhiệt tình chỉ dẫn nếu bạn mở đầu bằng lời chào kính ngữ:\n\n" +
-                    "• *'Bác ơi cho cháu hỏi, đường ra Hồ Gươm / Chợ Bến Thành đi hướng nào ạ?'*\n" +
-                    "• *'Từ đây đến sân bay hết khoảng bao nhiêu phút đi xe máy ạ?'*\n" +
-                    "• *'Bác tài ơi, chở em đến địa chỉ này nhé, bật đồng hồ taxi giúp em với ạ!'*";
+            reply = isEn
+                    ? "When asking for directions or taking transport in Vietnam, starting with a polite form of address makes locals eager to help:\n\n" +
+                      "• *'Bác ơi cho cháu hỏi, đường ra Hồ Gươm đi hướng nào ạ?'* (Excuse me, which way is it to Hoan Kiem Lake?)\n" +
+                      "• *'Từ đây đến sân bay hết khoảng bao nhiêu phút ạ?'* (How many minutes does it take to get to the airport from here?)\n" +
+                      "• *'Bác tài ơi, chở em đến địa chỉ này nhé!'* (Driver, please take me to this address!)"
+                    : "Khi cần hỏi đường tại Việt Nam, người dân luôn rất nhiệt tình chỉ dẫn nếu bạn mở đầu bằng lời chào kính ngữ:\n\n" +
+                      "• *'Bác ơi cho cháu hỏi, đường ra Hồ Gươm / Chợ Bến Thành đi hướng nào ạ?'*\n" +
+                      "• *'Từ đây đến sân bay hết khoảng bao nhiêu phút đi xe máy ạ?'*\n" +
+                      "• *'Bác tài ơi, chở em đến địa chỉ này nhé, bật đồng hồ taxi giúp em với ạ!'*";
             nativeAlternative = "Làm ơn cho tôi hỏi đường ra ga tàu đi lối nào ạ?";
-            explanation = "Dùng 'Bác ơi / Chú ơi / Chị ơi' trước câu hỏi luôn khiến người nghe cảm thấy được tôn trọng và sẵn lòng giúp đỡ bạn ngay lập tức.";
+            explanation = isEn
+                    ? "Addressing someone with 'Bác ơi / Chú ơi / Chị ơi' before asking shows warmth and respect."
+                    : "Dùng 'Bác ơi / Chú ơi / Chị ơi' trước câu hỏi luôn khiến người nghe cảm thấy được tôn trọng và sẵn lòng giúp đỡ bạn ngay lập tức.";
             words.add(Map.of("word", "Đi hướng nào?", "meaning", "Which direction should I go?"));
             words.add(Map.of("word", "Làm ơn cho tôi hỏi...", "meaning", "Excuse me, may I ask..."));
         }
         // 9. Greetings & Politeness
         else if (unaccented.matches("^(xin chao|chao|hello|hi|hey|alo).*") || trimmed.equalsIgnoreCase("chào") || trimmed.equalsIgnoreCase("xin chào")) {
-            reply = "Chào bạn nhé! 😊 Rất vui được gặp lại bạn. Hôm nay của bạn thế nào rồi?";
+            reply = isEn
+                    ? "Hello there! 😊 Great to see you today. How is your day going, and what would you like to practice or talk about?"
+                    : "Chào bạn nhé! 😊 Rất vui được gặp lại bạn. Hôm nay của bạn thế nào rồi?";
         }
         // 10. Regional Vietnamese differences
         else if (unaccented.contains("thiet") || unaccented.contains("muong") || unaccented.contains("thia") || unaccented.contains("chen") || unaccented.contains("bat") || unaccented.contains("bac nam") || unaccented.contains("mien trung")) {
-            reply = "Tiếng Việt 3 miền Bắc - Trung - Nam có những sự khác biệt từ vựng cực kỳ thú vị:\n\n" +
-                    "| Đồ vật / Khái niệm | Miền Bắc | Miền Nam | Miền Trung |\n" +
-                    "| :--- | :--- | :--- | :--- |\n" +
-                    "| **Thìa ăn cơm** | Thìa | Muỗng | Muỗng / Thìa |\n" +
-                    "| **Đồ đựng cơm** | Bát | Chén | Chén / Bát |\n" +
-                    "| **Thịt heo/lợn** | Thịt lợn | Thịt heo | Thịt heo |\n" +
-                    "| **Quả dứa** | Quả dứa | Trái thơm / Khóm | Quả thơm |\n" +
-                    "| **Cái ô** | Cái ô | Cây dù | Cây dù |";
-            culturalNote = "Dù từ vựng có khác nhau đôi chút nhưng người Việt ở cả 3 miền đều hiểu trọn vẹn ngữ cảnh của bạn. Đừng ngại sử dụng nhé!";
+            reply = isEn
+                    ? "Northern, Central, and Southern Vietnamese have fascinating vocabulary differences:\n\n" +
+                      "| Concept | Northern | Southern | Central |\n" +
+                      "| :--- | :--- | :--- | :--- |\n" +
+                      "| **Spoon** | Thìa | Muỗng | Muỗng / Thìa |\n" +
+                      "| **Small bowl** | Bát | Chén | Chén / Bát |\n" +
+                      "| **Pork** | Thịt lợn | Thịt heo | Thịt heo |\n" +
+                      "| **Pineapple** | Quả dứa | Trái thơm / Khóm | Quả thơm |\n" +
+                      "| **Umbrella** | Cái ô | Cây dù | Cây dù |"
+                    : "Tiếng Việt 3 miền Bắc - Trung - Nam có những sự khác biệt từ vựng cực kỳ thú vị:\n\n" +
+                      "| Đồ vật / Khái niệm | Miền Bắc | Miền Nam | Miền Trung |\n" +
+                      "| :--- | :--- | :--- | :--- |\n" +
+                      "| **Thìa ăn cơm** | Thìa | Muỗng | Muỗng / Thìa |\n" +
+                      "| **Đồ đựng cơm** | Bát | Chén | Chén / Bát |\n" +
+                      "| **Thịt heo/lợn** | Thịt lợn | Thịt heo | Thịt heo |\n" +
+                      "| **Quả dứa** | Quả dứa | Trái thơm / Khóm | Quả thơm |\n" +
+                      "| **Cái ô** | Cái ô | Cây dù | Cây dù |";
+            culturalNote = isEn
+                    ? "Even though regional words vary slightly, Vietnamese speakers across all three regions understand each other easily!"
+                    : "Dù từ vựng có khác nhau đôi chút nhưng người Việt ở cả 3 miền đều hiểu trọn vẹn ngữ cảnh của bạn. Đừng ngại sử dụng nhé!";
             words.add(Map.of("word", "Thìa (Bắc) = Muỗng (Nam)", "meaning", "Spoon"));
             words.add(Map.of("word", "Bát (Bắc) = Chén (Nam)", "meaning", "Small bowl"));
         }
@@ -837,63 +993,110 @@ public class AiTutorService {
         else {
             switch (mode.toLowerCase()) {
                 case "grammar":
-                    reply = "### 📝 Phân tích ngữ pháp câu của bạn:\n\n" +
-                            "> *\"" + trimmed + "\"*\n\n" +
-                            "**Nhận xét:** Câu của bạn đã truyền đạt được ý nghĩa cơ bản. Để câu văn tự nhiên và chuẩn phong thái người bản xứ, hãy ghi nhớ:\n\n" +
-                            "1. **Trật tự từ:** `[Chủ ngữ] + [Vị ngữ] + [Tân ngữ]`, tính từ đứng sau danh từ.\n" +
-                            "2. **Trợ từ tình thái:** Thêm các từ như *'nhé'*, *'nha'*, *'ạ'* vào cuối câu để tạo sắc thái lịch sự, mềm mại.\n" +
-                            "3. **Tỉnh lược:** Lược bớt các đại từ sở hữu hay tân ngữ thừa nếu ngữ cảnh đã rõ ràng.";
+                    reply = isEn
+                            ? "### 📝 Grammar & Sentence Review:\n\n" +
+                              "> *\"" + trimmed + "\"*\n\n" +
+                              "**Feedback:** Your message communicates the main idea clearly! To sound even more like a native Vietnamese speaker, keep these tips in mind:\n\n" +
+                              "1. **Word Order:** `[Subject] + [Verb] + [Object]`, with adjectives placed *after* nouns.\n" +
+                              "2. **Ending Particles:** Add friendly particles like *'nhé'*, *'nha'*, or polite *'ạ'* at the end of sentences.\n" +
+                              "3. **Pronoun Omission:** Drop redundant pronouns when the context is already clear."
+                            : "### 📝 Phân tích ngữ pháp câu của bạn:\n\n" +
+                              "> *\"" + trimmed + "\"*\n\n" +
+                              "**Nhận xét:** Câu của bạn đã truyền đạt được ý nghĩa cơ bản. Để câu văn tự nhiên và chuẩn phong thái người bản xứ, hãy ghi nhớ:\n\n" +
+                              "1. **Trật tự từ:** `[Chủ ngữ] + [Vị ngữ] + [Tân ngữ]`, tính từ đứng sau danh từ.\n" +
+                              "2. **Trợ từ tình thái:** Thêm các từ như *'nhé'*, *'nha'*, *'ạ'* vào cuối câu để tạo sắc thái lịch sự, mềm mại.\n" +
+                              "3. **Tỉnh lược:** Lược bớt các đại từ sở hữu hay tân ngữ thừa nếu ngữ cảnh đã rõ ràng.";
                     nativeAlternative = trimmed.endsWith("ạ") || trimmed.endsWith("nhé") ? trimmed : (trimmed + " nhé ạ!");
-                    explanation = "Thêm trợ từ cuối câu giúp lời nói tự nhiên và gần gũi hơn rất nhiều.";
+                    explanation = isEn
+                            ? "Adding ending particles makes spoken Vietnamese sound much warmer and more natural."
+                            : "Thêm trợ từ cuối câu giúp lời nói tự nhiên và gần gũi hơn rất nhiều.";
                     words.add(Map.of("word", "Nhé / Nha", "meaning", "Friendly sentence-ending particle"));
                     break;
 
                 case "translation":
-                    reply = "### 🌐 Dịch thuật & Chuyển ngữ tự nhiên:\n\n" +
-                            "**Ngữ cảnh câu:** *\"" + trimmed + "\"*\n\n" +
-                            "Khi dịch sang tiếng Việt tự nhiên, người bản xứ thường chú trọng **sắc thái biểu cảm** và vai vế xưng hô thay vì dịch từng từ theo kiểu máy móc (word-by-word).\n\n" +
-                            "💡 **Gợi ý diễn đạt:** Diễn đạt ngắn gọn, kèm đại từ phù hợp với hoàn cảnh giao tiếp hàng ngày.";
+                    reply = isEn
+                            ? "### 🌐 Contextual Translation:\n\n" +
+                              "**Source text:** *\"" + trimmed + "\"*\n\n" +
+                              "When translating into natural Vietnamese, native speakers focus on **relationship pronouns** and **polite ending particles** (*nhé, ạ*) rather than word-for-word translation."
+                            : "### 🌐 Dịch thuật & Chuyển ngữ tự nhiên:\n\n" +
+                              "**Ngữ cảnh câu:** *\"" + trimmed + "\"*\n\n" +
+                              "Khi dịch sang tiếng Việt tự nhiên, người bản xứ thường chú trọng **sắc thái biểu cảm** và vai vế xưng hô thay vì dịch từng từ theo kiểu máy móc (word-by-word).\n\n" +
+                              "💡 **Gợi ý diễn đạt:** Diễn đạt ngắn gọn, kèm đại từ phù hợp với hoàn cảnh giao tiếp hàng ngày.";
                     translation = "Natural contextual translation for: " + trimmed;
-                    explanation = "Chú ý ngữ cảnh trang trọng hay thân mật để chọn đại từ (tôi, em, mình, anh) cho chuẩn xác.";
+                    explanation = isEn
+                            ? "Choose the right pronoun (tôi, mình, em, anh/chị) depending on formality and age."
+                            : "Chú ý ngữ cảnh trang trọng hay thân mật để chọn đại từ (tôi, em, mình, anh) cho chuẩn xác.";
                     break;
 
                 case "culture_guide":
-                    reply = "### 🏮 Nét đẹp văn hóa Việt Nam:\n\n" +
-                            "Về nội dung bạn vừa chia sẻ: Văn hóa người Việt rất coi trọng **sự hòa nhã, tình cảm gia đình và kính trên nhường dưới**.\n\n" +
-                            "• Khi vào nhà người Việt, bạn nên cởi giày dép để bên ngoài.\n" +
-                            "• Trong bữa ăn gia đình, người nhỏ tuổi mời người lớn tuổi trước khi cầm đũa: *'Con mời bố mẹ xới cơm ạ!'*.\n" +
-                            "• Khi nhận hoặc trao đồ vật cho người lớn, hãy dùng **hai tay** để thể hiện sự kính trọng.";
-                    culturalNote = "Lời chào cao hơn mâm cỗ: Sự lễ phép và chào hỏi đúng mực luôn chiếm trọn cảm tình của người Việt.";
+                    reply = isEn
+                            ? "### 🏮 Vietnamese Cultural Etiquette:\n\n" +
+                              "Vietnamese culture deeply values **harmony, family bonds, and respect for elders** (*kính trên nhường dưới*).\n\n" +
+                              "• Always remove your shoes before entering a Vietnamese home.\n" +
+                              "• At family meals, younger people invite elders to eat first: *'Con mời bố mẹ ăn cơm ạ!'*\n" +
+                              "• Use **both hands** when giving or receiving items from someone older."
+                            : "### 🏮 Nét đẹp văn hóa Việt Nam:\n\n" +
+                              "Về nội dung bạn vừa chia sẻ: Văn hóa người Việt rất coi trọng **sự hòa nhã, tình cảm gia đình và kính trên nhường dưới**.\n\n" +
+                              "• Khi vào nhà người Việt, bạn nên cởi giày dép để bên ngoài.\n" +
+                              "• Trong bữa ăn gia đình, người nhỏ tuổi mời người lớn tuổi trước khi cầm đũa: *'Con mời bố mẹ xới cơm ạ!'*.\n" +
+                              "• Khi nhận hoặc trao đồ vật cho người lớn, hãy dùng **hai tay** để thể hiện sự kính trọng.";
+                    culturalNote = isEn
+                            ? "'Lời chào cao hơn mâm cỗ' — A warm, respectful greeting is valued more than a grand feast."
+                            : "Lời chào cao hơn mâm cỗ: Sự lễ phép và chào hỏi đúng mực luôn chiếm trọn cảm tình của người Việt.";
                     break;
 
                 case "travel":
-                    reply = "### ✈️ Cẩm nang du lịch & Sinh tồn:\n\n" +
-                            "Để chuyến du lịch Việt Nam của bạn suôn sẻ và đáng nhớ, hãy trang bị ngay các câu nói thông dụng này:\n\n" +
-                            "• *'Làm ơn cho tôi xem thực đơn có hình ảnh được không ạ?'*\n" +
-                            "• *'Món này có cay không? Tôi ăn ít cay / không ăn cay được ạ!'*\n" +
-                            "• *'Cho tôi xin hóa đơn thanh toán nhé!'*";
+                    reply = isEn
+                            ? "### ✈️ Essential Vietnam Travel Phrases:\n\n" +
+                              "Here are handy survival phrases for your trip in Vietnam:\n\n" +
+                              "• *'Làm ơn cho tôi xem thực đơn được không ạ?'* (May I see the menu, please?)\n" +
+                              "• *'Món này có cay không? Cho tôi ít cay nhé!'* (Is this spicy? Less spicy for me, please!)\n" +
+                              "• *'Cho tôi xin hóa đơn thanh toán nhé!'* (Could I have the bill, please?)"
+                            : "### ✈️ Cẩm nang du lịch & Sinh tồn:\n\n" +
+                              "Để chuyến du lịch Việt Nam của bạn suôn sẻ và đáng nhớ, hãy trang bị ngay các câu nói thông dụng này:\n\n" +
+                              "• *'Làm ơn cho tôi xem thực đơn có hình ảnh được không ạ?'*\n" +
+                              "• *'Món này có cay không? Tôi ăn ít cay / không ăn cay được ạ!'*\n" +
+                              "• *'Cho tôi xin hóa đơn thanh toán nhé!'*";
                     nativeAlternative = "Làm ơn cho em xin hóa đơn thanh toán nhé ạ!";
-                    explanation = "Dùng 'Làm ơn...' ở đầu câu hoặc '...ạ' ở cuối câu là cách nói lịch sự nhất trong ngành dịch vụ du lịch.";
+                    explanation = isEn
+                            ? "Starting with 'Làm ơn...' or ending with '...ạ' is the most polite way to make requests."
+                            : "Dùng 'Làm ơn...' ở đầu câu hoặc '...ạ' ở cuối câu là cách nói lịch sự nhất trong ngành dịch vụ du lịch.";
                     break;
 
                 case "regional":
-                    reply = "### 🗺️ Tiếng Việt 3 miền:\n\n" +
-                            "Ngôn ngữ Việt Nam như một bức tranh đa sắc màu:\n" +
-                            "• Miền Bắc: Chuẩn phát âm rõ thanh điệu, ngữ điệu trang trọng, từ ngữ khuôn mẫu.\n" +
-                            "• Miền Trung: Giọng nói mộc mạc, âm vực trầm ấm, nhiều từ cổ đặc trưng (*mô, tê, răng, rứa*).\n" +
-                            "• Miền Nam: Giọng nói ngọt ngào, mềm mại, thường lướt dấu ngã thành dấu hỏi, cách xưng hô cởi mở (*chế, hai, út, tía*).";
-                    culturalNote = "Dù ở vùng miền nào, sự chân tình và nụ cười luôn là cầu nối ngôn ngữ tuyệt vời nhất!";
+                    reply = isEn
+                            ? "### 🗺️ Vietnamese Across 3 Regions:\n\n" +
+                              "Vietnamese dialects paint a vibrant cultural picture:\n" +
+                              "• **Northern (Hanoi):** Clear 6-tone distinction, formal and standard phrasing.\n" +
+                              "• **Central (Hue, Da Nang):** Warm, deep intonation with unique local words (*mô, tê, răng, rứa*).\n" +
+                              "• **Southern (Saigon):** Melodic, relaxed delivery where *dấu ngã* merges toward *dấu hỏi*."
+                            : "### 🗺️ Tiếng Việt 3 miền:\n\n" +
+                              "Ngôn ngữ Việt Nam như một bức tranh đa sắc màu:\n" +
+                              "• Miền Bắc: Chuẩn phát âm rõ thanh điệu, ngữ điệu trang trọng, từ ngữ khuôn mẫu.\n" +
+                              "• Miền Trung: Giọng nói mộc mạc, âm vực trầm ấm, nhiều từ cổ đặc trưng (*mô, tê, răng, rứa*).\n" +
+                              "• Miền Nam: Giọng nói ngọt ngào, mềm mại, thường lướt dấu ngã thành dấu hỏi, cách xưng hô cởi mở (*chế, hai, út, tía*).";
+                    culturalNote = isEn
+                            ? "No matter which region you visit, a friendly smile and polite greeting will always connect you with locals!"
+                            : "Dù ở vùng miền nào, sự chân tình và nụ cười luôn là cầu nối ngôn ngữ tuyệt vời nhất!";
                     break;
 
                 default: // tutor, conversation
                     if (intent == ConversationIntent.PRONUNCIATION) {
-                        reply = "Để phát âm rõ ràng từ này, bạn hãy chú ý giữ khẩu hình tròn và nhả chữ dứt khoát nhé. Bạn thử đọc lại một lần xem sao nào!";
+                        reply = isEn
+                                ? "To pronounce this clearly in Vietnamese, pay close attention to the vowel shape and tone contour. Try saying it out loud once—how does it feel?"
+                                : "Để phát âm rõ ràng từ này, bạn hãy chú ý giữ khẩu hình tròn và nhả chữ dứt khoát nhé. Bạn thử đọc lại một lần xem sao nào!";
                     } else if (intent == ConversationIntent.VOCABULARY) {
-                        reply = "Từ này thường được người Việt dùng rất nhiều trong giao tiếp hàng ngày. Bạn muốn nghe một câu ví dụ thực tế không?";
+                        reply = isEn
+                                ? "This expression is very common in everyday Vietnamese conversation! Would you like to see a few real-life example sentences with it?"
+                                : "Từ này thường được người Việt dùng rất nhiều trong giao tiếp hàng ngày. Bạn muốn nghe một câu ví dụ thực tế không?";
                     } else if (intent == ConversationIntent.PRACTICE) {
-                        reply = "Tuyệt vời, cùng luyện tập nhé! Bạn thử đặt một câu ngắn sử dụng từ này xem sao nào?";
+                        reply = isEn
+                                ? "Awesome, let's practice together! Try making a short sentence using this phrase, and I'll help you refine it."
+                                : "Tuyệt vời, cùng luyện tập nhé! Bạn thử đặt một câu ngắn sử dụng từ này xem sao nào?";
                     } else if (intent == ConversationIntent.TRANSLATION) {
-                        reply = "Trong tiếng Việt giao tiếp tự nhiên, câu này người bản xứ thường nói ngắn gọn kèm trợ từ tình thái ở cuối cho thân thiện nhé!";
+                        reply = isEn
+                                ? "In natural spoken Vietnamese, native speakers keep this short and add a friendly ending particle like *'nhé'* or *'ạ'* at the end!"
+                                : "Trong tiếng Việt giao tiếp tự nhiên, câu này người bản xứ thường nói ngắn gọn kèm trợ từ tình thái ở cuối cho thân thiện nhé!";
                     } else {
                         // CASUAL_CHAT with multi-turn context retention
                         String historyConcat = "";
@@ -904,22 +1107,36 @@ public class AiTutorService {
                                     .collect(Collectors.joining(" "))
                                     .toLowerCase();
                         }
-                        if (unaccented.contains("chuyen den ha noi") || (unaccented.contains("ha noi") && unaccented.contains("moi den"))) {
-                            reply = "Ồ, bạn mới chuyển đến Hà Nội à! Chào mừng bạn đến với thủ đô nhé 😄 Bạn chuyển đến để học hay đi làm vậy?";
-                        } else if (unaccented.contains("hoc dai hoc") || unaccented.contains("sinh vien") || unaccented.contains("truong dai hoc")) {
-                            if (historyConcat.contains("hà nội") || historyConcat.contains("ha noi")) {
-                                reply = "Vậy là bạn đang bắt đầu một hành trình mới rồi 😄 Bạn học trường nào thế? Đã quen với cuộc sống sinh viên ở Hà Nội chưa?";
+                        if (unaccented.contains("chuyen den ha noi") || (unaccented.contains("ha noi") && unaccented.contains("moi den")) || (isEn && lower.contains("hanoi"))) {
+                            reply = isEn
+                                    ? "Oh, welcome to Hanoi! 😄 Are you in Hanoi for study, work, or travel?"
+                                    : "Ồ, bạn mới chuyển đến Hà Nội à! Chào mừng bạn đến với thủ đô nhé 😄 Bạn chuyển đến để học hay đi làm vậy?";
+                        } else if (unaccented.contains("hoc dai hoc") || unaccented.contains("sinh vien") || unaccented.contains("truong dai hoc") || (isEn && (lower.contains("university") || lower.contains("student")))) {
+                            if (historyConcat.contains("hà nội") || historyConcat.contains("ha noi") || historyConcat.contains("hanoi")) {
+                                reply = isEn
+                                        ? "Starting university life in Hanoi sounds exciting! 😄 Which university are you attending, and have you gotten used to life there yet?"
+                                        : "Vậy là bạn đang bắt đầu một hành trình mới rồi 😄 Bạn học trường nào thế? Đã quen với cuộc sống sinh viên ở Hà Nội chưa?";
                             } else {
-                                reply = "Tuyệt vời, vậy là bạn đang bắt đầu quãng đời sinh viên rồi 😄 Bạn đang theo học ngành gì thế?";
+                                reply = isEn
+                                        ? "That's wonderful! 😄 What major are you studying right now?"
+                                        : "Tuyệt vời, vậy là bạn đang bắt đầu quãng đời sinh viên rồi 😄 Bạn đang theo học ngành gì thế?";
                             }
-                        } else if (unaccented.contains("di lam") || unaccented.contains("cong viec") || unaccented.contains("dong nghiep")) {
-                            reply = "Bắt đầu công việc ở một môi trường mới chắc hẳn có nhiều điều thú vị! Ở chỗ làm bạn có thường xuyên giao tiếp bằng tiếng Việt không?";
-                        } else if (unaccented.contains("chua quen") || unaccented.contains("thoi tiet") || unaccented.contains("khi hau")) {
-                            reply = "Mới chuyển đến nơi ở mới bao giờ cũng cần chút thời gian để thích nghi nè. Bạn thấy nhịp sống ở đây có khác nhiều so với quê nhà không?";
-                        } else if (unaccented.contains("thich an") || unaccented.contains("an uong") || unaccented.contains("mon an")) {
-                            reply = "Ẩm thực Việt Nam ngon và phong phú lắm đấy! Bạn đã có dịp thử phở bò hay bún chả chưa? Thấy khẩu vị thế nào?";
+                        } else if (unaccented.contains("di lam") || unaccented.contains("cong viec") || unaccented.contains("dong nghiep") || (isEn && (lower.contains("work") || lower.contains("job")))) {
+                            reply = isEn
+                                    ? "Starting work in a new environment is always an adventure! Do you often get a chance to speak Vietnamese with your colleagues?"
+                                    : "Bắt đầu công việc ở một môi trường mới chắc hẳn có nhiều điều thú vị! Ở chỗ làm bạn có thường xuyên giao tiếp bằng tiếng Việt không?";
+                        } else if (unaccented.contains("chua quen") || unaccented.contains("thoi tiet") || unaccented.contains("khi hau") || (isEn && lower.contains("weather"))) {
+                            reply = isEn
+                                    ? "It always takes a little time to adjust to a new place and weather! How do you find the pace of life compared to back home?"
+                                    : "Mới chuyển đến nơi ở mới bao giờ cũng cần chút thời gian để thích nghi nè. Bạn thấy nhịp sống ở đây có khác nhiều so với quê nhà không?";
+                        } else if (unaccented.contains("thich an") || unaccented.contains("an uong") || unaccented.contains("mon an") || (isEn && lower.contains("food"))) {
+                            reply = isEn
+                                    ? "Vietnamese cuisine is so diverse and delicious! Have you tried phở bò or bún chả yet? How did you like the flavors?"
+                                    : "Ẩm thực Việt Nam ngon và phong phú lắm đấy! Bạn đã có dịp thử phở bò hay bún chả chưa? Thấy khẩu vị thế nào?";
                         } else {
-                            reply = "Nghe thú vị thật đấy! Bạn có thể chia sẻ thêm cho mình về điều này không? 😊";
+                            reply = isEn
+                                    ? "That sounds really interesting! 😊 Could you tell me a bit more about it? I'm happy to help you express it in natural Vietnamese too!"
+                                    : "Nghe thú vị thật đấy! Bạn có thể chia sẻ thêm cho mình về điều này không? 😊";
                         }
                     }
                     break;
