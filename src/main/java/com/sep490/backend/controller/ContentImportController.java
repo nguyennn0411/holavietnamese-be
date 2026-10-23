@@ -17,7 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController @RequiredArgsConstructor @RequestMapping("/api/admin/imports") @PreAuthorize("hasRole('ADMIN')")
 public class ContentImportController {
     private final ContentImportService service;
-    private final com.sep490.backend.service.importing.DictionarySources dictionarySources;
     @GetMapping("/types") public ApiResponse<List<ContentImportResponse.Type>> types() { return ApiResponse.success(service.types()); }
     @PostMapping(value = "/preview",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<ContentImportResponse> preview(@RequestParam String module,@RequestParam MultipartFile file,
@@ -33,9 +32,6 @@ public class ContentImportController {
     @GetMapping("/{id}") public ApiResponse<ContentImportResponse> detail(@PathVariable String id) { return ApiResponse.success(service.detail(id)); }
     @GetMapping("/template") public ResponseEntity<byte[]> template(@RequestParam String module) throws IOException {
         var type = service.type(module);
-        if("jsonl".equals(type.format())) return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\""+dictionarySources.pilot().getFilename()+"\"")
-                .contentType(MediaType.parseMediaType("application/x-ndjson")).body(dictionarySources.pilot().getContentAsByteArray());
         try (var workbook = new XSSFWorkbook(); var out = new ByteArrayOutputStream()) {
             var sheet = workbook.createSheet(type.sheet()); var header = sheet.createRow(0);
             for (int i=0;i<type.columns().size();i++) { header.createCell(i).setCellValue(type.columns().get(i)); sheet.setColumnWidth(i,24*256); }

@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,16 +23,8 @@ import java.util.List;
                         columnList = "status"
                 ),
                 @Index(
-                        name = "idx_vocabularies_level",
-                        columnList = "cefr_level"
-                ),
-                @Index(
                         name = "idx_vocabularies_part_of_speech",
                         columnList = "part_of_speech"
-                ),
-                @Index(
-                        name = "idx_vocabularies_filter",
-                        columnList = "status, cefr_level, part_of_speech"
                 )
         }
 )
@@ -55,9 +45,6 @@ public class VocabularyWordJpaEntity {
 
     @Column(name = "part_of_speech", nullable = false, length = 40)
     private String partOfSpeech;
-
-    @Column(name = "cefr_level", length = 10)
-    private String cefrLevel;
 
     @Column(name = "search_word", length = 200) private String searchWord;
     @Column(name = "source_metadata", columnDefinition = "LONGTEXT") private String sourceMetadata;
@@ -84,24 +71,6 @@ public class VocabularyWordJpaEntity {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "vocabulary_topic_mappings",
-            joinColumns = @JoinColumn(
-                    name = "vocabulary_id",
-                    foreignKey = @ForeignKey(
-                            name = "fk_vocabulary_topic_mapping_vocabulary"
-                    )
-            ),
-            inverseJoinColumns = @JoinColumn(
-                    name = "topic_id",
-                    foreignKey = @ForeignKey(
-                            name = "fk_vocabulary_topic_mapping_topic"
-                    )
-            )
-    )
-    private Set<VocabularyTopicJpaEntity> topics = new LinkedHashSet<>();
 
     @OneToMany(
             mappedBy = "vocabulary",

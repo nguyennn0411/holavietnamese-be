@@ -67,10 +67,10 @@ class RegionalVocabularyIntegrationTests {
         create(data("Dứa","NORTH","PUBLISHED"),admin).andExpect(status().isCreated());
         jdbc.update("INSERT INTO destinations(name_vi,name_en,slug,region,status) VALUES('Test','Test','regional-test','SOUTH','PUBLISHED')");
         long destination = jdbc.queryForObject("SELECT MAX(id) FROM destinations",Long.class);
-        mvc.perform(put("/api/admin/destinations/"+destination+"/content").with(user(admin)).with(csrf()).contentType("application/json")
-                .content(json.writeValueAsBytes(Map.of("lessonIds",List.of(),"vocabularyIds",List.of(master)))))
+        mvc.perform(put("/api/admin/destinations/"+destination+"/explore-content").with(user(admin)).with(csrf()).contentType("application/json")
+                .content(json.writeValueAsBytes(Map.of("cultureIds",List.of(),"scenarioIds",List.of(),"vocabularyIds",List.of(master)))))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.regionalVariants[0].word").value("Thơm"));
-        mvc.perform(get("/api/me/journey/destinations/"+destination+"/content").with(user(learner)))
+        mvc.perform(get("/api/destinations/"+destination+"/content").with(user(learner)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.vocabulary[0].id").value(master))
                 .andExpect(jsonPath("$.result.regionalVariants.length()").value(1))
                 .andExpect(jsonPath("$.result.regionalVariants[0].region").value("SOUTH"));

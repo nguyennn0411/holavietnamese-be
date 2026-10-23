@@ -15,40 +15,95 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
-/** Inserts demo destinations through the existing service; existing slugs are never overwritten. */
 @Component
 @RequiredArgsConstructor
 public class DestinationDemoSeed {
-    private final ObjectMapper json;
+
+    private final ObjectMapper objectMapper;
     private final Validator validator;
     private final DestinationRepository repository;
     private final DestinationService service;
 
     @Transactional
-    public int seed() throws IOException {
+    public SeedResult seed() throws IOException {
         List<DestinationRequest> destinations;
-        try (var input = new ClassPathResource("demo/destinations.json").getInputStream()) {
-            destinations = json.readValue(input, new TypeReference<>() {});
+
+        try (var input = new ClassPathResource(
+                "demo/destinations.json"
+        ).getInputStream()) {
+            destinations = objectMapper.readValue(
+                    input,
+                    new TypeReference<List<DestinationRequest>>() {}
+            );
         }
 
+        if (destinations == null || destinations.isEmpty()) {
+            throw new IllegalStateException(
+                    "File dữ liệu điểm đến đang trống."
+            );
+        }
+
+        // Kiểm tra toàn bộ dữ liệu trước khi bắt đầu lưu.
         var slugs = new HashSet<String>();
+
         for (var destination : destinations) {
-            if (!validator.validate(destination).isEmpty()) {
-                throw new IllegalStateException("Invalid demo destination: " + destination.slug());
+            if (destination == null) {
+                throw new IllegalStateException(
+                        "File có điểm đến không hợp lệ."
+                );
             }
-            if (!slugs.add(destination.slug().trim().toLowerCase(Locale.ROOT))) {
-                throw new IllegalStateException("Duplicate demo destination slug: " + destination.slug());
+
+            var violations = validator.validate(destination);
+
+            if (!violations.isEmpty()) {
+                throw new IllegalStateException(
+                        "Dữ liệu điểm đến không hợp lệ: "
+                                + destination.slug()
+                                + " — "
+                                + violations
+                );
+            }
+
+            String slug = normalizeSlug(destination.slug());
+
+            if (!slugs.add(slug)) {
+                throw new IllegalStateException(
+                        "Slug bị trùng trong file JSON: " + slug
+                );
             }
         }
 
         int created = 0;
+        int updated = 0;
+        var existingBySlug = repository.search(null, null, null).stream()
+                .collect(Collectors.toMap(
+                        item -> normalizeSlug(item.slug()),
+                        item -> item.id()
+                ));
+
         for (var destination : destinations) {
-            if (!repository.existsBySlug(destination.slug().trim().toLowerCase(Locale.ROOT))) {
+            String slug = normalizeSlug(destination.slug());
+
+            // JSON là nguồn dữ liệu cho các slug có trong file.
+            // Cập nhật tại chỗ để giữ ID và các liên kết hiện có.
+            Long existingId = existingBySlug.get(slug);
+            if (existingId != null) {
+                service.update(existingId, destination);
+                updated++;
+            } else {
                 service.create(destination);
                 created++;
             }
         }
-        return created;
+
+        return new SeedResult(created, updated);
+    }
+
+    public record SeedResult(int created, int updated) {}
+
+    private static String normalizeSlug(String slug) {
+        return slug.trim().toLowerCase(Locale.ROOT);
     }
 }

@@ -31,3 +31,6 @@ google:
 app:
   mail:
     enabled: false
+  destination:
+    seed:
+      enabled: false

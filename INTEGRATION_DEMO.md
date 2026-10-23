@@ -1,99 +1,19 @@
-# Bộ dữ liệu demo bài học, từ vựng và hành trình
+# Khám phá Việt Nam và lịch sử tích hợp
 
-Khóa học **Hành trình Việt Nam — Văn hóa và giao tiếp**, mã `DEMO-VIETNAM-LINKS`, slug `demo-hanh-trinh-tieng-viet`.
+## Khám phá Việt Nam — luồng mới của An
 
-| Chặng | Bài học | Từ vựng dùng chung |
-| --- | --- | --- |
-| Hà Nội | Chào hỏi tại Hà Nội; Gọi món ở Hà Nội | xin chào, cảm ơn, tạm biệt, phở, nước, thực đơn |
-| Hội An | Hỏi đường tại Hội An; Mua sắm ở Hội An | ở đâu, rẽ trái, đi thẳng, bao nhiêu, đắt, giảm giá |
-| TP.HCM | Di chuyển tại TP.HCM; Nhận phòng và kết thúc hành trình | xe buýt, vé, sân bay, đặt phòng, chìa khóa, hẹn gặp lại |
+Khám phá mở tự do các điểm đã xuất bản cho người dùng đã đăng nhập, không phụ thuộc Course/Lesson. Trang chi tiết có Văn hóa, Ngôn ngữ vùng miền và Thực hành; không bắt đầu/hoàn thành điểm, tính tiến độ hay cấp dấu mới. Course và các kết quả học của module khác được giữ nguyên.
 
-Mỗi bài khoảng 20 phút, có bài đọc song ngữ về địa phương, ba từ với câu ví dụ, hội thoại 9–11 lượt, mẫu câu, ứng xử và nhiệm vụ đóng vai. Quiz ba câu kết hợp giao tiếp và hiểu biết văn hóa, có giải thích song ngữ; vị trí đáp án đúng được thay đổi. Quiz cuối khóa có sáu câu, dùng lại câu hỏi của từng bài; điểm đạt là 70%. Khóa học được tạo dưới Content Manager, gửi duyệt và phê duyệt qua service Admin. Tất cả ID được lấy từ database, không cố định ID giữa các máy.
+- `GET /api/destinations/{id}/content`: chỉ đọc từ, biến thể, ID bài văn hóa và scenario khả dụng; không ghi lịch sử học.
+- `GET/PUT /api/admin/destinations/{id}/explore-content`: quản lý liên kết bằng `vocabularyIds` (số), `cultureIds` (chuỗi), `scenarioIds` (chuỗi). Giữ phân quyền quản lý hiện có; không thay cấu hình quyền chung.
+- Migration `V29` chỉ thêm bảng tham chiếu nội dung; không xóa bảng, dữ liệu học, Lesson hoặc Passport cũ. Khởi động lại Backend để Flyway áp dụng sau khi cập nhật source; Docker cần build lại image.
+- Các API Journey/Passport cũ và báo cáo tiến độ điểm đến giả đã được gỡ cùng service, DTO và repository không còn dùng. `/api/users/progress` chỉ phục vụ dữ liệu học tập, không trả `journeyCity` hay `journeyProgress`. Achievements giữ huy hiệu học tập; My Learning dẫn sang Explore để khám phá tự do. `/admin/journey` chỉ là URL chuyển hướng về quản lý điểm đến.
+- Giữ nguyên migration đã chạy và các bảng lịch sử trong DB; ứng dụng không đọc hoặc ghi các bảng Journey/Passport cũ. Liên kết từ vựng và tham chiếu nội dung của Explore vẫn được sử dụng.
+- Culture hiện được mở qua thư viện Frontend của Tuyển (`cultureService`), chưa có API dữ liệu Culture thật trong source này. Explore chỉ lưu ID tham chiếu, không sao chép nội dung. ID bị thiếu khỏi thư viện được ẩn ở phía học viên.
+- Scenario phải tồn tại trong DB, đang `ACTIVE` và có đúng ID mà màn scenario hiện tại của Tuyển hỗ trợ. Không dùng fallback sang scenario đầu tiên khi ID không khớp. Màn hội thoại/đánh giá của Tuyển được giữ nguyên; chưa coi phần thực hành hiện có là đánh giá AI thật.
+- Kiểm tra hồi quy: `DestinationExploreIntegrationTests`, `RegionalVocabularyIntegrationTests` và `qa/explore-contract.test.mjs`. Thử lưu liên kết trong chi tiết điểm đến rồi mở bằng tài khoản Learner chưa học bài nào.
 
-## Nội dung văn hóa và du lịch — cập nhật 20/10/2026
-
-| Chặng | Bài | Chủ đề và nhiệm vụ |
-| --- | --- | --- |
-| Hà Nội | Chào hỏi bên hồ Hoàn Kiếm và phố cổ | Hồ, phố nghề, Văn Miếu; xưng hô theo người nghe; xin phép chụp ảnh; đóng vai cuộc gặp một phút. |
-| Hà Nội | Gọi phở và văn hóa quán ăn | Phở, bún chả, cà phê trứng; đọc thực đơn, hỏi nguyên liệu, xác nhận đơn và thanh toán. |
-| Hội An | Hỏi đường giữa phố cổ và Chùa Cầu | Di sản thương cảng, hội quán; chỉ đường trên bản đồ giả định và nhắc lại để xác nhận. |
-| Hội An | Đèn lồng, nghề thủ công và mua sắm | Hỏi chất liệu, cách gấp, giá; tôn trọng giá cố định; nhận biết cao lầu; giới thiệu món quà. |
-| TP.HCM | Di chuyển và nhịp sống đô thị | Phân biệt chợ Bến Thành, Chợ Lớn, sân bay; hỏi vé, điểm đón/điểm xuống và sửa nhầm điểm đến. |
-| TP.HCM | Nhận phòng, cà phê và tổng kết | Xác nhận đặt phòng/chìa khóa; gọi cà phê sữa đá; kể 4–6 câu nối ba chặng. |
-
-Giá, tuyến đường và hội thoại là tình huống học tập giả định, không phải thông tin vận hành du lịch hiện hành. Nguồn tham khảo văn hóa từ Vietnam Tourism được lưu trong `sources` của JSON; phần hội thoại, câu hỏi và nhiệm vụ được biên soạn cho khóa học.
-
-### Cập nhật database đã có khóa mẫu
-
-Seed chỉ tạo khóa khi chưa có; không tự ghi đè nội dung đã tồn tại. Để nạp bản nội dung mới vào khóa hiện tại:
-
-```powershell
-node scripts/update-journey-content.cjs          # Chỉ xem kế hoạch
-node scripts/update-journey-content.cjs --apply  # Sao lưu rồi cập nhật qua API
-```
-
-Script dùng cùng biến `DEMO_API_URL`, `DEMO_ADMIN_*`, `DEMO_MANAGER_*` với script kiểm tra; tài khoản manager phải là tác giả khóa. `DEMO_BACKUP_DIR` chọn thư mục sao lưu, mặc định `.verification/journey-content` (không đưa vào Git).
-
-Luồng cập nhật: đọc/kiểm tra liên kết → sao lưu nội dung → Admin chuyển khóa về DRAFT → Content Manager sửa → gửi duyệt → Admin phê duyệt. Không thay đổi schema/Flyway, điều kiện đạt quiz hoặc dữ liệu tiến độ. Câu hỏi được tạo phiên bản mới; bài làm cũ tiếp tục giữ snapshot phiên bản cũ. Nếu lỗi, script thử khôi phục nội dung từ bản sao và xuất bản lại.
-
-Hoạt động đã có tiến độ được backend bảo vệ. Script giữ hoạt động gốc và thêm phần mở rộng **tự chọn** thay vì buộc học viên làm lại; các bài chưa có tiến độ được cập nhật tại chỗ. Trên máy hiện tại đã thêm tám hoạt động mở rộng, còn toàn bộ liên kết bài/từ vựng và ID gốc giữ nguyên. Chạy lại không nhân đôi phần mở rộng hoặc tạo thêm phiên bản câu hỏi khi nội dung không đổi.
-
-Bản sao tại `D:\DO_AN\outputs\journey-culture-20261020`. Đã đối chiếu bản xuất của sáu bảng enrollments, lesson_progress, activity_progress, user_journey_progress, quiz_attempts, quiz_answers trước/sau: SHA-256 giống nhau.
-
-## Dữ liệu đã nạp trên máy này
-
-- Khóa học: `http://localhost:5173/courses/17`.
-- Hà Nội: địa điểm `1`, bài `287–288`, từ `1–6`.
-- Hội An: địa điểm `2`, bài `289–290`, từ `7–12`.
-- TP.HCM: địa điểm `3`, bài `291–292`, từ `13–18`.
-- Tài khoản `learner` đã ghi danh khóa mẫu; chưa hoàn thành bài nào, Hà Nội đang mở và hai chặng sau còn khóa.
-
-Tài khoản môi trường `dev-demo` đã kiểm tra đăng nhập:
-
-| Vai trò | Tài khoản | Mật khẩu |
-| --- | --- | --- |
-| Admin | admin | admin123 |
-| Content Manager | contentmanager | contentmanager123 |
-| Học viên | learner | learner123 |
-
-Chạy `node scripts/verify-integration-demo.cjs` để đọc lại ID thực tế và kiểm tra liên kết trên máy của từng người. Script cho phép thay tài khoản bằng các biến `DEMO_ADMIN_USERNAME`, `DEMO_ADMIN_PASSWORD`, `DEMO_MANAGER_USERNAME`, `DEMO_MANAGER_PASSWORD`, `DEMO_LEARNER_USERNAME`, `DEMO_LEARNER_PASSWORD` và đổi backend bằng `DEMO_API_URL`. Script chỉ kiểm tra và đăng nhập, không hoàn thành bài hoặc đặt lại tiến độ.
-
-Bảng ID chi tiết đã kiểm chứng được lưu tại `D:\DO_AN\outputs\integration-demo-20261020\manifest.json`. Để ghép phần của nhóm, dùng seed hoặc API theo mã/slug và ID trả về, không chép cố định những ID cục bộ này sang database khác.
-
-## Nạp dữ liệu
-
-Tại thư mục BE, sử dụng file `.env.mysql` hiện có:
-
-```powershell
-docker compose --env-file .env.mysql -f compose.yml -f compose.demo.yml -f compose.integration-demo.yml up -d --build --wait
-```
-
-`APP_INTEGRATIONDEMO_SEED_ENABLED=true` bật bộ nạp. Có thể chạy lại: bộ nạp kiểm tra cấu trúc khóa học đã tồn tại rồi dùng lại, không nhân đôi. Toàn bộ seed chạy trong một transaction. Dữ liệu khóa học cũ và tiến độ học không bị sửa. Những điểm hành trình cũ được giữ nguyên thứ tự; ba điểm demo được thêm ở cuối. Nếu có hành trình trước đó, phải hoàn thành các chặng trước hoặc thống nhất lại thứ tự tại `/admin/journey`.
-
-Nguồn biên soạn nằm ở `src/main/resources/demo/integration-journey.json`. File chứa nội dung mẫu, không chứa trạng thái hay điểm học viên. Ảnh điểm đến dùng URL từ bộ destination demo có sẵn; cần kết nối mạng để tải ảnh.
-
-## Kịch bản kiểm tra liên kết cho nhóm
-
-1. Admin mở `/admin/courses`, tìm mã `DEMO-VIETNAM-LINKS`, xem tác giả, thông tin duyệt và sáu bài học.
-2. Mở `/admin/destinations`, tìm các điểm có hậu tố “Demo liên kết”. Tab nội dung của mỗi điểm có đúng hai bài học và sáu từ. `/admin/journey` có thứ tự Hà Nội → Hội An → TP.HCM.
-3. Học viên mở `/courses`, vào khóa demo và ghi danh. Mở phần Khám phá/hành trình: Hà Nội được mở, hai chặng sau bị khóa.
-4. Tại Hà Nội, chọn bài Chào hỏi. Mở từ `xin chào` trong danh mục chung hoặc bấm Lưu từ. Sổ tay lưu đồng thời `lessonId` của bài và `masterVocabularyId` của từ chung.
-5. Từ địa điểm Hà Nội, mở cùng mục từ `xin chào`: ID phải trùng từ đã lưu từ bài học. Lưu lại cùng từ phải được báo đã tồn tại. Vào sổ tay, lọc theo khóa/bài học và ôn tập flashcard.
-6. Hoàn thành hoạt động và đạt quiz của cả hai bài Hà Nội, quay lại điểm Hà Nội và hoàn tất chặng. Hộ chiếu có một dấu, Hội An được mở. Làm tương tự cho Hội An và TP.HCM; bài cuối cần đạt cả quiz bài học và quiz cuối khóa.
-
-Các API nối phần của nhóm:
-
-| Liên kết | API |
-| --- | --- |
-| Chọn bài học/từ cho điểm đến | `PUT /api/admin/destinations/{id}/content` với `lessonIds`, `vocabularyIds` |
-| Thứ tự chặng | `PUT /api/admin/journey` |
-| Nội dung học của điểm đến | `GET /api/me/journey/destinations/{id}/content` |
-| Bài học và hoạt động | `GET /api/lessons/{id}/activities` |
-| Danh mục từ dùng chung | `GET /api/vocabulary/{id}` |
-| Lưu từ từ bài học | `POST /api/me/vocabulary` với `lessonId`, `masterVocabularyId`, `word`, `meaning` |
-| Hoàn thành chặng / hộ chiếu | `POST /api/me/journey/destinations/{id}/complete`, `GET /api/me/journey/passport` |
-
-Điều kiện hoàn thành do backend tính từ `lesson_progress`: hoàn thành mọi bài đã liên kết với chặng trước khi nhận dấu và mở chặng sau. Ghi danh khóa học trước khi học hoặc lưu từ theo bài.
+Các bộ demo tích hợp cũ đã được gỡ. Bộ seed điểm đến hiện tại đồng bộ `demo/destinations.json` theo slug khi khởi động nếu bật cấu hình seed; không tạo từ vựng hoặc liên kết nội dung. Vocabulary dùng quản lý thủ công và import Excel, không có bộ từ mẫu tự nạp. Các mục từ đã nhập trước đây vẫn được giữ nguyên.
 
 ## Đối chiếu migration MySQL ngày 20/10/2026
 
@@ -116,11 +36,3 @@ Ba bản AI trùng (`V13__align_ai_schema`, `V16__ai_tutor_and_roleplay`, `V17__
 Khi ghép sang máy khác, đối chiếu lịch sử Flyway của database đó trước khi dùng thứ tự này. Nếu máy đó đã chạy migration từ nhánh backup với số cũ, không đổi tên file đã chạy hoặc dùng Repair tự động.
 
 Commit AI Tutor mới trên remote bổ sung `context_summary` cho `ai_sessions`. Thay đổi chưa chạy này dùng **V26** để giữ nguyên V1–V25 đã có. Các bản hearts/API key được giữ ở V19/V21 theo lịch sử MySQL cục bộ. `FlywayConfig` sử dụng migrate với validation mặc định, không tự Repair khi khởi động.
-
-## Kết quả kiểm tra
-
-- Backend đã khởi động với MySQL hiện tại; Flyway validation qua 25 migration và áp dụng thành công 9 migration mới.
-- V1–V16 giống hoàn toàn bản sao trước chỉnh sửa; 16 khóa học cũ vẫn còn, thêm khóa demo thành tổng 17 khóa.
-- Hai kiểm thử tích hợp trên MySQL tạm qua: seed lặp lại/giữ hành trình cũ, và luồng học thật → quiz → lưu từ theo bài → hoàn thành ba chặng → ba dấu hộ chiếu. MySQL tạm dùng RAM, không gắn volume thật, đã dừng sau kiểm thử. H2 không hỗ trợ cú pháp đa cột của V14 gốc nên các kiểm thử này phải dùng MySQL.
-- 14 kiểm tra contract FE cho từ vựng/hành trình và build FE đã qua.
-- Đã kiểm tra trên giao diện: đăng nhập học viên, ghi danh khóa 17, mở bài 287, từ bài học mở từ chung ID 1; điểm Hà Nội cũng trỏ đến cùng mục từ ID 1 và hai bài 287–288.
