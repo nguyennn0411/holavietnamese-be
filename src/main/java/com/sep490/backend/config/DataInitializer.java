@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -26,9 +27,16 @@ public class DataInitializer implements CommandLineRunner {
     RoleRepository roleRepository;
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
+    Environment environment;
 
     @Override
     public void run(String... args) {
+        String demoPassword = environment.getRequiredProperty("APP_DEMO_PASSWORD");
+        int passwordBytes = demoPassword.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+        if (demoPassword.length() < 12 || passwordBytes > 72) {
+            throw new IllegalStateException("APP_DEMO_PASSWORD must be at least 12 characters and at most 72 UTF-8 bytes");
+        }
+
         try {
             Role adminRole = initRole("ADMIN", "Quản trị viên hệ thống",
                     Set.of("USER_READ", "USER_WRITE", "ROLE_WRITE", "SETTING_WRITE", "ACHIEVEMENT_WRITE", "XP_RULE_WRITE", "AUDIT_READ"));
@@ -44,7 +52,7 @@ public class DataInitializer implements CommandLineRunner {
                 User admin = new User();
                 admin.setUsername("admin");
                 admin.setRole("ADMIN");
-                admin.setPasswordHash(passwordEncoder.encode("admin123"));
+                admin.setPasswordHash(passwordEncoder.encode(demoPassword));
                 admin.setEmail("admin@holavietnamese.com");
                 admin.setFullName("System Administrator");
                 admin.setStatus("ACTIVE");
@@ -53,14 +61,14 @@ public class DataInitializer implements CommandLineRunner {
                 admin.setRole("ADMIN");
                 admin.setRoles(new HashSet<>(Set.of(adminRole)));
                 userRepository.save(admin);
-                log.info(">>> Khởi tạo tài khoản admin mặc định: admin / admin123");
+                log.info("Created demo admin account from APP_DEMO_PASSWORD");
             }
 
 
             if (!userRepository.existsByUsername("contentmanager")) {
                 User manager = new User();
                 manager.setUsername("contentmanager");
-                manager.setPasswordHash(passwordEncoder.encode("contentmanager123"));
+                manager.setPasswordHash(passwordEncoder.encode(demoPassword));
                 manager.setEmail("contentmanager@holavietnamese.com");
                 manager.setFullName("Content Manager");
                 manager.setStatus("ACTIVE");

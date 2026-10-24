@@ -4,7 +4,6 @@ import com.sep490.backend.config.LearnerPrincipal;
 import com.sep490.backend.dto.response.ApiResponse;
 import com.sep490.backend.learning.shared.ContentStore;
 import com.sep490.backend.repository.UserRepository;
-import com.sep490.backend.repository.VocabularyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +25,6 @@ public class LearnerProgressReportController {
 
     private final ContentStore db;
     private final UserRepository userRepository;
-    private final VocabularyRepository vocabularyRepository;
 
     /**
      * UC-113 & Screen 10.1.4: View Lesson History

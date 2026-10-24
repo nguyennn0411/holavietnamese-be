@@ -5,7 +5,6 @@ import com.sep490.backend.learning.shared.ContentStore;
 import com.sep490.backend.repository.CourseRepository;
 import com.sep490.backend.repository.LessonRepository;
 import com.sep490.backend.repository.UserRepository;
-import com.sep490.backend.repository.VocabularyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -34,7 +33,6 @@ public class AdminReportController {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final LessonRepository lessonRepository;
-    private final VocabularyRepository vocabularyRepository;
     private final ContentStore db;
 
     /**

@@ -96,7 +96,7 @@ Bean Validation and the global handler return 400 for invalid requests, 403 for 
 
 | Domain / persistence entity | Table | Relations / constraints |
 | --- | --- | --- |
-| UserJpaEntity | users | Unique email; BCrypt password hash |
+| User | users | Unique email; BCrypt password hash |
 | Course / CourseJpaEntity | courses | One course has many lessons and enrollments |
 | Lesson / LessonJpaEntity | lessons | Course foreign key; unique course/lesson order |
 | Enrollment / EnrollmentJpaEntity | enrollments | User/course foreign keys; unique (user_id, course_id); last lesson foreign key |
@@ -190,7 +190,7 @@ Paths are relative to the shared workspace. Build artifacts, dependency caches, 
 - `BE/src/main/java/com/sep490/backend/entity/EnrollmentJpaEntity.java`
 - `BE/src/main/java/com/sep490/backend/entity/LessonJpaEntity.java`
 - `BE/src/main/java/com/sep490/backend/entity/LessonProgressJpaEntity.java`
-- `BE/src/main/java/com/sep490/backend/entity/UserJpaEntity.java`
+- `BE/src/main/java/com/sep490/backend/entity/User.java`
 - `BE/src/main/java/com/sep490/backend/entity/VocabularyJpaEntity.java`
 - `BE/src/main/java/com/sep490/backend/mapper/CourseMapper.java`
 - `BE/src/main/java/com/sep490/backend/mapper/EnrollmentMapper.java`

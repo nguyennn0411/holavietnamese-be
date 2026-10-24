@@ -4,7 +4,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.sep490.backend.service.MyCoursesService;
 import com.sep490.backend.repository.*;
 import com.sep490.backend.dto.response.MyCourseResponse;
 import com.sep490.backend.entity.enums.EnrollmentStatus;

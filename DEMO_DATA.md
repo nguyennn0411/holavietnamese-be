@@ -19,7 +19,7 @@ Bộ nạp bật các course A1, nền tảng, phát âm, chương 1–3, TV123 
 
 Từ vựng không tự nạp dữ liệu mẫu; Admin tạo nội dung qua chức năng quản lý hoặc import Excel. Bộ seed điểm đến hiện tại chỉ đọc `demo/destinations.json`, không tạo từ vựng hay liên kết nội dung.
 
-Các tài khoản mẫu chỉ được tạo với profile `dev-demo`: `admin / admin123`, `contentmanager / contentmanager123`, `learner / learner123`. Khóa Cloudinary, SMTP, AI và cấu hình riêng phải đặt trong `.env.mysql` hoặc `.env.cloudinary` cục bộ; file mẫu để trống các khóa dịch vụ.
+Các tài khoản mẫu chỉ được tạo với profile `dev-demo`; mật khẩu chung của các tài khoản được lấy từ biến môi trường bắt buộc `APP_DEMO_PASSWORD` (tối thiểu 12 ký tự, tối đa 72 byte UTF-8). Khóa Cloudinary, SMTP, AI và cấu hình riêng phải đặt trong `.env.mysql` hoặc `.env.cloudinary` cục bộ; file mẫu để trống các khóa dịch vụ.
 
 ## Phạm vi dữ liệu được chia sẻ
 

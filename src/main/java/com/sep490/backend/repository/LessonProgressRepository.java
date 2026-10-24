@@ -4,7 +4,6 @@ import java.util.*;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 import lombok.RequiredArgsConstructor;
-import com.sep490.backend.repository.LessonProgressRepository;
 import com.sep490.backend.repository.jpa.LessonProgressJpaRepository;
 import com.sep490.backend.entity.*;
 import com.sep490.backend.mapper.LessonMapper;

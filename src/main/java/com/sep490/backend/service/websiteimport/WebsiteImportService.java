@@ -240,9 +240,9 @@ public class WebsiteImportService {
 
   private List<ModuleDraft> normalizeAndValidate(List<ModuleDraft> modules) {
     if(modules==null||modules.isEmpty())throw ContentException.invalid("Cấu trúc import không được để trống.");
-    Set<String> keys=new HashSet<>(); List<ModuleDraft> normalized=new ArrayList<>(); int mi=0;
+    Set<String> keys=new HashSet<>(); List<ModuleDraft> normalized=new ArrayList<>();
     for(ModuleDraft m:modules){if(m==null||m.title()==null||m.title().isBlank()||!keys.add("m:"+m.key()))throw ContentException.invalid("Module không hợp lệ hoặc bị trùng.");
-      List<LessonDraft> lessons=new ArrayList<>(); int li=0; for(LessonDraft l:m.lessons()==null?List.<LessonDraft>of():m.lessons()){
+      List<LessonDraft> lessons=new ArrayList<>(); for(LessonDraft l:m.lessons()==null?List.<LessonDraft>of():m.lessons()){
         if(l==null||l.title()==null||l.title().isBlank()||!keys.add("l:"+l.key()))throw ContentException.invalid("Lesson không hợp lệ hoặc bị trùng.");
         List<BlockDraft> blocks=new ArrayList<>(); int bi=0; for(BlockDraft b:l.blocks()==null?List.<BlockDraft>of():l.blocks()){
           if(b==null||b.type()==null||!keys.add("b:"+l.key()+":"+b.key()))throw ContentException.invalid("Content block không hợp lệ hoặc bị trùng.");
@@ -251,8 +251,8 @@ public class WebsiteImportService {
           if(b.mediaUrl()!=null&&!b.mediaUrl().isBlank()) safeWeb.publicUri(b.mediaUrl());
           String safeHtml=b.html()==null?null:WebsiteCourseExtractor.sanitizeImportedHtml(b.html(),b.sourcePageUrl());
           blocks.add(new BlockDraft(b.key(),b.type(),++bi,b.title(),safeHtml,b.text(),b.mediaUrl(),b.originalUrl(),b.sourcePageUrl(),b.mimeType(),b.width(),b.height(),b.altText(),b.caption(),b.attribution(),b.license(),b.importStatus(),b.reviewRequired()));
-        } lessons.add(new LessonDraft(l.key(),limit(l.title(),200),l.sourcePageUrl(),l.selected(),blocks)); li++;
-      } normalized.add(new ModuleDraft(m.key(),limit(m.title(),200),m.selected(),lessons)); mi++;
+        } lessons.add(new LessonDraft(l.key(),limit(l.title(),200),l.sourcePageUrl(),l.selected(),blocks));
+      } normalized.add(new ModuleDraft(m.key(),limit(m.title(),200),m.selected(),lessons));
     } return normalized;
   }
 

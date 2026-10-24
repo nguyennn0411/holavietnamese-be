@@ -18,8 +18,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties = "APP_DEMO_PASSWORD=LongTestPass123")
 @AutoConfigureMockMvc
-@ActiveProfiles("dev-demo")
+@ActiveProfiles({"mysql-test", "dev-demo"})
 class DevDemoAccountsIntegrationTests {
+  private static final String DEMO_PASSWORD = "LongTestPass123";
+
   @Autowired MockMvc mvc;
   @Autowired ObjectMapper json;
   @Autowired ContentStore db;
@@ -27,7 +29,7 @@ class DevDemoAccountsIntegrationTests {
 
   @Test
   void seededAccountsAuthenticateWithTheirOwnRoles() throws Exception {
-    String manager = token("contentmanager", "contentmanager123");
+    String manager = token("contentmanager", DEMO_PASSWORD);
     mvc.perform(get("/api/me/session").header("Authorization", manager))
         .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("CONTENT_MANAGER"));
     mvc.perform(get("/api/admin/courses").header("Authorization", manager))
@@ -35,7 +37,7 @@ class DevDemoAccountsIntegrationTests {
     mvc.perform(get("/api/admin/users").header("Authorization", manager))
         .andExpect(status().isForbidden());
 
-    String admin = token("admin", "admin123");
+    String admin = token("admin", DEMO_PASSWORD);
     mvc.perform(get("/api/me/session").header("Authorization", admin))
         .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("ADMIN"));
     mvc.perform(get("/api/admin/courses").header("Authorization", admin))
@@ -48,7 +50,7 @@ class DevDemoAccountsIntegrationTests {
     long id = db.insert("INSERT INTO users(email,username,password_hash,enabled,status,role) VALUES(?,?,?,true,'ACTIVE','LEARNER')",
         name + "@test.local", name, passwords.encode("Test-pass123"));
     mvc.perform(put("/api/admin/users/" + id + "/roles")
-        .header("Authorization", token("admin", "admin123"))
+        .header("Authorization", token("admin", DEMO_PASSWORD))
         .contentType(MediaType.APPLICATION_JSON).content("[\"CONTENT_MANAGER\"]"))
         .andExpect(status().isOk());
     String manager = token(name, "Test-pass123");
