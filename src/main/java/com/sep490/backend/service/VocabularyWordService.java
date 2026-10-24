@@ -6,6 +6,7 @@ import com.sep490.backend.dto.model.VocabularyWord;
 import com.sep490.backend.dto.request.VocabularyExampleRequest;
 import com.sep490.backend.dto.request.VocabularyMeaningRequest;
 import com.sep490.backend.dto.request.VocabularyWordRequest;
+import com.sep490.backend.dto.request.ContentReviewRequest;
 import com.sep490.backend.dto.response.VocabularyWordResponse;
 import com.sep490.backend.entity.enums.VocabularyStatus;
 import com.sep490.backend.exception.LearningException;
@@ -82,6 +83,15 @@ public class VocabularyWordService {
     }
 
     @Transactional
+    public VocabularyWordResponse createDraft(VocabularyWordRequest request) {
+        if (request.status() != null && request.status() != VocabularyStatus.DRAFT) {
+            throw new LearningException(LearningException.Kind.INVALID,
+                    "Nội dung mới phải được lưu ở trạng thái DRAFT.");
+        }
+        return create(request);
+    }
+
+    @Transactional
     public VocabularyWordResponse update(
             Long id,
             VocabularyWordRequest request
@@ -126,6 +136,71 @@ public class VocabularyWordService {
         var entity = words.findById(id).orElseThrow();
         if (current.source() != null) entity.setSourceMetadata(com.sep490.backend.dto.model.DictionaryMetadata.encode(current.source().markEdited()));
         return VocabularyWordResponseMapper.toResponse(com.sep490.backend.mapper.VocabularyWordMapper.toDomain(words.saveAndFlush(entity)));
+    }
+
+    @Transactional
+    public VocabularyWordResponse updateDraft(Long id, VocabularyWordRequest request) {
+        var current = findWord(id);
+        if (current.status() != VocabularyStatus.DRAFT) {
+            throw new LearningException(LearningException.Kind.CONFLICT,
+                    "Chỉ nội dung DRAFT mới được chỉnh sửa.");
+        }
+        if (request.status() != null && request.status() != VocabularyStatus.DRAFT) {
+            throw new LearningException(LearningException.Kind.INVALID,
+                    "Hãy dùng thao tác gửi duyệt thay vì thay đổi trạng thái trong biểu mẫu.");
+        }
+        return update(id, request);
+    }
+
+    @Transactional
+    public VocabularyWordResponse submitReview(Long id) {
+        var current = findWord(id);
+        if (current.status() != VocabularyStatus.DRAFT) {
+            throw invalidTransition(current.status(), VocabularyStatus.PENDING_REVIEW);
+        }
+        return changeStatus(current, VocabularyStatus.PENDING_REVIEW);
+    }
+
+    @Transactional
+    public VocabularyWordResponse archive(Long id) {
+        var current = findWord(id);
+        if (current.status() == VocabularyStatus.PENDING_REVIEW)
+            throw new LearningException(LearningException.Kind.CONFLICT,"Nội dung đang chờ duyệt không thể lưu trữ.");
+        if (current.status() == VocabularyStatus.ARCHIVED) return VocabularyWordResponseMapper.toResponse(current);
+        return changeStatus(current, VocabularyStatus.ARCHIVED);
+    }
+
+    @Transactional
+    public VocabularyWordResponse restore(Long id) {
+        var current = findWord(id);
+        if (current.status() != VocabularyStatus.ARCHIVED) throw invalidTransition(current.status(), VocabularyStatus.DRAFT);
+        return changeStatus(current, VocabularyStatus.DRAFT);
+    }
+
+    @Transactional
+    public VocabularyWordResponse review(Long id, ContentReviewRequest.Decision decision) {
+        var current = findWord(id);
+        if (current.status() != VocabularyStatus.PENDING_REVIEW) {
+            throw new LearningException(LearningException.Kind.CONFLICT,
+                    "Chỉ nội dung PENDING_REVIEW mới có thể được duyệt.");
+        }
+        return changeStatus(current, decision == ContentReviewRequest.Decision.APPROVE
+                ? VocabularyStatus.PUBLISHED : VocabularyStatus.DRAFT);
+    }
+
+    private VocabularyWordResponse changeStatus(VocabularyWord current, VocabularyStatus status) {
+        var now = Instant.now();
+        var changed = new VocabularyWord(current.id(), current.word(), current.pronunciation(),
+                current.partOfSpeech(), current.audioUrl(), status,
+                status == VocabularyStatus.PUBLISHED ? now : current.publishedAt(),
+                status == VocabularyStatus.ARCHIVED ? now : current.archivedAt(),
+                current.meanings(), current.createdAt(), current.updatedAt());
+        return VocabularyWordResponseMapper.toResponse(repository.save(changed));
+    }
+
+    private static LearningException invalidTransition(VocabularyStatus from, VocabularyStatus to) {
+        return new LearningException(LearningException.Kind.CONFLICT,
+                "Không thể chuyển trạng thái từ " + from + " sang " + to + ".");
     }
 
     private VocabularyWord findWord(Long id) {

@@ -40,7 +40,7 @@ public class AdminAiService {
         AiSetting setting = settingRepository.findById(1L).orElseGet(() -> {
             AiSetting def = AiSetting.builder()
                     .id(1L)
-                    .activeModel("gemini-3.8-flash")
+                    .activeModel("openrouter/free")
                     .systemPromptVersion("v2.2.0-stable")
                     .maxTurnsPerSession(25)
                     .maxTokensPerResponse(1024)
@@ -49,14 +49,14 @@ public class AdminAiService {
                     .monthlyBudgetCapUsd(new BigDecimal("150.00"))
                     .currentMonthSpendUsd(BigDecimal.ZERO)
                     .costAlertThresholdPercent(80)
-                    .apiKeyConfigured(aiProviderService.isApiKeyAvailable("gemini-3.8-flash"))
+                    .apiKeyConfigured(aiProviderService.isApiKeyAvailable("openrouter/free"))
                     .enabledModes("tutor,grammar,translation,conversation,culture_guide,travel,regional")
                     .build();
             return settingRepository.save(def);
         });
 
         List<Map<String, Object>> allowedModels = List.of(
-                Map.of("id", "gemini-3.8-flash", "name", "Gemini 3.8 Flash (Khuyên dùng - Nhanh, Tiết kiệm)", "provider", "Google", "costPer1kTokens", 0.00035, "isDefault", true),
+                Map.of("id", "openrouter/free", "name", "OpenRouter Free (Đang dùng - miễn phí)", "provider", "OpenRouter", "costPer1kTokens", 0.0, "isDefault", true),
                 Map.of("id", "gemini-1.5-pro", "name", "Gemini 1.5 Pro (Nâng cao - Suy luận sâu cho ngữ pháp & văn hóa)", "provider", "Google", "costPer1kTokens", 0.0035, "isDefault", false),
                 Map.of("id", "gpt-4o-mini", "name", "GPT-4o Mini (Đa ngôn ngữ phản xạ)", "provider", "OpenAI", "costPer1kTokens", 0.0006, "isDefault", false),
                 Map.of("id", "claude-3-5-sonnet", "name", "Claude 3.5 Sonnet (Chính xác văn bản)", "provider", "Anthropic", "costPer1kTokens", 0.006, "isDefault", false)
@@ -78,7 +78,7 @@ public class AdminAiService {
                 "rateLimitPerMinute", setting.getRateLimitPerMinute(),
                 "dailySessionsPerUser", setting.getDailySessionsPerUser(),
                 "monthlyBudgetCapUsd", setting.getMonthlyBudgetCapUsd(),
-                "currentMonthSpendUsd", setting.getCurrentMonthSpendUsd(),
+                "currentMonthSpendUsd", (usageLogRepository.sumCostSince(LocalDateTime.now().minusDays(30)) != null ? usageLogRepository.sumCostSince(LocalDateTime.now().minusDays(30)) : (setting.getCurrentMonthSpendUsd() != null ? setting.getCurrentMonthSpendUsd() : BigDecimal.ZERO)),
                 "costAlertThresholdPercent", setting.getCostAlertThresholdPercent()
         );
 

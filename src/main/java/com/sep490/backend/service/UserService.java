@@ -204,6 +204,9 @@ public class UserService {
     private UserResponse toUserResponse(User user) {
         Set<String> roleNames = user.getRoles() == null || user.getRoles().isEmpty() ? Set.of(user.getRole()) :
                 user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
+        Set<String> permissions = user.getRoles() == null || user.getRoles().isEmpty() ? Set.of() :
+                user.getRoles().stream().filter(role -> role.getPermissions() != null)
+                        .flatMap(role -> role.getPermissions().stream()).collect(Collectors.toSet());
 
         return UserResponse.builder()
                 .id(user.getId())
@@ -228,6 +231,7 @@ public class UserService {
                 .hearts(user.getHearts() != null ? user.getHearts() : 5)
                 .status(user.getStatus())
                 .roles(roleNames)
+                .permissions(permissions)
                 .createdAt(user.getCreatedAt())
                 .build();
     }

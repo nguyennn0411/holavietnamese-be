@@ -1,6 +1,7 @@
 package com.sep490.backend.service;
 
 import com.sep490.backend.dto.request.RegionalVocabularyRequest;
+import com.sep490.backend.dto.request.ContentReviewRequest;
 import com.sep490.backend.dto.response.RegionalVocabularyResponse;
 import com.sep490.backend.entity.*;
 import com.sep490.backend.entity.enums.*;
@@ -60,6 +61,47 @@ public class RegionalVocabularyService {
     }
     @Transactional public RegionalVocabularyResponse create(RegionalVocabularyRequest request) { return save(new RegionalVocabularyJpaEntity(), request); }
     @Transactional public RegionalVocabularyResponse update(long id, RegionalVocabularyRequest request) { return save(find(id), request); }
+    @Transactional public RegionalVocabularyResponse createDraft(RegionalVocabularyRequest request) {
+        if (request.status() != null && request.status() != VocabularyStatus.DRAFT)
+            throw new LearningException(LearningException.Kind.INVALID,"Nội dung mới phải được lưu ở trạng thái DRAFT.");
+        return create(request);
+    }
+    @Transactional public RegionalVocabularyResponse updateDraft(long id, RegionalVocabularyRequest request) {
+        var row=find(id);
+        if (row.getStatus()!=VocabularyStatus.DRAFT)
+            throw new LearningException(LearningException.Kind.CONFLICT,"Chỉ nội dung DRAFT mới được chỉnh sửa.");
+        if (request.status()!=null && request.status()!=VocabularyStatus.DRAFT)
+            throw new LearningException(LearningException.Kind.INVALID,"Hãy dùng thao tác gửi duyệt thay vì thay đổi trạng thái trong biểu mẫu.");
+        return save(row,request);
+    }
+    @Transactional public RegionalVocabularyResponse submitReview(long id) {
+        var row=find(id);
+        if(row.getStatus()!=VocabularyStatus.DRAFT)
+            throw new LearningException(LearningException.Kind.CONFLICT,"Chỉ nội dung DRAFT mới có thể gửi duyệt.");
+        row.setStatus(VocabularyStatus.PENDING_REVIEW);
+        return RegionalVocabularyMapper.toResponse(repository.saveAndFlush(row));
+    }
+    @Transactional public RegionalVocabularyResponse archive(long id) {
+        var row=find(id);
+        if(row.getStatus()==VocabularyStatus.PENDING_REVIEW)
+            throw new LearningException(LearningException.Kind.CONFLICT,"Nội dung đang chờ duyệt không thể lưu trữ.");
+        row.setStatus(VocabularyStatus.ARCHIVED);
+        return RegionalVocabularyMapper.toResponse(repository.saveAndFlush(row));
+    }
+    @Transactional public RegionalVocabularyResponse restore(long id) {
+        var row=find(id);
+        if(row.getStatus()!=VocabularyStatus.ARCHIVED)
+            throw new LearningException(LearningException.Kind.CONFLICT,"Chỉ nội dung ARCHIVED mới có thể khôi phục.");
+        row.setStatus(VocabularyStatus.DRAFT);
+        return RegionalVocabularyMapper.toResponse(repository.saveAndFlush(row));
+    }
+    @Transactional public RegionalVocabularyResponse review(long id, ContentReviewRequest.Decision decision) {
+        var row=find(id);
+        if(row.getStatus()!=VocabularyStatus.PENDING_REVIEW)
+            throw new LearningException(LearningException.Kind.CONFLICT,"Chỉ nội dung PENDING_REVIEW mới có thể được duyệt.");
+        row.setStatus(decision==ContentReviewRequest.Decision.APPROVE?VocabularyStatus.PUBLISHED:VocabularyStatus.DRAFT);
+        return RegionalVocabularyMapper.toResponse(repository.saveAndFlush(row));
+    }
     private RegionalVocabularyResponse save(RegionalVocabularyJpaEntity row, RegionalVocabularyRequest input) {
         var master = vocabulary.findById(input.vocabularyId()).orElseThrow(() -> LearningException.notFound("Master vocabulary"));
         var word = input.word().strip();

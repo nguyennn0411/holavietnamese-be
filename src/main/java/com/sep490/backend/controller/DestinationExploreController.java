@@ -1,5 +1,6 @@
 package com.sep490.backend.controller;
 
+import com.sep490.backend.config.ContentPermissions;
 import com.sep490.backend.dto.request.DestinationExploreContentRequest;
 import com.sep490.backend.dto.response.*;
 import com.sep490.backend.service.DestinationExploreService;
@@ -16,12 +17,12 @@ public class DestinationExploreController {
     public ApiResponse<DestinationExploreContentResponse> content(@PathVariable long id) {
         return ApiResponse.success(service.content(id,false));
     }
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize(ContentPermissions.EXPLORE_READ_ACCESS)
     @GetMapping("/api/admin/destinations/{id}/explore-content")
     public ApiResponse<DestinationExploreContentResponse> management(@PathVariable long id) {
         return ApiResponse.success(service.content(id,true));
     }
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize(ContentPermissions.EXPLORE_LINK_ACCESS)
     @PutMapping("/api/admin/destinations/{id}/explore-content")
     public ApiResponse<DestinationExploreContentResponse> save(@PathVariable long id,@Valid @RequestBody DestinationExploreContentRequest request) {
         return ApiResponse.success(service.save(id,request));

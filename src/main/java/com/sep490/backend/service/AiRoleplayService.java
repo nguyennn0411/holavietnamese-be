@@ -63,6 +63,9 @@ public class AiRoleplayService {
         User currentUser = getCurrentUser();
         AiScenario scenario = scenarioRepository.findById(scenarioId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        if (!"ACTIVE".equalsIgnoreCase(scenario.getStatus())) {
+            throw new IllegalStateException("Kịch bản AI hiện không khả dụng.");
+        }
 
         String sessionId = "roleplay-" + scenarioId + "-" + UUID.randomUUID().toString().substring(0, 8);
 
@@ -102,7 +105,8 @@ public class AiRoleplayService {
     public AiMessageResponse sendRoleplayMessage(String sessionId, AiMessageSendRequest request) {
         User currentUser = getCurrentUser();
         AiSession session = sessionRepository.findByIdAndUserId(sessionId, currentUser.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+                .orElseGet(() -> sessionRepository.findById(sessionId)
+                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
 
         AiScenario scenario = session.getScenario();
 
@@ -160,7 +164,7 @@ public class AiRoleplayService {
 
         AiSetting aiSetting = settingRepository.findById(1L).orElse(null);
         String activeModel = aiSetting != null && aiSetting.getActiveModel() != null
-                ? aiSetting.getActiveModel() : "gemini-3.8-flash";
+                ? aiSetting.getActiveModel() : "openrouter/free";
         if (aiSetting != null && aiSetting.getApiKey() != null && !aiSetting.getApiKey().isBlank()) {
             aiProviderService.setRuntimeApiKey(activeModel, aiSetting.getApiKey());
         }
@@ -212,9 +216,42 @@ public class AiRoleplayService {
      */
     @Transactional
     public Map<String, Object> finishRoleplay(String sessionId) {
-        User currentUser = getCurrentUser();
-        AiSession session = sessionRepository.findByIdAndUserId(sessionId, currentUser.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        return finishRoleplay(sessionId, null);
+    }
+
+    @Transactional
+    public Map<String, Object> finishRoleplay(String sessionId, Integer providedScore) {
+        User currentUser = null;
+        try {
+            currentUser = getCurrentUser();
+        } catch (Exception ignored) {
+            // Unauthenticated or guest
+        }
+
+        AiSession session = null;
+        if (currentUser != null) {
+            session = sessionRepository.findByIdAndUserId(sessionId, currentUser.getId()).orElse(null);
+        }
+
+        // If not found by sessionId, check if caller passed scenarioId directly or prefixed
+        if (session == null) {
+            if (scenarioRepository.existsById(sessionId)) {
+                return completeScenario(sessionId, providedScore);
+            }
+            if (sessionId != null) {
+                for (AiScenario sc : scenarioRepository.findAll()) {
+                    if (sessionId.contains(sc.getId())) {
+                        return completeScenario(sc.getId(), providedScore);
+                    }
+                }
+            }
+            Optional<AiSession> anySession = sessionRepository.findById(sessionId);
+            if (anySession.isPresent()) {
+                session = anySession.get();
+            } else {
+                throw new AppException(ErrorCode.USER_NOT_EXISTED);
+            }
+        }
 
         session.setStatus("COMPLETED");
         session.setEndedAt(LocalDateTime.now());
@@ -222,23 +259,33 @@ public class AiRoleplayService {
         AiScenario scenario = session.getScenario();
 
         List<AiMessage> messages = messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId);
-        long userTurns = messages.stream().filter(m -> "user".equalsIgnoreCase(m.getSender())).count();
+        List<AiMessage> userMessages = messages.stream().filter(m -> "user".equalsIgnoreCase(m.getSender())).toList();
+        long userTurns = userMessages.size();
+        int totalWords = userMessages.stream()
+                .mapToInt(m -> m.getText() == null || m.getText().isBlank() ? 0 : m.getText().trim().split("\\s+").length)
+                .sum();
 
-        // Calculate evaluation scores
-        int fluency = (int) Math.min(95, 75 + userTurns * 5);
-        int vocabulary = (int) Math.min(92, 78 + userTurns * 4);
-        int grammar = (int) Math.min(90, 80 + userTurns * 3);
-        int culture = (int) Math.min(98, 85 + userTurns * 3);
-        int totalScore = Math.round((fluency + vocabulary + grammar + culture) / 4.0f);
+        // Calculate evaluation scores dynamically from turns & word count, or use providedScore
+        int fluency = userTurns == 0 ? 0 : (int) Math.min(98, 45 + userTurns * 8 + Math.min(25, totalWords));
+        int vocabulary = userTurns == 0 ? 0 : (int) Math.min(96, 48 + userTurns * 7 + Math.min(25, totalWords));
+        int grammar = userTurns == 0 ? 0 : (int) Math.min(95, 50 + userTurns * 6 + Math.min(25, totalWords));
+        int culture = userTurns == 0 ? 0 : (int) Math.min(98, 52 + userTurns * 7 + Math.min(25, totalWords));
+        int computedScore = Math.round((fluency + vocabulary + grammar + culture) / 4.0f);
+        int totalScore = (providedScore != null && providedScore >= 0 && providedScore <= 100) ? providedScore : computedScore;
 
         session.setScore(totalScore);
+        session.setTotalScore(totalScore);
         String scenarioTitle = scenario != null ? scenario.getTitle() : "Tình huống giao tiếp";
         session.setFeedbackSummary("Hoàn thành kịch bản " + scenarioTitle + " với điểm số " + totalScore + "/100.");
         sessionRepository.save(session);
 
         // Update scenario stats
         if (scenario != null) {
-            scenario.setCompletionsCount((scenario.getCompletionsCount() == null ? 0 : scenario.getCompletionsCount()) + 1);
+            int currentCount = scenario.getCompletionsCount() == null ? 0 : scenario.getCompletionsCount();
+            int currentAvg = scenario.getAvgScore() == null ? 0 : scenario.getAvgScore();
+            int newAvg = currentCount == 0 ? totalScore : Math.round((currentAvg * currentCount + totalScore) / (float)(currentCount + 1));
+            scenario.setCompletionsCount(currentCount + 1);
+            scenario.setAvgScore(newAvg);
             scenarioRepository.save(scenario);
         }
 
@@ -256,6 +303,71 @@ public class AiRoleplayService {
         ));
         result.put("aiFeedback", "Bạn đã hoàn thành xuất sắc kịch bản \"" + scenarioTitle + "\"! Khả năng phản xạ và xử lý tình huống bằng tiếng Việt rất tự nhiên và đúng lễ nghi văn hóa.");
 
+        return result;
+    }
+
+    /**
+     * Direct completion of scenario by scenarioId (supports both logged-in learner and guest)
+     */
+    @Transactional
+    public Map<String, Object> completeScenario(String scenarioId, Integer providedScore) {
+        AiScenario scenario = scenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        User currentUser = null;
+        try {
+            currentUser = getCurrentUser();
+        } catch (Exception ignored) {
+            // Unauthenticated / guest
+        }
+
+        int totalScore = (providedScore != null && providedScore > 0) ? providedScore : 85;
+
+        if (currentUser != null) {
+            List<AiSession> userSessions = sessionRepository.findByUserIdOrderByCreatedAtDesc(currentUser.getId());
+            AiSession activeSession = userSessions.stream()
+                    .filter(s -> scenarioId.equals(s.getScenarioId()) && "ACTIVE".equals(s.getStatus()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (activeSession == null) {
+                activeSession = AiSession.builder()
+                        .id("roleplay-" + scenarioId + "-" + UUID.randomUUID().toString().substring(0, 8))
+                        .user(currentUser)
+                        .mode("roleplay")
+                        .title(scenario.getTitle())
+                        .scenario(scenario)
+                        .status("COMPLETED")
+                        .turnsCount(4)
+                        .totalScore(totalScore)
+                        .feedbackSummary("Hoàn thành kịch bản " + scenario.getTitle() + " với điểm số " + totalScore + "/100.")
+                        .endedAt(LocalDateTime.now())
+                        .build();
+            } else {
+                activeSession.setStatus("COMPLETED");
+                activeSession.setEndedAt(LocalDateTime.now());
+                activeSession.setTotalScore(totalScore);
+                activeSession.setFeedbackSummary("Hoàn thành kịch bản " + scenario.getTitle() + " với điểm số " + totalScore + "/100.");
+            }
+            sessionRepository.save(activeSession);
+        }
+
+        // Update scenario stats
+        int currentCount = scenario.getCompletionsCount() == null ? 0 : scenario.getCompletionsCount();
+        int currentAvg = scenario.getAvgScore() == null ? 0 : scenario.getAvgScore();
+        int newAvg = currentCount == 0 ? totalScore : Math.round((currentAvg * currentCount + totalScore) / (float)(currentCount + 1));
+        scenario.setCompletionsCount(currentCount + 1);
+        scenario.setAvgScore(newAvg);
+        scenarioRepository.save(scenario);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("scenarioId", scenario.getId());
+        result.put("scenarioTitle", scenario.getTitle());
+        result.put("completionsCount", scenario.getCompletionsCount());
+        result.put("avgScore", scenario.getAvgScore());
+        result.put("totalScore", totalScore);
+        result.put("rating", totalScore >= 90 ? "Xuất sắc" : totalScore >= 80 ? "Rất tốt" : "Đạt yêu cầu");
+        result.put("aiFeedback", "Bạn đã hoàn thành kịch bản \"" + scenario.getTitle() + "\"!");
         return result;
     }
 

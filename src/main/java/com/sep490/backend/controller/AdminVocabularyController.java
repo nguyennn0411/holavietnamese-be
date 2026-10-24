@@ -1,6 +1,8 @@
 package com.sep490.backend.controller;
 
 import com.sep490.backend.dto.request.VocabularyWordRequest;
+import com.sep490.backend.dto.request.ContentReviewRequest;
+import com.sep490.backend.config.ContentPermissions;
 import com.sep490.backend.dto.response.ApiResponse;
 import com.sep490.backend.dto.response.VocabularyWordResponse;
 import com.sep490.backend.entity.enums.VocabularyStatus;
@@ -15,12 +17,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/vocabulary")
-@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class AdminVocabularyController {
 
     private final VocabularyWordService service;
 
+    @PreAuthorize(ContentPermissions.VOCABULARY_READ_ACCESS)
     @GetMapping("/search") public ApiResponse<org.springframework.data.domain.Page<VocabularyWordResponse>> page(
             @RequestParam(required=false) String keyword,@RequestParam(required=false) VocabularyStatus status,
             @RequestParam(required=false) String partOfSpeech,
@@ -29,6 +31,7 @@ public class AdminVocabularyController {
     }
 
     @GetMapping
+    @PreAuthorize(ContentPermissions.VOCABULARY_READ_ACCESS)
     public ApiResponse<List<VocabularyWordResponse>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) VocabularyStatus status,
@@ -46,6 +49,7 @@ public class AdminVocabularyController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize(ContentPermissions.VOCABULARY_READ_ACCESS)
     public ApiResponse<VocabularyWordResponse> findById(
             @PathVariable Long id
     ) {
@@ -55,24 +59,54 @@ public class AdminVocabularyController {
     }
 
     @PostMapping
+    @PreAuthorize(ContentPermissions.VOCABULARY_WRITE_ACCESS)
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<VocabularyWordResponse> create(
             @Valid @RequestBody VocabularyWordRequest request
     ) {
         return ApiResponse.<VocabularyWordResponse>builder()
-                .result(service.create(request))
+                .result(service.createDraft(request))
                 .message("Vocabulary created successfully.")
                 .build();
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(ContentPermissions.VOCABULARY_WRITE_ACCESS)
     public ApiResponse<VocabularyWordResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody VocabularyWordRequest request
     ) {
         return ApiResponse.<VocabularyWordResponse>builder()
-                .result(service.update(id, request))
+                .result(service.updateDraft(id, request))
                 .message("Vocabulary updated successfully.")
                 .build();
+    }
+
+    @PostMapping("/{id}/submit-review")
+    @PreAuthorize(ContentPermissions.VOCABULARY_WRITE_ACCESS)
+    public ApiResponse<VocabularyWordResponse> submitReview(@PathVariable Long id) {
+        return ApiResponse.<VocabularyWordResponse>builder().result(service.submitReview(id))
+                .message("Vocabulary submitted for review.").build();
+    }
+
+    @PostMapping("/{id}/archive")
+    @PreAuthorize(ContentPermissions.VOCABULARY_WRITE_ACCESS)
+    public ApiResponse<VocabularyWordResponse> archive(@PathVariable Long id) {
+        return ApiResponse.success(service.archive(id));
+    }
+
+    @PostMapping("/{id}/restore")
+    @PreAuthorize(ContentPermissions.VOCABULARY_WRITE_ACCESS)
+    public ApiResponse<VocabularyWordResponse> restore(@PathVariable Long id) {
+        return ApiResponse.success(service.restore(id));
+    }
+
+    @PostMapping("/{id}/review")
+    @PreAuthorize(ContentPermissions.VOCABULARY_REVIEW_ACCESS)
+    public ApiResponse<VocabularyWordResponse> review(@PathVariable Long id,
+            @Valid @RequestBody ContentReviewRequest request) {
+        return ApiResponse.<VocabularyWordResponse>builder().result(service.review(id, request.decision()))
+                .message(request.decision() == ContentReviewRequest.Decision.APPROVE
+                        ? "Vocabulary approved and published." : "Vocabulary returned to draft.").build();
     }
 }

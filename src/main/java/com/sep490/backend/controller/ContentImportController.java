@@ -1,6 +1,7 @@
 package com.sep490.backend.controller;
 
 import com.sep490.backend.config.LearnerPrincipal;
+import com.sep490.backend.config.ContentPermissions;
 import com.sep490.backend.dto.response.*;
 import com.sep490.backend.service.ContentImportService;
 import java.io.*;
@@ -14,7 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@RestController @RequiredArgsConstructor @RequestMapping("/api/admin/imports") @PreAuthorize("hasRole('ADMIN')")
+@RestController @RequiredArgsConstructor @RequestMapping("/api/admin/imports") @PreAuthorize(ContentPermissions.VOCABULARY_IMPORT_ACCESS)
 public class ContentImportController {
     private final ContentImportService service;
     @GetMapping("/types") public ApiResponse<List<ContentImportResponse.Type>> types() { return ApiResponse.success(service.types()); }
