@@ -31,7 +31,7 @@ public class CourseContentService {
             + (includeDraftContent ? "" : " AND l.published=true")
             + ") AS lesson_count",
         "FROM courses c",
-        admin ? "1=1" : author == null ? "c.status='PUBLISHED'" : "c.created_by=" + author + " AND c.status<>'ARCHIVED'",
+        admin ? "1=1" : author == null ? "c.status='PUBLISHED'" : "((c.created_by=" + author + " AND c.status<>'ARCHIVED') OR c.status='PUBLISHED')",
         "c.title,c.title_vi,c.description,c.description_vi",
         Map.of("level", "c.level", "status", "c.status"),
         Map.of("id", "c.id", "title", "c.title", "updatedAt", "c.updated_at"),
