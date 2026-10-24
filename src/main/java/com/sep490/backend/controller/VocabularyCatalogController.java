@@ -15,20 +15,22 @@ public class VocabularyCatalogController {
 
     private final VocabularyWordService service;
 
+    @GetMapping("/search")
+    public ApiResponse<org.springframework.data.domain.Page<VocabularyWordResponse>> page(
+            @RequestParam(required=false) String keyword,
+            @RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size,@RequestParam(defaultValue="false") boolean exact) {
+        return ApiResponse.success(service.searchPage(keyword,null,null,page,size,true,exact));
+    }
+    @GetMapping("/{id}/links") public ApiResponse<java.util.Map<String,Object>> links(@PathVariable Long id) { return ApiResponse.success(service.links(id)); }
+
     @GetMapping
     public ApiResponse<List<VocabularyWordResponse>> search(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String cefrLevel,
-            @RequestParam(required = false) String partOfSpeech,
-            @RequestParam(required = false) Long topicId
+            @RequestParam(required = false) String keyword
     ) {
         return ApiResponse.<List<VocabularyWordResponse>>builder()
                 .result(
                         service.searchPublished(
-                                keyword,
-                                cefrLevel,
-                                partOfSpeech,
-                                topicId
+                                keyword,null
                         )
                 )
                 .build();

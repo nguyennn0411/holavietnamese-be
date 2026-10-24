@@ -14,4 +14,10 @@ public class CloudinaryProperties {
     private String apiKey;
     private String apiSecret;
     private String avatarFolder = "hola-vietnamese/avatars";
+    private String audioFolder = "hola-vietnamese/audio";
+    private String courseCoverFolder = "hola-vietnamese/courses/covers";
+    private String lessonImageFolder = "hola-vietnamese/lessons/images";
+    private String lessonVideoFolder = "hola-vietnamese/lessons/videos";
+    private String questionImageFolder = "hola-vietnamese/questions/images";
+    private String questionAudioFolder = "hola-vietnamese/questions/audio";
 }

@@ -9,3 +9,4 @@ target/
 .env
 .env.sqlserver
 .env.mysql
+.env.cloudinary

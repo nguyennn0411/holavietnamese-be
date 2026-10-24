@@ -45,6 +45,107 @@ public class CloudinarySignatureService {
                 .build();
     }
 
+    public CloudinaryUploadSignatureResponse createAudioSignature(String titleOrPrefix) {
+        ensureConfigured();
+
+        long timestamp = Instant.now().getEpochSecond();
+        String folder = normalizeFolder(properties.getAudioFolder());
+        String safePrefix = (titleOrPrefix == null || titleOrPrefix.isBlank())
+                ? "audio"
+                : titleOrPrefix.trim().toLowerCase().replaceAll("[^a-zA-Z0-9_-]+", "-");
+        String publicId = safePrefix + "-" + UUID.randomUUID();
+        String signaturePayload = "folder=" + folder
+                + "&public_id=" + publicId
+                + "&timestamp=" + timestamp
+                + properties.getApiSecret();
+
+        return CloudinaryUploadSignatureResponse.builder()
+                .cloudName(properties.getCloudName())
+                .apiKey(properties.getApiKey())
+                // Cloudinary xử lý file âm thanh (mp3, wav, aac...) dưới resource_type video hoặc auto
+                .uploadUrl("https://api.cloudinary.com/v1_1/" + properties.getCloudName() + "/video/upload")
+                .folder(folder)
+                .publicId(publicId)
+                .timestamp(timestamp)
+                .signature(sha1(signaturePayload))
+                .build();
+    }
+
+    public CloudinaryUploadSignatureResponse createCourseCoverSignature() {
+        ensureConfigured();
+
+        long timestamp = Instant.now().getEpochSecond();
+        String folder = normalizeFolder(properties.getCourseCoverFolder());
+        String publicId = "course-cover-" + UUID.randomUUID();
+        String signaturePayload = "folder=" + folder
+                + "&public_id=" + publicId
+                + "&timestamp=" + timestamp
+                + properties.getApiSecret();
+
+        return CloudinaryUploadSignatureResponse.builder()
+                .cloudName(properties.getCloudName())
+                .apiKey(properties.getApiKey())
+                .uploadUrl("https://api.cloudinary.com/v1_1/" + properties.getCloudName() + "/image/upload")
+                .folder(folder)
+                .publicId(publicId)
+                .timestamp(timestamp)
+                .signature(sha1(signaturePayload))
+                .build();
+    }
+
+    public CloudinaryUploadSignatureResponse createLessonMediaSignature(String type) {
+        ensureConfigured();
+        if (!"image".equals(type) && !"video".equals(type)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported lesson media type.");
+        }
+
+        long timestamp = Instant.now().getEpochSecond();
+        String folder = normalizeFolder("image".equals(type)
+                ? properties.getLessonImageFolder() : properties.getLessonVideoFolder());
+        String publicId = "lesson-" + type + "-" + UUID.randomUUID();
+        String signaturePayload = "folder=" + folder
+                + "&public_id=" + publicId
+                + "&timestamp=" + timestamp
+                + properties.getApiSecret();
+
+        return CloudinaryUploadSignatureResponse.builder()
+                .cloudName(properties.getCloudName())
+                .apiKey(properties.getApiKey())
+                .uploadUrl("https://api.cloudinary.com/v1_1/" + properties.getCloudName() + "/" + type + "/upload")
+                .folder(folder)
+                .publicId(publicId)
+                .timestamp(timestamp)
+                .signature(sha1(signaturePayload))
+                .build();
+    }
+
+    public CloudinaryUploadSignatureResponse createQuestionMediaSignature(String type) {
+        ensureConfigured();
+        if (!"image".equals(type) && !"audio".equals(type)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported question media type.");
+        }
+
+        long timestamp = Instant.now().getEpochSecond();
+        String folder = normalizeFolder("image".equals(type)
+                ? properties.getQuestionImageFolder() : properties.getQuestionAudioFolder());
+        String publicId = "question-" + type + "-" + UUID.randomUUID();
+        String signaturePayload = "folder=" + folder
+                + "&public_id=" + publicId
+                + "&timestamp=" + timestamp
+                + properties.getApiSecret();
+
+        return CloudinaryUploadSignatureResponse.builder()
+                .cloudName(properties.getCloudName())
+                .apiKey(properties.getApiKey())
+                .uploadUrl("https://api.cloudinary.com/v1_1/" + properties.getCloudName()
+                        + ("image".equals(type) ? "/image/upload" : "/video/upload"))
+                .folder(folder)
+                .publicId(publicId)
+                .timestamp(timestamp)
+                .signature(sha1(signaturePayload))
+                .build();
+    }
+
     public boolean isAllowedAvatarUrl(String avatarUrl) {
         ensureConfigured();
         if (avatarUrl == null || avatarUrl.isBlank()) {
@@ -57,6 +158,24 @@ public class CloudinarySignatureService {
                     && "res.cloudinary.com".equalsIgnoreCase(uri.getHost())
                     && uri.getPath() != null
                     && uri.getPath().startsWith("/" + properties.getCloudName() + "/image/upload/");
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
+    }
+
+    public boolean isAllowedAudioUrl(String audioUrl) {
+        ensureConfigured();
+        if (audioUrl == null || audioUrl.isBlank()) {
+            return false;
+        }
+
+        try {
+            URI uri = URI.create(audioUrl);
+            return "https".equalsIgnoreCase(uri.getScheme())
+                    && "res.cloudinary.com".equalsIgnoreCase(uri.getHost())
+                    && uri.getPath() != null
+                    && (uri.getPath().startsWith("/" + properties.getCloudName() + "/video/upload/")
+                    || uri.getPath().startsWith("/" + properties.getCloudName() + "/raw/upload/"));
         } catch (IllegalArgumentException exception) {
             return false;
         }

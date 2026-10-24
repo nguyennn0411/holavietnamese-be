@@ -7,7 +7,6 @@ import com.sep490.backend.repository.RoleRepository;
 import com.sep490.backend.repository.jpa.UserJpaRepository;
 import com.sep490.backend.dto.courseimport.*;
 import com.sep490.backend.service.*;
-import com.sep490.backend.config.LearnerPrincipal;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

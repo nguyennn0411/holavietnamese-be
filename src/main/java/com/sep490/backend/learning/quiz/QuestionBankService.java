@@ -16,11 +16,15 @@ public class QuestionBankService {
   private final QuestionScoring scoring;
 
   public PageResponse<Map<String, Object>> list(Map<String, String> p) {
+    return listForEditor(p, null);
+  }
+
+  public PageResponse<Map<String, Object>> listForEditor(Map<String, String> p, Long author) {
     return ContentList.query(
         db,
         "SELECT q.*",
         "FROM questions q",
-        "1=1",
+        author == null ? "1=1" : "(q.status='PUBLISHED' OR q.created_by=" + author + ")",
         "q.prompt,q.topic",
         Map.of(
             "questionType",
@@ -50,6 +54,11 @@ public class QuestionBankService {
 
   @Transactional
   public long create(ContentRequests.Question r) {
+    return create(r, null);
+  }
+
+  @Transactional
+  public long create(ContentRequests.Question r, Long author) {
     validate(r);
     long id =
         db.insert(
@@ -65,7 +74,26 @@ public class QuestionBankService {
             r.audioUrl(),
             status(r));
     snapshot(id, 1, r);
+    if (author != null) db.update("UPDATE questions SET created_by=? WHERE id=?", author, id);
     return id;
+  }
+
+  public void assertCanView(long id, long author) {
+    db.one("SELECT id FROM questions WHERE id=? AND (status='PUBLISHED' OR created_by=?)", id, author);
+  }
+
+  public void assertCanEdit(long id, long author) {
+    if (db.count("SELECT count(*) FROM questions WHERE id=? AND created_by=?", id, author) == 0)
+      throw ContentException.forbidden("QUESTION_NOT_OWNED", "You can only edit questions created by you.");
+  }
+
+  public void assertNotInReviewedCourse(long id) {
+    if (db.count("SELECT count(*) FROM quiz_questions qq JOIN quizzes q ON q.id=qq.quiz_id"
+        + " JOIN courses c ON c.id=q.course_id JOIN users u ON u.id=c.created_by"
+        + " WHERE qq.question_id=? AND u.role='CONTENT_MANAGER'"
+        + " AND c.status NOT IN ('DRAFT','REJECTED')", id) > 0)
+      throw ContentException.conflict("QUESTION_IN_REVIEWED_COURSE",
+          "Questions in submitted or published courses cannot be changed.");
   }
 
   @Transactional

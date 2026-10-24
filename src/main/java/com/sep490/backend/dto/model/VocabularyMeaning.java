@@ -8,6 +8,11 @@ public record VocabularyMeaning(
         String definitionEn,
         String usageNote,
         Integer displayOrder,
-        List<VocabularyExample> examples
+        List<VocabularyExample> examples,
+        String definitionVi,
+        List<String> labels
 ) {
+    public VocabularyMeaning(Long id,String translationEn,String definitionEn,String usageNote,Integer displayOrder,List<VocabularyExample> examples) {
+        this(id,translationEn,definitionEn,usageNote,displayOrder,examples,null,List.of());
+    }
 }

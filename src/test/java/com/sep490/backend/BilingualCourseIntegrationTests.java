@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sep490.backend.config.LearnerPrincipal;
 import com.sep490.backend.learning.course.CourseContentService;
 import com.sep490.backend.learning.demo.A1CourseSeed;

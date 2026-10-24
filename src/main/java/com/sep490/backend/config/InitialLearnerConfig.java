@@ -34,6 +34,7 @@ public class InitialLearnerConfig {
             var user = new User();
             user.setUsername(email);
             user.setEmail(email); user.setPasswordHash(encoder.encode(password));
+            user.setEmailVerified(true);
             user.getRoles().add(learnerRole);
             users.save(user);
         };
