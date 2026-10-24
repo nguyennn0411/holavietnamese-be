@@ -27,7 +27,7 @@ class DestinationExploreIntegrationTests {
     @Autowired jakarta.persistence.EntityManager em;
     @Autowired org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping mappings;
     LearnerPrincipal learner, admin;
-    @BeforeEach void fixture() { learner=principal("LEARNER"); admin=principal("ADMIN"); }
+    @BeforeEach void fixture() { learner=principal("LEARNER"); admin=principal("CONTENT_MANAGER"); }
     LearnerPrincipal principal(String role) {
         String email=UUID.randomUUID()+"@explore.test";
         db.update("INSERT INTO users(username,email,password_hash) VALUES(?,?,'test')",email,email);
@@ -63,6 +63,27 @@ class DestinationExploreIntegrationTests {
         assertThat(sources.stream().map(t -> db.queryForList("SELECT * FROM "+t+" ORDER BY 1")).toList()).isEqualTo(before);
         assertThat(db.queryForObject("SELECT COUNT(*) FROM enrollments WHERE user_id=?",Integer.class,learner.id())).isZero();
     }
+    @Test void exploreManagementUsesContentRoleOrPermissionInsteadOfAdministratorRole() throws Exception {
+        mvc.perform(get("/api/admin/destinations").with(user(admin))).andExpect(status().isOk());
+        var systemAdmin = new LearnerPrincipal(899910L,"system-admin@explore.test","",true,"ADMIN");
+        mvc.perform(get("/api/admin/destinations").with(user(systemAdmin))).andExpect(status().isOk());
+        var delegatedAdmin = new LearnerPrincipal(899911L,"read-admin@explore.test","",true,
+                "ADMIN",Set.of("ADMIN"),Set.of("EXPLORE_READ"));
+        mvc.perform(get("/api/admin/destinations").with(user(delegatedAdmin))).andExpect(status().isOk());
+        var payload = json.writeValueAsString(Map.of("nameVi","Huế","nameEn","Hue","slug","hue-"+UUID.randomUUID(),
+                "region","CENTRAL","status","DRAFT"));
+        mvc.perform(post("/api/admin/destinations").with(user(admin)).with(csrf()).contentType("application/json").content(payload))
+                .andExpect(status().isCreated());
+        var publisher = new LearnerPrincipal(899912L,"publisher@explore.test","",true,
+                "ADMIN",Set.of("ADMIN"),Set.of("EXPLORE_WRITE","EXPLORE_PUBLISH"));
+        var created=json.readTree(mvc.perform(post("/api/admin/destinations").with(user(publisher)).with(csrf()).contentType("application/json")
+                .content(payload.replace("hue-", "hue-admin-"))).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
+        long id=created.path("result").path("id").asLong();
+        mvc.perform(post("/api/admin/destinations/"+id+"/submit-review").with(user(publisher)).with(csrf())).andExpect(status().isOk());
+        mvc.perform(post("/api/admin/destinations/"+id+"/review").with(user(systemAdmin)).with(csrf())
+                .contentType("application/json").content("{\"decision\":\"APPROVE\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.result.status").value("PUBLISHED"));
+    }
     @Test void referencesPersistInOrderWithoutEditingSourceAndLearnersSeeOnlyAvailableContent() throws Exception {
         long id=destination(DestinationStatus.PUBLISHED), published=word("PUBLISHED"), draft=word("DRAFT");
         String active=scenario("ACTIVE"), hidden=scenario("DRAFT");
@@ -91,6 +112,11 @@ class DestinationExploreIntegrationTests {
         save(id,List.of(),List.of(),List.of("not-found"),admin).andExpect(status().isNotFound());
         save(id,List.of(word),List.of("../bad"),List.of(),admin).andExpect(status().isBadRequest());
         save(id,List.of(),List.of(),List.of(),learner).andExpect(status().isForbidden());
+        var systemAdmin = new LearnerPrincipal(899901L,"system-admin@explore.test","",true,"ADMIN");
+        save(id,List.of(),List.of(),List.of(),systemAdmin).andExpect(status().isForbidden());
+        var delegatedAdmin = new LearnerPrincipal(899902L,"delegated-admin@explore.test","",true,
+                "ADMIN",Set.of("ADMIN"),Set.of("EXPLORE_LINK_WRITE"));
+        save(id,List.of(word),List.of("hue"),List.of(),delegatedAdmin).andExpect(status().isOk());
         mvc.perform(get("/api/admin/destinations/"+id+"/explore-content").with(user(admin)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.vocabulary[0].id").value(word))
                 .andExpect(jsonPath("$.result.cultureIds[0]").value("hue"));

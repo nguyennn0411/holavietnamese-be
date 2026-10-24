@@ -20,7 +20,8 @@ class RegionalVocabularyIntegrationTests {
     @Autowired MockMvc mvc;
     @Autowired JdbcTemplate jdbc;
     @Autowired ObjectMapper json;
-    private final LearnerPrincipal admin = new LearnerPrincipal(830001L,"regional-admin@example.test","",true,"ADMIN");
+    private final LearnerPrincipal admin = new LearnerPrincipal(830001L,"regional-manager@example.test","",true,
+            "CONTENT_MANAGER",Set.of("CONTENT_MANAGER"),Set.of("VOCABULARY_PUBLISH"));
     private final LearnerPrincipal learner = new LearnerPrincipal(830002L,"regional-learner@example.test","",true);
     private long master;
     @BeforeEach void fixture() {
@@ -35,23 +36,31 @@ class RegionalVocabularyIntegrationTests {
     private ResultActions create(Map<String,Object> input, LearnerPrincipal actor) throws Exception {
         return mvc.perform(post("/api/admin/regional-language").with(user(actor)).with(csrf()).contentType("application/json").content(json.writeValueAsBytes(input)));
     }
+    private long publish(String word,String region) throws Exception {
+        long id=json.readTree(create(data(word,region,"DRAFT"),admin).andExpect(status().isCreated()).andReturn()
+                .getResponse().getContentAsString()).path("result").path("id").asLong();
+        mvc.perform(post("/api/admin/regional-language/"+id+"/submit-review").with(user(admin)).with(csrf())).andExpect(status().isOk());
+        mvc.perform(post("/api/admin/regional-language/"+id+"/review").with(user(admin)).with(csrf())
+                .contentType("application/json").content("{\"decision\":\"APPROVE\"}")).andExpect(status().isOk());
+        return id;
+    }
     @Test void adminCreatesEditsArchivesAndComparisonOnlyShowsPublishedMasterAndVariants() throws Exception {
-        var node = json.readTree(create(data("Thơm","SOUTH","PUBLISHED"),admin).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString()).path("result");
-        long id = node.path("id").asLong();
-        create(data("Dứa","NORTH","PUBLISHED"),admin).andExpect(status().isCreated());
+        long id = publish("Thơm","SOUTH");
+        publish("Dứa","NORTH");
         create(data("Khóm","SOUTH","DRAFT"),admin).andExpect(status().isCreated());
         mvc.perform(get("/api/regional-vietnamese").param("keyword","thơm").param("region","SOUTH").with(user(learner)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.length()").value(1))
                 .andExpect(jsonPath("$.result[0].variants.length()").value(2));
         mvc.perform(get("/api/regional-vietnamese/"+master).with(user(learner))).andExpect(jsonPath("$.result.word").value("Quả dứa"));
-        mvc.perform(put("/api/admin/regional-language/"+id).with(user(admin)).with(csrf()).contentType("application/json")
-                .content(json.writeValueAsBytes(data("Thơm","SOUTH","ARCHIVED")))).andExpect(status().isOk());
+        mvc.perform(post("/api/admin/regional-language/"+id+"/archive").with(user(admin)).with(csrf())).andExpect(status().isOk());
         mvc.perform(get("/api/regional-vietnamese").param("region","SOUTH").with(user(learner))).andExpect(jsonPath("$.result.length()").value(0));
         jdbc.update("UPDATE vocabularies SET status='DRAFT' WHERE id=?", master);
         mvc.perform(get("/api/regional-vietnamese/"+master).with(user(learner))).andExpect(status().isNotFound());
     }
     @Test void rejectsInvalidRegionMissingMasterBlankAndDuplicatesAndEnforcesAdmin() throws Exception {
         create(data("Thơm","SOUTH","DRAFT"),learner).andExpect(status().isForbidden());
+        create(data("Thơm","SOUTH","DRAFT"),new LearnerPrincipal(839901L,"system-admin@example.test","",true,"ADMIN"))
+                .andExpect(status().isForbidden());
         create(data("Thơm","WEST","DRAFT"),admin).andExpect(status().isBadRequest());
         var input = data("Thơm","SOUTH","DRAFT"); input.put("vocabularyId",999999L);
         create(input,admin).andExpect(status().isNotFound());
@@ -63,8 +72,8 @@ class RegionalVocabularyIntegrationTests {
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM regional_vocabularies",Integer.class)).isEqualTo(1);
     }
     @Test void destinationRetainsMasterLinksAndIncludesOnlyVariantsOfItsRegion() throws Exception {
-        create(data("Thơm","SOUTH","PUBLISHED"),admin).andExpect(status().isCreated());
-        create(data("Dứa","NORTH","PUBLISHED"),admin).andExpect(status().isCreated());
+        publish("Thơm","SOUTH");
+        publish("Dứa","NORTH");
         jdbc.update("INSERT INTO destinations(name_vi,name_en,slug,region,status) VALUES('Test','Test','regional-test','SOUTH','PUBLISHED')");
         long destination = jdbc.queryForObject("SELECT MAX(id) FROM destinations",Long.class);
         mvc.perform(put("/api/admin/destinations/"+destination+"/explore-content").with(user(admin)).with(csrf()).contentType("application/json")

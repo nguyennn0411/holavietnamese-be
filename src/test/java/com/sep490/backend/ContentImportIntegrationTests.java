@@ -31,20 +31,22 @@ class ContentImportIntegrationTests {
     @MockitoSpyBean VocabularyWordService words;
     LearnerPrincipal admin,other,learner;
     @BeforeEach void fixture() {
-        admin = principal("ADMIN"); other = principal("ADMIN"); learner = principal("LEARNER");
+        admin = principal("CONTENT_MANAGER",Set.of("VOCABULARY_PUBLISH"));
+        other = principal("CONTENT_MANAGER",Set.of("VOCABULARY_PUBLISH"));
+        learner = principal("LEARNER",Set.of());
     }
-    private LearnerPrincipal principal(String role) {
+    private LearnerPrincipal principal(String role, Set<String> permissions) {
         String name = "import-"+UUID.randomUUID().toString().substring(0,12)+"@example.test";
         jdbc.update("INSERT INTO users(username,email,password_hash) VALUES(?,?,'unused')",name,name);
         long id = jdbc.queryForObject("SELECT id FROM users WHERE username=?",Long.class,name);
-        return new LearnerPrincipal(id,name,"",true,role);
+        return new LearnerPrincipal(id,name,"",true,role,Set.of(role),permissions);
     }
     private byte[] workbook(Consumer<XSSFWorkbook> edit) throws Exception {
         try (var book = new XSSFWorkbook(); var out = new ByteArrayOutputStream()) {
             var sheet = book.createSheet("VOCABULARY");
             var header = sheet.createRow(0); var row = sheet.createRow(1);
             var columns = List.of("word","part_of_speech","meaning_order","translation_en","status","example_vi","example_en");
-            var values = List.of("Từ import "+admin.id(),"noun","0","Imported word","PUBLISHED","Một câu ví dụ.","An example sentence.");
+            var values = List.of("Từ import "+admin.id(),"noun","0","Imported word","DRAFT","Một câu ví dụ.","An example sentence.");
             for(int i=0;i<columns.size();i++) { header.createCell(i).setCellValue(columns.get(i)); row.createCell(i).setCellValue(values.get(i)); }
             edit.accept(book); book.write(out); return out.toByteArray();
         }
@@ -94,8 +96,10 @@ class ContentImportIntegrationTests {
                 .andExpect(jsonPath("$.result.status").value("VALIDATION_FAILED")).andExpect(jsonPath("$.result.success").value(false));
         assertThat(count()).isEqualTo(1);
     }
-    @Test void routesRequireAdminAndTemplateHasTheActualHeaderContract() throws Exception {
+    @Test void routesRequireContentPermissionAndTemplateHasTheActualHeaderContract() throws Exception {
         preview(workbook(w -> {}),"valid.xlsx",learner).andExpect(status().isForbidden());
+        preview(workbook(w -> {}),"valid.xlsx",new LearnerPrincipal(899903L,"system-admin@example.test","",true,"ADMIN"))
+                .andExpect(status().isForbidden());
         mvc.perform(get("/api/admin/imports")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/admin/imports/types").with(user(admin))).andExpect(jsonPath("$.result.length()").value(1)).andExpect(jsonPath("$.result[0].id").value("VOCABULARY"));
         var file = mvc.perform(get("/api/admin/imports/template").param("module","VOCABULARY").with(user(admin))).andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
@@ -111,7 +115,7 @@ class ContentImportIntegrationTests {
             var header=sheet.createRow(0);
             for(int i=0;i<headers.size();i++) header.createCell(i).setCellValue(headers.get(i));
             var values=List.of(
-                    List.of("Từ import "+admin.id(),"noun","/ka fe/","/coffee.mp3","PUBLISHED","0","Đồ uống từ hạt cà phê.","coffee","A drink.","Dùng khi gọi món.","thông dụng\nẩm thực","0","Tôi uống cà phê.","I drink coffee.","/example.mp3"),
+                    List.of("Từ import "+admin.id(),"noun","/ka fe/","/coffee.mp3","DRAFT","0","Đồ uống từ hạt cà phê.","coffee","A drink.","Dùng khi gọi món.","thông dụng\nẩm thực","0","Tôi uống cà phê.","I drink coffee.","/example.mp3"),
                     List.of("Từ import "+admin.id(),"noun","","","","0","","","","","","1","Một tách cà phê.","A cup of coffee.",""),
                     List.of("Từ import "+admin.id(),"noun","","","","1","Một nghĩa chỉ có tiếng Việt.","","","Ghi chú nghĩa thứ hai.","","0","Câu ví dụ tiếng Việt.","",""));
             for(int r=0;r<values.size();r++) {

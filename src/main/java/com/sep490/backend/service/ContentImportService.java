@@ -69,7 +69,8 @@ public class ContentImportService {
                 if (!job.getActorId().equals(owner)) throw new LearningException(LearningException.Kind.FORBIDDEN,"Chỉ người đã preview mới được xác nhận lần import này.");
                 if ("IMPORTED".equals(job.getStatus())) return response(job,true);
                 if (!"READY".equals(job.getStatus())) throw new LearningException(LearningException.Kind.CONFLICT,"Hãy sửa file và tạo preview mới trước khi xác nhận.");
-                var handler = handler(module); var rows = rows(job); var errors = handler.validate(rows);
+                var handler = handler(module); var rows = rows(job);
+                var errors = handler.validate(rows);
                 job.setPayload(encode(rows));
                 if (!errors.isEmpty()) {
                     setErrors(job,errors); job.setStatus("VALIDATION_FAILED"); job.setCompletedAt(clock.instant());

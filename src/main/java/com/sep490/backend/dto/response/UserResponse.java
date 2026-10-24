@@ -36,6 +36,7 @@ public class UserResponse {
     Integer hearts;
     String status;
     Set<String> roles;
+    Set<String> permissions;
     String token;
     String verificationOtp;
     LocalDateTime createdAt;
