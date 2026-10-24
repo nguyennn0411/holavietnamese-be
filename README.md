@@ -47,6 +47,7 @@ Yêu cầu Java 21 và Maven. Cache dependency dùng mặc định `%USERPROFILE
 ## Tài liệu
 
 - [DEMO_DATA.md](DEMO_DATA.md): nạp lại toàn bộ dữ liệu nội dung/demo từ nhánh backup trên máy của nhóm.
+- [MSU_OPENBOOKS_CONTENT.md](MSU_OPENBOOKS_CONTENT.md): tái tạo 22 khóa học mẫu Basic/Advanced Vietnamese từ dữ liệu nguồn đã commit.
 - [INTEGRATION_DEMO.md](INTEGRATION_DEMO.md): luồng Khám phá Việt Nam hiện tại và lưu ý đối chiếu lịch sử migration.
 
 ### Từ vựng song ngữ và Excel

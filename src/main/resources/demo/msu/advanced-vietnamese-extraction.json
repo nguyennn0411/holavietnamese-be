@@ -1,0 +1,456 @@
+{
+  "book": "Advanced Vietnamese",
+  "source": "https://openbooks.lib.msu.edu/advancedvietnamese/",
+  "license": "https://creativecommons.org/licenses/by-nc/4.0/",
+  "chapterCount": 7,
+  "lessonCount": 37,
+  "chapters": [
+    {
+      "number": 1,
+      "titleEn": "In the Workplace",
+      "titleVi": "Nơi làm việc",
+      "pdfPages": [
+        25,
+        56
+      ],
+      "lessons": [
+        {
+          "titleEn": "Introduction and Objectives",
+          "titleVi": "Giới thiệu và mục tiêu",
+          "lessonType": "NORMAL",
+          "characters": 1872,
+          "pdfPages": [
+            27,
+            28
+          ]
+        },
+        {
+          "titleEn": "Reading: Flexible Working",
+          "titleVi": "Đọc: Chế độ làm việc linh hoạt",
+          "lessonType": "NORMAL",
+          "characters": 5679,
+          "pdfPages": [
+            29,
+            36
+          ]
+        },
+        {
+          "titleEn": "Listening: Workplace Trends in 2023",
+          "titleVi": "Nghe: Xu thế công việc năm 2023",
+          "lessonType": "NORMAL",
+          "characters": 1474,
+          "pdfPages": [
+            37,
+            39
+          ]
+        },
+        {
+          "titleEn": "Speaking: Attractive Careers",
+          "titleVi": "Nói: Những công việc hấp dẫn",
+          "lessonType": "CONVERSATION",
+          "characters": 1446,
+          "pdfPages": [
+            40,
+            46
+          ]
+        },
+        {
+          "titleEn": "Writing: A Job Application Letter",
+          "titleVi": "Viết: Thư xin việc",
+          "lessonType": "NORMAL",
+          "characters": 2515,
+          "pdfPages": [
+            47,
+            56
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "titleEn": "The Rising Economy",
+      "titleVi": "Nền kinh tế đang phát triển",
+      "pdfPages": [
+        57,
+        82
+      ],
+      "lessons": [
+        {
+          "titleEn": "Introduction and Objectives",
+          "titleVi": "Giới thiệu và mục tiêu",
+          "lessonType": "NORMAL",
+          "characters": 2132,
+          "pdfPages": [
+            59,
+            60
+          ]
+        },
+        {
+          "titleEn": "Reading: Vietnam's Economy after COVID",
+          "titleVi": "Đọc: Kinh tế Việt Nam sau COVID",
+          "lessonType": "NORMAL",
+          "characters": 4852,
+          "pdfPages": [
+            61,
+            69
+          ]
+        },
+        {
+          "titleEn": "Listening: Exporting Organic Produce",
+          "titleVi": "Nghe: Xuất khẩu nông sản hữu cơ",
+          "lessonType": "NORMAL",
+          "characters": 1035,
+          "pdfPages": [
+            70,
+            73
+          ]
+        },
+        {
+          "titleEn": "Speaking: Famous Vietnamese Companies",
+          "titleVi": "Nói: Các công ty nổi tiếng",
+          "lessonType": "CONVERSATION",
+          "characters": 1260,
+          "pdfPages": [
+            74,
+            77
+          ]
+        },
+        {
+          "titleEn": "Writing: Describing a Chart",
+          "titleVi": "Viết: Mô tả biểu đồ",
+          "lessonType": "NORMAL",
+          "characters": 1657,
+          "pdfPages": [
+            78,
+            82
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "titleEn": "The Country by the Sea",
+      "titleVi": "Đất nước bên bờ biển",
+      "pdfPages": [
+        83,
+        112
+      ],
+      "lessons": [
+        {
+          "titleEn": "Introduction and Objectives",
+          "titleVi": "Giới thiệu và mục tiêu",
+          "lessonType": "NORMAL",
+          "characters": 2155,
+          "pdfPages": [
+            85,
+            86
+          ]
+        },
+        {
+          "titleEn": "Reading: Vietnam's Most Beautiful Coastal Areas",
+          "titleVi": "Đọc: Những vùng biển đẹp nhất Việt Nam",
+          "lessonType": "NORMAL",
+          "characters": 4601,
+          "pdfPages": [
+            87,
+            95
+          ]
+        },
+        {
+          "titleEn": "Listening: Travelling in Cat Ba",
+          "titleVi": "Nghe: Du lịch Cát Bà",
+          "lessonType": "NORMAL",
+          "characters": 964,
+          "pdfPages": [
+            96,
+            98
+          ]
+        },
+        {
+          "titleEn": "Speaking: Coastal Disasters",
+          "titleVi": "Nói: Thảm họa biển",
+          "lessonType": "CONVERSATION",
+          "characters": 1422,
+          "pdfPages": [
+            99,
+            101
+          ]
+        },
+        {
+          "titleEn": "Writing: Planning an Itinerary",
+          "titleVi": "Viết: Lên lịch trình",
+          "lessonType": "NORMAL",
+          "characters": 3763,
+          "pdfPages": [
+            102,
+            112
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "titleEn": "Health and Well-being",
+      "titleVi": "Sức khỏe và hạnh phúc",
+      "pdfPages": [
+        113,
+        142
+      ],
+      "lessons": [
+        {
+          "titleEn": "Introduction and Objectives",
+          "titleVi": "Giới thiệu và mục tiêu",
+          "lessonType": "NORMAL",
+          "characters": 2046,
+          "pdfPages": [
+            115,
+            116
+          ]
+        },
+        {
+          "titleEn": "Reading: Mental Health",
+          "titleVi": "Đọc: Sức khỏe tinh thần",
+          "lessonType": "NORMAL",
+          "characters": 6292,
+          "pdfPages": [
+            117,
+            123
+          ]
+        },
+        {
+          "titleEn": "Listening: A Vegetarian Diet",
+          "titleVi": "Nghe: Chế độ ăn chay",
+          "lessonType": "NORMAL",
+          "characters": 1627,
+          "pdfPages": [
+            124,
+            126
+          ]
+        },
+        {
+          "titleEn": "Speaking: Healthy Habits",
+          "titleVi": "Nói: Những thói quen vì sức khỏe",
+          "lessonType": "CONVERSATION",
+          "characters": 1079,
+          "pdfPages": [
+            127,
+            133
+          ]
+        },
+        {
+          "titleEn": "Writing: Traditional Treatments",
+          "titleVi": "Viết: Phương pháp điều trị truyền thống",
+          "lessonType": "NORMAL",
+          "characters": 3607,
+          "pdfPages": [
+            134,
+            142
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "titleEn": "For a Better Education",
+      "titleVi": "Vì một nền giáo dục tốt đẹp hơn",
+      "pdfPages": [
+        143,
+        166
+      ],
+      "lessons": [
+        {
+          "titleEn": "Introduction and Objectives",
+          "titleVi": "Giới thiệu và mục tiêu",
+          "lessonType": "NORMAL",
+          "characters": 2243,
+          "pdfPages": [
+            145,
+            146
+          ]
+        },
+        {
+          "titleEn": "Reading: Helping Highland Children Attend School",
+          "titleVi": "Đọc: Để trẻ vùng cao được tới trường",
+          "lessonType": "NORMAL",
+          "characters": 6007,
+          "pdfPages": [
+            147,
+            153
+          ]
+        },
+        {
+          "titleEn": "Listening: A Happy School",
+          "titleVi": "Nghe: Trường học hạnh phúc",
+          "lessonType": "NORMAL",
+          "characters": 1466,
+          "pdfPages": [
+            154,
+            156
+          ]
+        },
+        {
+          "titleEn": "Speaking: Let Children Go to School",
+          "titleVi": "Nói: Cho em đến trường",
+          "lessonType": "CONVERSATION",
+          "characters": 1536,
+          "pdfPages": [
+            157,
+            159
+          ]
+        },
+        {
+          "titleEn": "Writing: Useful School Subjects",
+          "titleVi": "Viết: Các môn học có ích",
+          "lessonType": "NORMAL",
+          "characters": 3729,
+          "pdfPages": [
+            160,
+            166
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "titleEn": "Women in Society",
+      "titleVi": "Phụ nữ trong xã hội",
+      "pdfPages": [
+        167,
+        200
+      ],
+      "lessons": [
+        {
+          "titleEn": "Introduction and Objectives",
+          "titleVi": "Giới thiệu và mục tiêu",
+          "lessonType": "NORMAL",
+          "characters": 2072,
+          "pdfPages": [
+            169,
+            170
+          ]
+        },
+        {
+          "titleEn": "Reading: Important Women",
+          "titleVi": "Đọc: Những người phụ nữ quan trọng",
+          "lessonType": "NORMAL",
+          "characters": 5897,
+          "pdfPages": [
+            171,
+            181
+          ]
+        },
+        {
+          "titleEn": "Listening: Gender Equality in Everyday Life",
+          "titleVi": "Nghe: Bình đẳng giới từ những điều nhỏ nhất",
+          "lessonType": "NORMAL",
+          "characters": 1029,
+          "pdfPages": [
+            182,
+            185
+          ]
+        },
+        {
+          "titleEn": "Speaking: Overcoming Gender Stereotypes",
+          "titleVi": "Nói: Xóa bỏ định kiến giới",
+          "lessonType": "CONVERSATION",
+          "characters": 1411,
+          "pdfPages": [
+            186,
+            188
+          ]
+        },
+        {
+          "titleEn": "Writing: A Biography",
+          "titleVi": "Viết: Giới thiệu tiểu sử",
+          "lessonType": "NORMAL",
+          "characters": 5415,
+          "pdfPages": [
+            189,
+            200
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "titleEn": "Culture and Heritages",
+      "titleVi": "Văn hóa và di sản",
+      "pdfPages": [
+        201,
+        236
+      ],
+      "lessons": [
+        {
+          "titleEn": "Introduction and Objectives",
+          "titleVi": "Giới thiệu và mục tiêu",
+          "lessonType": "NORMAL",
+          "characters": 2040,
+          "pdfPages": [
+            203,
+            204
+          ]
+        },
+        {
+          "titleEn": "Reading: Vietnamese Traditional Performing Arts",
+          "titleVi": "Đọc: Nghệ thuật biểu diễn dân gian Việt Nam",
+          "lessonType": "CULTURE",
+          "characters": 7143,
+          "pdfPages": [
+            205,
+            212
+          ]
+        },
+        {
+          "titleEn": "Listening: Dong Ho Folk Paintings",
+          "titleVi": "Nghe: Tranh dân gian Đông Hồ",
+          "lessonType": "CULTURE",
+          "characters": 1285,
+          "pdfPages": [
+            213,
+            220
+          ]
+        },
+        {
+          "titleEn": "Speaking: World Heritage in Vietnam",
+          "titleVi": "Nói: Di sản thế giới tại Việt Nam",
+          "lessonType": "CULTURE",
+          "characters": 2357,
+          "pdfPages": [
+            221,
+            226
+          ]
+        },
+        {
+          "titleEn": "Writing: Introducing an Artwork",
+          "titleVi": "Viết: Giới thiệu tác phẩm nghệ thuật",
+          "lessonType": "CULTURE",
+          "characters": 3448,
+          "pdfPages": [
+            227,
+            236
+          ]
+        },
+        {
+          "titleEn": "Listening Transcript",
+          "titleVi": "Lời thoại bài nghe",
+          "lessonType": "REVIEW",
+          "characters": 7193,
+          "pdfPages": [
+            237,
+            240
+          ]
+        },
+        {
+          "titleEn": "Speaking Video Transcript",
+          "titleVi": "Lời thoại video bài nói",
+          "lessonType": "REVIEW",
+          "characters": 1251,
+          "pdfPages": [
+            241,
+            241
+          ]
+        }
+      ]
+    }
+  ]
+}
