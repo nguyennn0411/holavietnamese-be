@@ -178,6 +178,14 @@ public class VocabularyWordService {
     }
 
     @Transactional
+    public VocabularyWordResponse revise(Long id) {
+        var current = findWord(id);
+        if (current.status() != VocabularyStatus.PUBLISHED)
+            throw invalidTransition(current.status(), VocabularyStatus.DRAFT);
+        return changeStatus(current, VocabularyStatus.DRAFT);
+    }
+
+    @Transactional
     public VocabularyWordResponse review(Long id, ContentReviewRequest.Decision decision) {
         var current = findWord(id);
         if (current.status() != VocabularyStatus.PENDING_REVIEW) {

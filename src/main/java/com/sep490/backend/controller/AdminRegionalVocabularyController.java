@@ -44,6 +44,10 @@ public class AdminRegionalVocabularyController {
     @PostMapping("/{id}/restore") public ApiResponse<RegionalVocabularyResponse> restore(@PathVariable long id) {
         return ApiResponse.success(service.restore(id));
     }
+    @PreAuthorize(ContentPermissions.VOCABULARY_WRITE_ACCESS)
+    @PostMapping("/{id}/revise") public ApiResponse<RegionalVocabularyResponse> revise(@PathVariable long id) {
+        return ApiResponse.success(service.revise(id));
+    }
     @PreAuthorize(ContentPermissions.VOCABULARY_REVIEW_ACCESS)
     @PostMapping("/{id}/review") public ApiResponse<RegionalVocabularyResponse> review(@PathVariable long id,
             @Valid @RequestBody ContentReviewRequest input) {

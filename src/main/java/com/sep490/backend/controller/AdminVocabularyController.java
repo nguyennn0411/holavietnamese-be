@@ -101,6 +101,13 @@ public class AdminVocabularyController {
         return ApiResponse.success(service.restore(id));
     }
 
+    @PostMapping("/{id}/revise")
+    @PreAuthorize(ContentPermissions.VOCABULARY_WRITE_ACCESS)
+    public ApiResponse<VocabularyWordResponse> revise(@PathVariable Long id) {
+        return ApiResponse.<VocabularyWordResponse>builder().result(service.revise(id))
+                .message("Vocabulary returned to draft for revision.").build();
+    }
+
     @PostMapping("/{id}/review")
     @PreAuthorize(ContentPermissions.VOCABULARY_REVIEW_ACCESS)
     public ApiResponse<VocabularyWordResponse> review(@PathVariable Long id,

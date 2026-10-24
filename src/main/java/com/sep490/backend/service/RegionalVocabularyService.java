@@ -95,6 +95,13 @@ public class RegionalVocabularyService {
         row.setStatus(VocabularyStatus.DRAFT);
         return RegionalVocabularyMapper.toResponse(repository.saveAndFlush(row));
     }
+    @Transactional public RegionalVocabularyResponse revise(long id) {
+        var row=find(id);
+        if(row.getStatus()!=VocabularyStatus.PUBLISHED)
+            throw new LearningException(LearningException.Kind.CONFLICT,"Chỉ nội dung PUBLISHED mới có thể chuyển về bản nháp để sửa.");
+        row.setStatus(VocabularyStatus.DRAFT);
+        return RegionalVocabularyMapper.toResponse(repository.saveAndFlush(row));
+    }
     @Transactional public RegionalVocabularyResponse review(long id, ContentReviewRequest.Decision decision) {
         var row=find(id);
         if(row.getStatus()!=VocabularyStatus.PENDING_REVIEW)

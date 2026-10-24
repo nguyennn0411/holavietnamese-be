@@ -88,6 +88,13 @@ public class AdminDestinationController {
         return ApiResponse.success(service.restore(id));
     }
 
+    @PostMapping("/{id}/revise")
+    @PreAuthorize(ContentPermissions.EXPLORE_WRITE_ACCESS)
+    public ApiResponse<DestinationResponse> revise(@PathVariable Long id) {
+        return ApiResponse.<DestinationResponse>builder().result(service.revise(id))
+                .message("Destination returned to draft for revision.").build();
+    }
+
     @PostMapping("/{id}/review")
     @PreAuthorize(ContentPermissions.EXPLORE_REVIEW_ACCESS)
     public ApiResponse<DestinationResponse> review(@PathVariable Long id,

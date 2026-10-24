@@ -205,6 +205,14 @@ public class DestinationService {
     }
 
     @Transactional
+    public DestinationResponse revise(Long id) {
+        var current = findDestination(id);
+        if (current.status() != DestinationStatus.PUBLISHED)
+            throw invalidTransition(current.status(), DestinationStatus.DRAFT);
+        return changeStatus(current, DestinationStatus.DRAFT);
+    }
+
+    @Transactional
     public DestinationResponse review(Long id, ContentReviewRequest.Decision decision) {
         var current = findDestination(id);
         if (current.status() != DestinationStatus.PENDING_REVIEW) {

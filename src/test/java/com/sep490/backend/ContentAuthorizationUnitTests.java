@@ -29,7 +29,7 @@ class ContentAuthorizationUnitTests {
                 if (rule == null) continue;
                 if (method.getName().equals("review"))
                     assertThat(rule.value()).contains("hasRole('ADMIN')").containsAnyOf("VOCABULARY_REVIEW", "EXPLORE_REVIEW");
-                if (Set.of("create", "update", "save", "submitReview").contains(method.getName()))
+                if (Set.of("create", "update", "save", "submitReview", "revise", "archive", "restore").contains(method.getName()))
                     assertThat(rule.value()).doesNotContain("hasRole('ADMIN')", "hasAnyRole('ADMIN'");
             }
         }
