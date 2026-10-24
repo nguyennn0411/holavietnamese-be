@@ -147,7 +147,7 @@ public class AuthenticationService {
             newUser.setFullName(fullName != null && !fullName.isBlank() ? fullName : email);
             newUser.setAvatarUrl(pictureUrl);
             newUser.setNativeLanguage("en");
-            newUser.setTargetLevel("A1");
+            newUser.setTargetLevel(null);
             newUser.setEmailVerified(true);
             newUser.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
             newUser.setStatus("ACTIVE");

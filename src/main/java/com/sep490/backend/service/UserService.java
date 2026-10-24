@@ -71,8 +71,8 @@ public class UserService {
         user.setNativeLanguage(request.getNativeLanguage() != null && !request.getNativeLanguage().isBlank() 
                 ? request.getNativeLanguage().trim() : "en");
         user.setLearningGoal(request.getLearningGoal());
-        user.setTargetLevel(request.getTargetLevel() != null && !request.getTargetLevel().isBlank() 
-                ? request.getTargetLevel().trim() : "A1");
+        user.setTargetLevel(request.getTargetLevel() != null && !request.getTargetLevel().isBlank()
+                ? request.getTargetLevel().trim() : null);
         user.setStatus("ACTIVE");
         user.setEnabled(true);
         user.setRole("LEARNER");

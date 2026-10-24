@@ -21,7 +21,8 @@ public class CourseReviewService {
   }
 
   public void assertCanView(long courseId, LearnerPrincipal actor) {
-    Map<String,Object> course=db.one("SELECT created_by FROM courses WHERE id=?",courseId);
+    Map<String,Object> course=db.one("SELECT created_by,status FROM courses WHERE id=?",courseId);
+    if ("PUBLISHED".equals(course.get("status"))) return;
     if(!isAdmin(actor) && (actor==null || course.get("createdBy")==null
         || ContentStore.id(course,"createdBy")!=actor.id()))
       throw ContentException.forbidden("COURSE_NOT_OWNED","You can only view courses assigned to you.");

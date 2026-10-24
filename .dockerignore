@@ -2,7 +2,6 @@
 .idea
 .run
 .verification
-.m2
 target
 .env*
 *.log
