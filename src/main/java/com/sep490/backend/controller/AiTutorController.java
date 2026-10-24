@@ -70,6 +70,26 @@ public class AiTutorController {
                 .build();
     }
 
+    @PatchMapping("/sessions/{id}")
+    public ApiResponse<AiSessionResponse> updateSession(
+            @PathVariable String id,
+            @RequestBody Map<String, String> updates
+    ) {
+        AiSessionResponse response = aiTutorService.updateSession(id, updates);
+        return ApiResponse.<AiSessionResponse>builder()
+                .result(response)
+                .message("Cập nhật phiên hội thoại thành công")
+                .build();
+    }
+
+    @DeleteMapping("/sessions/{id}")
+    public ApiResponse<Void> deleteSession(@PathVariable String id) {
+        aiTutorService.deleteSession(id);
+        return ApiResponse.<Void>builder()
+                .message("Đã xóa phiên hội thoại")
+                .build();
+    }
+
     @PostMapping("/sessions/{id}/messages")
     public ApiResponse<AiMessageResponse> sendMessage(
             @PathVariable String id,

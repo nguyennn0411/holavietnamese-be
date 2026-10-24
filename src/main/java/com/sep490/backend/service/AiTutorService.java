@@ -60,12 +60,17 @@ public class AiTutorService {
         }
 
         String mode = (request.getMode() != null && !request.getMode().isBlank()) ? request.getMode() : "tutor";
-        String sessionId = (request.getId() != null && !request.getId().isBlank())
-                ? request.getId()
-                : "session-" + UUID.randomUUID().toString().substring(0, 13);
+        String sessionId = resolveUserSessionId(request.getId(), currentUser.getId());
         String title = (request.getTitle() != null && !request.getTitle().isBlank())
                 ? request.getTitle()
                 : "Hội thoại AI (" + getModeTitle(mode) + ")";
+
+        Optional<AiSession> existingOpt = sessionRepository.findByIdAndUserId(sessionId, currentUser.getId());
+        if (existingOpt.isPresent()) {
+            AiSession existing = existingOpt.get();
+            List<AiMessage> existingMessages = messageRepository.findBySessionIdOrderByCreatedAtAsc(existing.getId());
+            return toSessionResponse(existing, existingMessages);
+        }
 
         AiScenario scenario = (request.getScenarioId() != null && !request.getScenarioId().isBlank())
                 ? scenarioRepository.findById(request.getScenarioId()).orElse(null)
@@ -102,29 +107,34 @@ public class AiTutorService {
     /**
      * UC-103: View AI Session History (Learner sessions filtered by mode or all)
      */
+    @Transactional(readOnly = true)
     public List<AiSessionResponse> getLearnerSessions(String mode) {
         User currentUser = getCurrentUser();
         List<AiSession> sessions;
         if (mode != null && !mode.isBlank() && !"all".equalsIgnoreCase(mode)) {
             sessions = sessionRepository.findByUserIdAndModeOrderByCreatedAtDesc(currentUser.getId(), mode);
         } else {
-            sessions = sessionRepository.findByUserIdOrderByCreatedAtDesc(currentUser.getId());
+            sessions = sessionRepository.findByUserIdOrderByCreatedAtDesc(currentUser.getId()).stream()
+                    .filter(s -> !"roleplay".equalsIgnoreCase(s.getMode()))
+                    .collect(Collectors.toList());
         }
 
         return sessions.stream()
-                .map(s -> toSessionResponse(s, null))
+                .map(s -> toSessionResponse(s, messageRepository.findBySessionIdOrderByCreatedAtAsc(s.getId())))
                 .collect(Collectors.toList());
     }
 
     /**
      * Get details and messages of a session
      */
+    @Transactional
     public AiSessionResponse getSessionDetails(String sessionId) {
         User currentUser = getCurrentUser();
-        AiSession session = sessionRepository.findById(sessionId)
+        String resolvedSessionId = resolveUserSessionId(sessionId, currentUser.getId());
+        AiSession session = sessionRepository.findByIdAndUserId(resolvedSessionId, currentUser.getId())
                 .orElseGet(() -> {
                     AiSession newSession = AiSession.builder()
-                            .id(sessionId)
+                            .id(resolvedSessionId)
                             .user(currentUser)
                             .mode("tutor")
                             .title("Hội thoại AI Tutor")
@@ -134,12 +144,39 @@ public class AiTutorService {
                     return sessionRepository.save(newSession);
                 });
 
-        if (session.getUser() != null && !session.getUser().getId().equals(currentUser.getId())) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
-
-        List<AiMessage> messages = messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId);
+        List<AiMessage> messages = messageRepository.findBySessionIdOrderByCreatedAtAsc(session.getId());
         return toSessionResponse(session, messages);
+    }
+
+    @Transactional
+    public AiSessionResponse updateSession(String sessionId, Map<String, String> updates) {
+        User currentUser = getCurrentUser();
+        String resolvedSessionId = resolveUserSessionId(sessionId, currentUser.getId());
+        AiSession session = sessionRepository.findByIdAndUserId(resolvedSessionId, currentUser.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED));
+
+        if (updates != null) {
+            String newTitle = updates.get("title");
+            if (newTitle != null && !newTitle.isBlank()) {
+                session.setTitle(newTitle.trim());
+            }
+            String newMode = updates.get("mode");
+            if (newMode != null && !newMode.isBlank()) {
+                session.setMode(newMode.trim());
+            }
+        }
+        session.setUpdatedAt(LocalDateTime.now());
+        sessionRepository.save(session);
+        List<AiMessage> messages = messageRepository.findBySessionIdOrderByCreatedAtAsc(session.getId());
+        return toSessionResponse(session, messages);
+    }
+
+    @Transactional
+    public void deleteSession(String sessionId) {
+        User currentUser = getCurrentUser();
+        String resolvedSessionId = resolveUserSessionId(sessionId, currentUser.getId());
+        sessionRepository.findByIdAndUserId(resolvedSessionId, currentUser.getId())
+                .ifPresent(sessionRepository::delete);
     }
 
     /**
@@ -150,12 +187,13 @@ public class AiTutorService {
     @Transactional
     public AiMessageResponse sendMessage(String sessionId, AiMessageSendRequest request) {
         User currentUser = getCurrentUser();
-        AiSession session = sessionRepository.findById(sessionId)
+        String resolvedSessionId = resolveUserSessionId(sessionId, currentUser.getId());
+        AiSession session = sessionRepository.findByIdAndUserId(resolvedSessionId, currentUser.getId())
                 .orElseGet(() -> {
                     String mode = (request.getMode() != null && !request.getMode().isBlank()) ? request.getMode() : "tutor";
                     String title = "Hội thoại AI (" + getModeTitle(mode) + ")";
                     AiSession newSession = AiSession.builder()
-                            .id(sessionId)
+                            .id(resolvedSessionId)
                             .user(currentUser)
                             .mode(mode)
                             .title(title)
@@ -164,10 +202,6 @@ public class AiTutorService {
                             .build();
                     return sessionRepository.save(newSession);
                 });
-
-        if (session.getUser() != null && !session.getUser().getId().equals(currentUser.getId())) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
 
         if (!"ACTIVE".equalsIgnoreCase(session.getStatus())) {
             throw new IllegalStateException("Hội thoại này đã kết thúc.");
@@ -179,7 +213,7 @@ public class AiTutorService {
         }
 
         AiSetting settings = getOrInitSettings();
-        List<AiMessage> previousMessages = messageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId);
+        List<AiMessage> previousMessages = messageRepository.findBySessionIdOrderByCreatedAtAsc(session.getId());
 
         // 1. Save user message
         AiMessage userMessage = AiMessage.builder()
@@ -243,7 +277,8 @@ public class AiTutorService {
     @Transactional
     public AiSessionResponse endSession(String sessionId) {
         User currentUser = getCurrentUser();
-        AiSession session = sessionRepository.findByIdAndUserId(sessionId, currentUser.getId())
+        String resolvedSessionId = resolveUserSessionId(sessionId, currentUser.getId());
+        AiSession session = sessionRepository.findByIdAndUserId(resolvedSessionId, currentUser.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         session.setStatus("COMPLETED");
@@ -271,8 +306,8 @@ public class AiTutorService {
 
         AiSession session = null;
         if (request.getSessionId() != null && !request.getSessionId().isBlank()) {
-            session = sessionRepository.findByIdAndUserId(request.getSessionId(), currentUser.getId())
-                    .orElseGet(() -> sessionRepository.findById(request.getSessionId()).orElse(null));
+            String resolvedId = resolveUserSessionId(request.getSessionId(), currentUser.getId());
+            session = sessionRepository.findByIdAndUserId(resolvedId, currentUser.getId()).orElse(null);
         }
 
         if (session == null && currentUser != null) {
@@ -286,9 +321,7 @@ public class AiTutorService {
                 AiScenario scenario = (request.getScenarioId() != null && !request.getScenarioId().isBlank())
                         ? scenarioRepository.findById(request.getScenarioId()).orElse(null)
                         : null;
-                String effectiveSessionId = (request.getSessionId() != null && !request.getSessionId().isBlank())
-                        ? request.getSessionId()
-                        : ("session-" + UUID.randomUUID().toString().substring(0, 13));
+                String effectiveSessionId = resolveUserSessionId(request.getSessionId(), currentUser.getId());
                 session = AiSession.builder()
                         .id(effectiveSessionId)
                         .user(currentUser)
@@ -297,6 +330,7 @@ public class AiTutorService {
                         .scenario(scenario)
                         .status("COMPLETED")
                         .turnsCount(4)
+
                         .totalScore(85)
                         .endedAt(LocalDateTime.now())
                         .build();
@@ -329,10 +363,33 @@ public class AiTutorService {
 
     // --- Helper Methods ---
 
+    private String resolveUserSessionId(String rawSessionId, Long userId) {
+        if (rawSessionId == null || rawSessionId.isBlank()) {
+            return "session-" + UUID.randomUUID().toString().substring(0, 13);
+        }
+        String trimmed = rawSessionId.trim();
+        String userSuffix = "-u" + userId;
+        if ("session-welcome".equalsIgnoreCase(trimmed)) {
+            return "session-welcome" + userSuffix;
+        }
+        Optional<AiSession> existing = sessionRepository.findById(trimmed);
+        if (existing.isPresent()) {
+            User owner = existing.get().getUser();
+            if (owner != null && !owner.getId().equals(userId)) {
+                return trimmed.endsWith(userSuffix) ? trimmed : (trimmed + userSuffix);
+            }
+        }
+        return trimmed;
+    }
+
     private User getCurrentUser() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        if (auth.getPrincipal() instanceof com.sep490.backend.config.LearnerPrincipal lp && lp.id() != null) {
+            return userRepository.findById(lp.id())
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         }
         return userRepository.findActiveByUsernameWithRoles(auth.getName())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));

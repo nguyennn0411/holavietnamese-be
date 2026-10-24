@@ -105,8 +105,7 @@ public class AiRoleplayService {
     public AiMessageResponse sendRoleplayMessage(String sessionId, AiMessageSendRequest request) {
         User currentUser = getCurrentUser();
         AiSession session = sessionRepository.findByIdAndUserId(sessionId, currentUser.getId())
-                .orElseGet(() -> sessionRepository.findById(sessionId)
-                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED));
 
         AiScenario scenario = session.getScenario();
 
@@ -255,8 +254,10 @@ public class AiRoleplayService {
                 }
             }
             Optional<AiSession> anySession = sessionRepository.findById(sessionId);
-            if (anySession.isPresent()) {
+            if (anySession.isPresent() && (currentUser == null || anySession.get().getUser() == null || anySession.get().getUser().getId().equals(currentUser.getId()))) {
                 session = anySession.get();
+            } else if (sessionId != null) {
+                throw new AppException(ErrorCode.UNAUTHORIZED);
             } else {
                 throw new AppException(ErrorCode.USER_NOT_EXISTED);
             }
@@ -400,6 +401,10 @@ public class AiRoleplayService {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        if (auth.getPrincipal() instanceof com.sep490.backend.config.LearnerPrincipal lp && lp.id() != null) {
+            return userRepository.findById(lp.id())
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         }
         return userRepository.findActiveByUsernameWithRoles(auth.getName())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
