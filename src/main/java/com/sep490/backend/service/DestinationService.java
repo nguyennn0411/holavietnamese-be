@@ -2,6 +2,7 @@ package com.sep490.backend.service;
 
 import com.sep490.backend.dto.model.Destination;
 import com.sep490.backend.dto.request.DestinationRequest;
+import com.sep490.backend.dto.request.ContentReviewRequest;
 import com.sep490.backend.dto.response.DestinationResponse;
 import com.sep490.backend.entity.enums.DestinationStatus;
 import com.sep490.backend.entity.enums.VietnamRegion;
@@ -101,6 +102,15 @@ public class DestinationService {
     }
 
     @Transactional
+    public DestinationResponse createDraft(DestinationRequest request) {
+        if (request.status() != null && request.status() != DestinationStatus.DRAFT) {
+            throw new LearningException(LearningException.Kind.INVALID,
+                    "Nội dung mới phải được lưu ở trạng thái DRAFT.");
+        }
+        return create(request);
+    }
+
+    @Transactional
     public DestinationResponse update(
             Long id,
             DestinationRequest request
@@ -153,6 +163,80 @@ public class DestinationService {
         return DestinationResponseMapper.toResponse(
                 repository.save(updated)
         );
+    }
+
+    @Transactional
+    public DestinationResponse updateDraft(Long id, DestinationRequest request) {
+        var current = findDestination(id);
+        if (current.status() != DestinationStatus.DRAFT) {
+            throw new LearningException(LearningException.Kind.CONFLICT,
+                    "Chỉ nội dung DRAFT mới được chỉnh sửa.");
+        }
+        if (request.status() != null && request.status() != DestinationStatus.DRAFT) {
+            throw new LearningException(LearningException.Kind.INVALID,
+                    "Hãy dùng thao tác gửi duyệt thay vì thay đổi trạng thái trong biểu mẫu.");
+        }
+        return update(id, request);
+    }
+
+    @Transactional
+    public DestinationResponse submitReview(Long id) {
+        var current = findDestination(id);
+        if (current.status() != DestinationStatus.DRAFT) {
+            throw invalidTransition(current.status(), DestinationStatus.PENDING_REVIEW);
+        }
+        return changeStatus(current, DestinationStatus.PENDING_REVIEW);
+    }
+
+    @Transactional
+    public DestinationResponse archive(Long id) {
+        var current = findDestination(id);
+        if (current.status() == DestinationStatus.PENDING_REVIEW)
+            throw new LearningException(LearningException.Kind.CONFLICT,"Nội dung đang chờ duyệt không thể lưu trữ.");
+        if (current.status() == DestinationStatus.ARCHIVED) return DestinationResponseMapper.toResponse(current);
+        return changeStatus(current, DestinationStatus.ARCHIVED);
+    }
+
+    @Transactional
+    public DestinationResponse restore(Long id) {
+        var current = findDestination(id);
+        if (current.status() != DestinationStatus.ARCHIVED) throw invalidTransition(current.status(), DestinationStatus.DRAFT);
+        return changeStatus(current, DestinationStatus.DRAFT);
+    }
+
+    @Transactional
+    public DestinationResponse revise(Long id) {
+        var current = findDestination(id);
+        if (current.status() != DestinationStatus.PUBLISHED)
+            throw invalidTransition(current.status(), DestinationStatus.DRAFT);
+        return changeStatus(current, DestinationStatus.DRAFT);
+    }
+
+    @Transactional
+    public DestinationResponse review(Long id, ContentReviewRequest.Decision decision) {
+        var current = findDestination(id);
+        if (current.status() != DestinationStatus.PENDING_REVIEW) {
+            throw new LearningException(LearningException.Kind.CONFLICT,
+                    "Chỉ nội dung PENDING_REVIEW mới có thể được duyệt.");
+        }
+        return changeStatus(current, decision == ContentReviewRequest.Decision.APPROVE
+                ? DestinationStatus.PUBLISHED : DestinationStatus.DRAFT);
+    }
+
+    private DestinationResponse changeStatus(Destination current, DestinationStatus status) {
+        var now = Instant.now();
+        var changed = new Destination(current.id(), current.nameVi(), current.nameEn(), current.slug(),
+                current.region(), current.shortDescriptionVi(), current.shortDescriptionEn(),
+                current.descriptionVi(), current.descriptionEn(), current.imageUrl(), status,
+                status == DestinationStatus.PUBLISHED ? now : current.publishedAt(),
+                status == DestinationStatus.ARCHIVED ? now : current.archivedAt(),
+                current.createdAt(), current.updatedAt());
+        return DestinationResponseMapper.toResponse(repository.save(changed));
+    }
+
+    private static LearningException invalidTransition(DestinationStatus from, DestinationStatus to) {
+        return new LearningException(LearningException.Kind.CONFLICT,
+                "Không thể chuyển trạng thái từ " + from + " sang " + to + ".");
     }
 
     private Destination findDestination(Long id) {

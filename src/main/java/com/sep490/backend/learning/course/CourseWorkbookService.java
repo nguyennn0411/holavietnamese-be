@@ -44,14 +44,28 @@ public class CourseWorkbookService {
 
   public byte[] template() {
     var data=empty();
-    data.get("COURSE").add(row("COURSE","EXCEL-DEMO-COURSE","excel-demo-course","Vietnamese at the café","Tiếng Việt ở quán cà phê","Learn basic café conversation.","Học giao tiếp tại quán cà phê.","A1","40","Gọi món và thanh toán", "true",""));
-    data.get("MODULES").add(row("MODULES","M1","At the café","Ở quán cà phê","First conversation","Hội thoại đầu tiên"));
-    data.get("LESSONS").add(row("LESSONS","L1","M1","EXCEL-DEMO-L1","excel-demo-bai-1","Ordering a drink","Gọi đồ uống","Practice ordering.","Luyện gọi món.","CONVERSATION","40","Order one drink.","Gọi một đồ uống.",""));
-    data.get("QUIZZES").add(row("QUIZZES","Q1","L1","LESSON","Lesson check","Kiểm tra cuối bài","Check the dialogue","Kiểm tra hội thoại","70","","","false","false"));
-    data.get("QUESTIONS").add(row("QUESTIONS","X1","Q1","MULTIPLE_CHOICE","How do you say coffee?","Cà phê tiếng Việt là gì?","","","EASY","cafe","[{\"id\":\"a\",\"textVi\":\"cà phê\"},{\"id\":\"b\",\"textVi\":\"trà\"}]","{\"optionIds\":[\"a\"]}","1","",""));
-    data.get("ACTIVITIES").add(row("ACTIVITIES","L1","TEXT","Dialogue","Hội thoại","Read the dialogue.","Đọc hội thoại.","{\"textVi\":\"Cho tôi một cà phê.\",\"textEn\":\"One coffee, please.\"}","true","0","","",""));
-    data.get("ACTIVITIES").add(row("ACTIVITIES","L1","IMAGE","Café photo","Ảnh quán cà phê","Add the image after import.","Tải ảnh lên sau khi nhập.","{}","false","0","","quan-ca-phe.jpg",""));
-    data.get("ACTIVITIES").add(row("ACTIVITIES","L1","QUIZ","Lesson quiz","Quiz cuối bài","Answer the questions.","Trả lời câu hỏi.","{}","true","0","Q1","",""));
+    data.get("COURSE").add(row("COURSE","EXCEL-CAFE-A1","excel-cafe-a1","Vietnamese at the café","Tiếng Việt ở quán cà phê","A complete beginner course for ordering drinks, asking prices, and paying at a Vietnamese café.","Khóa học nhập môn đầy đủ về gọi đồ uống, hỏi giá và thanh toán tại quán cà phê Việt Nam.","A1","90","Gọi đồ uống, hỏi giá, xác nhận đơn và thanh toán bằng tiếng Việt.","true","/media/tv123/images/scans/cover.jpg"));
+    data.get("MODULES").add(row("MODULES","M1","Ordering at the café","Gọi món tại quán cà phê","Learn the words and sentence patterns needed to order.","Học từ vựng và mẫu câu cần thiết để gọi món."));
+    data.get("MODULES").add(row("MODULES","M2","Prices and payment","Giá cả và thanh toán","Ask for the price, confirm the bill, and pay politely.","Hỏi giá, xác nhận hóa đơn và thanh toán lịch sự."));
+    data.get("LESSONS").add(row("LESSONS","L1","M1","EXCEL-CAFE-A1-L1","excel-cafe-a1-goi-do-uong","Ordering a drink","Gọi đồ uống","Practice greeting staff and ordering a drink.","Luyện chào nhân viên và gọi một đồ uống.","CONVERSATION","40","Order a drink using a polite complete sentence.","Gọi một đồ uống bằng câu đầy đủ và lịch sự.",""));
+    data.get("LESSONS").add(row("LESSONS","L2","M2","EXCEL-CAFE-A1-L2","excel-cafe-a1-thanh-toan","Asking the price and paying","Hỏi giá và thanh toán","Practice asking the price and requesting the bill.","Luyện hỏi giá và yêu cầu thanh toán.","CONVERSATION","50","Ask for a price and complete a simple payment conversation.","Hỏi giá và hoàn thành hội thoại thanh toán đơn giản.","L1"));
+    data.get("QUIZZES").add(row("QUIZZES","Q1","L1","LESSON","Ordering check","Kiểm tra gọi món","Check the ordering expressions.","Kiểm tra mẫu câu gọi món.","70","10","3","false","false"));
+    data.get("QUIZZES").add(row("QUIZZES","Q2","L2","LESSON","Payment check","Kiểm tra thanh toán","Check the price and payment expressions.","Kiểm tra mẫu câu hỏi giá và thanh toán.","70","10","3","false","false"));
+    data.get("QUIZZES").add(row("QUIZZES","QF","L2","COURSE","Final café assessment","Bài kiểm tra cuối khóa","Review all course outcomes.","Ôn tập toàn bộ mục tiêu khóa học.","70","15","3","true","true"));
+    String drinkOptions="[{\"id\":\"a\",\"textEn\":\"Coffee\",\"textVi\":\"Cà phê\"},{\"id\":\"b\",\"textEn\":\"Tea\",\"textVi\":\"Trà\"}]";
+    String drinkAnswer="{\"optionIds\":[\"a\"]}";
+    String priceOptions="[{\"id\":\"a\",\"textEn\":\"How much is it?\",\"textVi\":\"Bao nhiêu tiền?\"},{\"id\":\"b\",\"textEn\":\"What is your name?\",\"textVi\":\"Bạn tên gì?\"}]";
+    String priceAnswer="{\"optionIds\":[\"a\"]}";
+    data.get("QUESTIONS").add(row("QUESTIONS","X1","Q1","MULTIPLE_CHOICE","Which option means coffee?","Từ nào có nghĩa là coffee?","Cà phê means coffee.","Cà phê có nghĩa là coffee.","EASY","cafe",drinkOptions,drinkAnswer,"1","",""));
+    data.get("QUESTIONS").add(row("QUESTIONS","X2","Q2","MULTIPLE_CHOICE","How do you ask for the price?","Bạn hỏi giá như thế nào?","Use Bao nhiêu tiền? to ask the price.","Dùng Bao nhiêu tiền? để hỏi giá.","EASY","payment",priceOptions,priceAnswer,"1","",""));
+    data.get("QUESTIONS").add(row("QUESTIONS","X1","QF","MULTIPLE_CHOICE","Which option means coffee?","Từ nào có nghĩa là coffee?","Cà phê means coffee.","Cà phê có nghĩa là coffee.","EASY","cafe",drinkOptions,drinkAnswer,"1","",""));
+    data.get("QUESTIONS").add(row("QUESTIONS","X2","QF","MULTIPLE_CHOICE","How do you ask for the price?","Bạn hỏi giá như thế nào?","Use Bao nhiêu tiền? to ask the price.","Dùng Bao nhiêu tiền? để hỏi giá.","EASY","payment",priceOptions,priceAnswer,"1","",""));
+    data.get("ACTIVITIES").add(row("ACTIVITIES","L1","TEXT","Ordering dialogue","Hội thoại gọi món","Read and practice the dialogue.","Đọc và luyện tập hội thoại.","{\"textVi\":\"Nhân viên: Xin chào. Bạn uống gì?\\nKhách: Cho tôi một cà phê sữa, cảm ơn.\",\"textEn\":\"Staff: Hello. What would you like to drink?\\nCustomer: One milk coffee, please.\"}","true","0","","",""));
+    data.get("ACTIVITIES").add(row("ACTIVITIES","L1","IMAGE","Café vocabulary picture","Ảnh từ vựng quán cà phê","Observe the picture and name familiar items.","Quan sát ảnh và gọi tên các đồ vật quen thuộc.","{\"imageUrl\":\"/media/tv123/images/illustrations/lesson-01-1.jpg\",\"altVi\":\"Minh họa bài học\",\"altEn\":\"Lesson illustration\"}","false","0","","",""));
+    data.get("ACTIVITIES").add(row("ACTIVITIES","L1","QUIZ","Ordering quiz","Quiz gọi món","Complete the lesson quiz.","Hoàn thành quiz cuối bài.","{}","true","0","Q1","",""));
+    data.get("ACTIVITIES").add(row("ACTIVITIES","L2","TEXT","Payment dialogue","Hội thoại thanh toán","Read and practice the dialogue.","Đọc và luyện tập hội thoại.","{\"textVi\":\"Khách: Bao nhiêu tiền?\\nNhân viên: Bốn mươi nghìn đồng.\\nKhách: Cho tôi thanh toán.\",\"textEn\":\"Customer: How much is it?\\nStaff: Forty thousand dong.\\nCustomer: I would like to pay.\"}","true","0","","",""));
+    data.get("ACTIVITIES").add(row("ACTIVITIES","L2","QUIZ","Payment quiz","Quiz thanh toán","Complete the lesson quiz.","Hoàn thành quiz cuối bài.","{}","true","0","Q2","",""));
+    data.get("ACTIVITIES").add(row("ACTIVITIES","L2","QUIZ","Final course assessment","Bài kiểm tra cuối khóa","Complete the final assessment.","Hoàn thành bài kiểm tra cuối khóa.","{}","true","0","QF","",""));
     return write(data);
   }
 
@@ -82,15 +96,17 @@ public class CourseWorkbookService {
     }
     Map<String,Long> questionIds=new HashMap<>();
     for(var q:book.rows("QUESTIONS")) {
-      long question=questionIds.computeIfAbsent(q.get("questionKey"),ignored->questions.create(new ContentRequests.Question(q.get("questionType"),q.get("promptEn"),q.get("explanationEn"),q.get("difficulty"),blank(q.get("topic")),blank(q.get("imageUrl")),blank(q.get("audioUrl")),"DRAFT",parse(q.get("correctAnswerJson")),parse(q.get("optionsJson")),blank(q.get("promptVi")),blank(q.get("explanationVi"))),author));
+      long question=questionIds.computeIfAbsent(q.get("questionKey"),ignored->questions.create(new ContentRequests.Question(q.get("questionType"),q.get("promptEn"),q.get("explanationEn"),q.get("difficulty"),blank(q.get("topic")),blank(q.get("imageUrl")),blank(q.get("audioUrl")),"PUBLISHED",parse(q.get("correctAnswerJson")),parse(q.get("optionsJson")),blank(q.get("promptVi")),blank(q.get("explanationVi"))),author));
       quizzes.addQuestion(quizIds.get(q.get("quizKey")),new ContentRequests.QuizQuestion(question,new BigDecimal(q.get("points"))));
     }
+    for(long quiz:quizIds.values()) quizzes.status(quiz,"PUBLISHED");
     for(var a:book.rows("ACTIVITIES")) {
       JsonNode content=parse(a.get("contentJson"));
       if(!a.get("mediaFile").isBlank()) ((com.fasterxml.jackson.databind.node.ObjectNode)content).put("pendingFile",a.get("mediaFile"));
       List<Long> topics=a.get("grammarTopicIds").isBlank()?List.of():Arrays.stream(a.get("grammarTopicIds").split(";")).map(String::strip).map(Long::parseLong).toList();
-      activities.create(lessons.get(a.get("lessonKey")),new ContentRequests.Activity(a.get("activityType"),a.get("titleEn"),a.get("instructionEn"),content,yes(a,"isRequired"),new BigDecimal(a.get("maxScore")),"DRAFT",quizIds.get(a.get("quizKey")),topics,blank(a.get("titleVi")),blank(a.get("instructionVi"))));
+      activities.create(lessons.get(a.get("lessonKey")),new ContentRequests.Activity(a.get("activityType"),a.get("titleEn"),a.get("instructionEn"),content,yes(a,"isRequired"),new BigDecimal(a.get("maxScore")),"PUBLISHED",quizIds.get(a.get("quizKey")),topics,blank(a.get("titleVi")),blank(a.get("instructionVi"))));
     }
+    for(long lesson:lessons.values()) courses.lessonStatus(lesson,"PUBLISHED");
     var result=new LinkedHashMap<>(report);result.put("courseId",courseId);result.put("status","DRAFT");
     return result;
   }
@@ -212,7 +228,7 @@ public class CourseWorkbookService {
     try(var workbook=new XSSFWorkbook();var out=new ByteArrayOutputStream()){
       CellStyle headerStyle=workbook.createCellStyle();Font font=workbook.createFont();font.setBold(true);headerStyle.setFont(font);headerStyle.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
       Sheet guide=workbook.createSheet("HUONG_DAN");
-      String[] lines={"MẪU COURSE STUDIO – nhập tạo khóa học NHÁP mới","Mỗi sheet giữ nguyên tên cột. Mã khóa học và slug phải chưa tồn tại.","Liên kết bằng moduleKey, lessonKey, quizKey; questionKey có thể dùng lại ở nhiều quiz.","Mỗi dòng QUESTIONS gắn một questionKey với một quizKey; đáp án của cùng questionKey phải giống nhau.","contentJson, optionsJson, correctAnswerJson là JSON. Mẫu đã có ví dụ hợp lệ.","Cột mediaFile chỉ ghi tên tệp cần bổ sung; file ảnh/âm thanh/video không được nhúng vào Excel.","Sau khi nhập, mở Course Studio để tải ảnh bìa và media, kiểm tra bài, xuất bản hoạt động và gửi duyệt.","Điền nội dung trong file mẫu, kiểm tra và nhập thành khóa học nháp mới."};
+      String[] lines={"MẪU COURSE STUDIO – một khóa học hoàn chỉnh để nhập thành khóa học NHÁP mới","Mỗi sheet giữ nguyên tên cột. Đổi mã khóa học, slug, mã bài và slug bài học trước mỗi lần nhập.","Liên kết bằng moduleKey, lessonKey, quizKey; questionKey có thể dùng lại ở nhiều quiz.","Mỗi dòng QUESTIONS gắn một questionKey với một quizKey; đáp án của cùng questionKey phải giống nhau.","contentJson, optionsJson, correctAnswerJson là JSON. Mẫu đã có ví dụ hợp lệ.","Mẫu gồm học phần, bài học, hoạt động bắt buộc, quiz từng bài, câu hỏi/đáp án và quiz cuối khóa.","Cột mediaFile chỉ ghi tên tệp cần bổ sung; file ảnh/âm thanh/video không được nhúng vào Excel.","Sau khi nhập, khóa học ở trạng thái DRAFT nhưng nội dung mẫu đã sẵn sàng để kiểm tra và gửi Admin duyệt.","Điền hoặc thay nội dung mẫu, bấm kiểm tra file rồi nhập thành khóa học mới."};
       for(int i=0;i<lines.length;i++)guide.createRow(i).createCell(0).setCellValue(lines[i]);guide.setColumnWidth(0,110*256);
       for(var spec:COLUMNS.entrySet()){
         Sheet sheet=workbook.createSheet(spec.getKey());Row header=sheet.createRow(0);

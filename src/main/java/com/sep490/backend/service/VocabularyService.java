@@ -5,7 +5,6 @@ import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.sep490.backend.service.VocabularyService;
 import com.sep490.backend.repository.*;
 import com.sep490.backend.dto.request.VocabularyRequest;
 import com.sep490.backend.dto.response.VocabularyResponse;

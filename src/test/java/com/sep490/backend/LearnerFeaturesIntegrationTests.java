@@ -21,7 +21,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(properties =
+    "spring.datasource.url=jdbc:h2:mem:hola-tests-learner;MODE=MySQL;DB_CLOSE_DELAY=-1")
 @AutoConfigureMockMvc
 class LearnerFeaturesIntegrationTests {
     @Autowired MockMvc mvc;

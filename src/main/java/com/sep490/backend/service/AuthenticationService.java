@@ -95,6 +95,7 @@ public class AuthenticationService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .roles(roleNames)
+                .permissions(extractPermissions(user))
                 .build();
     }
 
@@ -147,7 +148,7 @@ public class AuthenticationService {
             newUser.setFullName(fullName != null && !fullName.isBlank() ? fullName : email);
             newUser.setAvatarUrl(pictureUrl);
             newUser.setNativeLanguage("en");
-            newUser.setTargetLevel("A1");
+            newUser.setTargetLevel(null);
             newUser.setEmailVerified(true);
             newUser.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
             newUser.setStatus("ACTIVE");
@@ -173,6 +174,7 @@ public class AuthenticationService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .roles(roleNames)
+                .permissions(extractPermissions(user))
                 .build();
     }
 
@@ -343,6 +345,7 @@ public class AuthenticationService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .roles(roleNames)
+                .permissions(extractPermissions(user))
                 .build();
     }
 
@@ -435,7 +438,10 @@ public class AuthenticationService {
     private String[] buildScope(User user) {
         Set<String> scopes = java.util.Collections.newSetFromMap(new ConcurrentHashMap<>());
         if (!CollectionUtils.isEmpty(user.getRoles())) {
-            user.getRoles().forEach(role -> scopes.add("ROLE_" + role.getName()));
+            user.getRoles().forEach(role -> {
+                scopes.add("ROLE_" + role.getName());
+                if (role.getPermissions() != null) scopes.addAll(role.getPermissions());
+            });
         } else { scopes.add("ROLE_" + user.getRole()); }
         return scopes.toArray(new String[0]);
     }
@@ -444,6 +450,14 @@ public class AuthenticationService {
         if (user.getRoles() == null || user.getRoles().isEmpty()) return Set.of(user.getRole());
         return user.getRoles().stream()
                 .map(Role::getName)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<String> extractPermissions(User user) {
+        if (user.getRoles() == null || user.getRoles().isEmpty()) return Set.of();
+        return user.getRoles().stream()
+                .filter(role -> role.getPermissions() != null)
+                .flatMap(role -> role.getPermissions().stream())
                 .collect(Collectors.toSet());
     }
 }

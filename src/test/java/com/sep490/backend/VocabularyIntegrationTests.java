@@ -28,7 +28,8 @@ class VocabularyIntegrationTests {
     @MockitoBean Clock clock;
     private final LearnerPrincipal learner = new LearnerPrincipal(810001L, "vocabulary-one@example.test", "", true);
     private final LearnerPrincipal other = new LearnerPrincipal(810002L, "vocabulary-two@example.test", "", true);
-    private final LearnerPrincipal admin = new LearnerPrincipal(810003L, "vocabulary-admin@example.test", "", true, "ADMIN");
+    private final LearnerPrincipal admin = new LearnerPrincipal(810003L, "vocabulary-manager@example.test", "", true,
+            "CONTENT_MANAGER", Set.of("CONTENT_MANAGER"), Set.of("VOCABULARY_PUBLISH"));
     private final Instant now = Instant.parse("2026-10-13T18:00:00Z");
 
     @BeforeEach void fixture() {
@@ -47,10 +48,18 @@ class VocabularyIntegrationTests {
                         Map.of("translationEn", "farewell"))));
     }
     private long master(String status) throws Exception {
-        String payload = word(status);
+        String payload = word("DRAFT");
         if (!"PUBLISHED".equals(status)) payload = payload.replace("tạm biệt", "tạm biệt " + status);
-        return body(mvc.perform(post("/api/admin/vocabulary").with(user(admin)).with(csrf())
+        long id = body(mvc.perform(post("/api/admin/vocabulary").with(user(admin)).with(csrf())
                 .contentType("application/json").content(payload)).andExpect(status().isCreated()).andReturn()).path("result").path("id").asLong();
+        if ("PENDING_REVIEW".equals(status) || "PUBLISHED".equals(status))
+            mvc.perform(post("/api/admin/vocabulary/"+id+"/submit-review").with(user(admin)).with(csrf())).andExpect(status().isOk());
+        if ("PUBLISHED".equals(status))
+            mvc.perform(post("/api/admin/vocabulary/"+id+"/review").with(user(admin)).with(csrf())
+                    .contentType("application/json").content("{\"decision\":\"APPROVE\"}")).andExpect(status().isOk());
+        if ("ARCHIVED".equals(status))
+            mvc.perform(post("/api/admin/vocabulary/"+id+"/archive").with(user(admin)).with(csrf())).andExpect(status().isOk());
+        return id;
     }
     private String notebook(Long master, String word, String meaning, String note) throws Exception {
         var payload = new LinkedHashMap<String, Object>();
@@ -87,7 +96,7 @@ class VocabularyIntegrationTests {
         jdbc.update("UPDATE vocabularies SET cefr_level='A1',source_metadata=?,lexical_data=? WHERE id=?",
                 "{\"name\":\"Nguồn lịch sử\",\"edited\":false}","{\"notes\":[\"Nội dung đã có\"]}",published);
         em.clear();
-        mvc.perform(put("/api/admin/vocabulary/" + published).with(user(admin)).with(csrf()).contentType("application/json").content(word("ARCHIVED")))
+        mvc.perform(post("/api/admin/vocabulary/" + published + "/archive").with(user(admin)).with(csrf()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.meanings.length()").value(2))
                 .andExpect(jsonPath("$.result.source.name").value("Nguồn lịch sử"))
                 .andExpect(jsonPath("$.result.source.edited").value(true))
@@ -160,6 +169,11 @@ class VocabularyIntegrationTests {
         mvc.perform(get("/api/admin/vocabulary").with(user(learner))).andExpect(status().isForbidden());
         mvc.perform(post("/api/admin/vocabulary").with(user(learner)).with(csrf()).contentType("application/json").content("{}"))
                 .andExpect(status().isForbidden());
+        var systemAdmin = new LearnerPrincipal(819901L, "system-admin@example.test", "", true, "ADMIN");
+        mvc.perform(get("/api/admin/vocabulary").with(user(systemAdmin))).andExpect(status().isOk());
+        var delegatedAdmin = new LearnerPrincipal(819902L, "delegated-admin@example.test", "", true,
+                "ADMIN", Set.of("ADMIN"), Set.of("VOCABULARY_READ"));
+        mvc.perform(get("/api/admin/vocabulary").with(user(delegatedAdmin))).andExpect(status().isOk());
         rate(entry, UUID.randomUUID(), "GOOD", other).andExpect(status().isNotFound());
         rate(entry, UUID.randomUUID(), "GOOD", admin).andExpect(status().isNotFound());
         rate(entry, UUID.randomUUID(), "INVALID", learner).andExpect(status().isBadRequest());
@@ -170,6 +184,21 @@ class VocabularyIntegrationTests {
         mvc.perform(get("/api/me/vocabulary/review").with(user(learner)).param("sessionId", "bad-id")).andExpect(status().isBadRequest());
         mvc.perform(post("/api/admin/vocabulary").with(user(admin)).with(csrf()).contentType("application/json")
                 .content(word("PUBLISHED").replace("\"meanings\":[", "\"meanings\":[null,"))).andExpect(status().isBadRequest());
+    }
+
+    @Test void contentManagerMustSubmitAndAdministratorMustReviewBeforePublishing() throws Exception {
+        var manager = new LearnerPrincipal(819903L, "manager-without-publish@example.test", "", true,
+                "CONTENT_MANAGER", Set.of("CONTENT_MANAGER"), Set.of());
+        mvc.perform(post("/api/admin/vocabulary").with(user(manager)).with(csrf()).contentType("application/json")
+                .content(word("DRAFT"))).andExpect(status().isCreated());
+        mvc.perform(post("/api/admin/vocabulary").with(user(manager)).with(csrf()).contentType("application/json")
+                .content(word("PUBLISHED"))).andExpect(status().isBadRequest());
+        var delegatedAdmin = new LearnerPrincipal(819904L, "write-admin@example.test", "", true,
+                "ADMIN", Set.of("ADMIN"), Set.of("VOCABULARY_WRITE"));
+        mvc.perform(post("/api/admin/vocabulary").with(user(delegatedAdmin)).with(csrf()).contentType("application/json")
+                .content(word("DRAFT"))).andExpect(status().isCreated());
+        mvc.perform(post("/api/admin/vocabulary").with(user(delegatedAdmin)).with(csrf()).contentType("application/json")
+                .content(word("PUBLISHED"))).andExpect(status().isBadRequest());
     }
 
     @Test @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)

@@ -33,11 +33,13 @@ $env:MSU_CM_PASSWORD = 'your-content-manager-password'
 python scripts/import-msu-basic-vietnamese.py `
   --text src/main/resources/demo/msu/basic-vietnamese-msu.txt `
   --output build/msu-basic-vietnamese-import.json `
+  --api http://localhost:18080 `
   --import
 
 python scripts/import-msu-advanced-vietnamese.py `
   --text src/main/resources/demo/msu/advanced-vietnamese-msu.txt `
   --output build/msu-advanced-vietnamese-import.json `
+  --api http://localhost:18080 `
   --import
 ```
 
@@ -52,3 +54,6 @@ the database.
 The importers are intended for a clean target database. Check for existing course codes
 `MSU-BV-CH01` through `MSU-BV-CH15` and `MSU-ADV-VI-CH01` through
 `MSU-ADV-VI-CH07` before importing again.
+
+When the backend runs directly from IntelliJ instead of Docker, replace the API URL
+with the configured local backend port (for example `http://localhost:8088`).

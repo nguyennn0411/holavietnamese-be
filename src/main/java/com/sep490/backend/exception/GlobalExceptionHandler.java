@@ -19,7 +19,6 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-import java.time.Instant;
 
 @Slf4j
 @RestControllerAdvice
@@ -124,13 +123,6 @@ public class GlobalExceptionHandler {
                 : exception.getMessage();
         return ResponseEntity.status(exception.getStatusCode())
                 .body(ApiResponse.error(exception.getStatusCode().value(), message));
-    }
-
-    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMissingResource(
-            org.springframework.web.servlet.resource.NoResourceFoundException exception) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(404, "Không tìm thấy tài nguyên."));
     }
 
     @ExceptionHandler(AsyncRequestNotUsableException.class)

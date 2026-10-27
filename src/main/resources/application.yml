@@ -14,7 +14,9 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
-    validate-on-migrate: false
+    validate-on-migrate: true
+    clean-disabled: true
+    validate-migration-naming: true
 
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -57,7 +59,7 @@ server:
         secure: ${SESSION_COOKIE_SECURE:false}
 
 jwt:
-  secretKey: ${JWT_SECRET_KEY:local-development-only-change-this-hola-vietnamese-signing-key}
+  secretKey: ${JWT_SECRET_KEY}
   expiration: ${JWT_EXPIRATION:86400000}
   refresh-duration: ${JWT_REFRESH_DURATION:604800000}
 

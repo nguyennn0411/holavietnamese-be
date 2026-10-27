@@ -2,7 +2,6 @@ package com.sep490.backend.repository;
 
 
 import com.sep490.backend.dto.courseimport.*;
-import com.sep490.backend.repository.CourseImportRepository;
 import com.sep490.backend.entity.*;
 import com.sep490.backend.entity.enums.CourseStatus;
 import jakarta.persistence.*;
@@ -10,7 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
-import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 import static com.sep490.backend.dto.courseimport.ImportSheet.*;

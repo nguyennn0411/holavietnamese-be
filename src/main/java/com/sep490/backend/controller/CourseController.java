@@ -1,6 +1,5 @@
 package com.sep490.backend.controller;
 
-import java.util.List;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

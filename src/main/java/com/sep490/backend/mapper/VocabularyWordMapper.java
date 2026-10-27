@@ -3,9 +3,7 @@ package com.sep490.backend.mapper;
 import com.sep490.backend.dto.model.VocabularyWord;
 import com.sep490.backend.entity.VocabularyWordJpaEntity;
 
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class VocabularyWordMapper {
 

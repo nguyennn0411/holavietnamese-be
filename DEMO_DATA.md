@@ -17,13 +17,15 @@ docker compose --env-file .env.mysql -f compose.yml -f compose.demo.yml -f compo
 
 Bộ nạp bật các course A1, nền tảng, phát âm, chương 1–3, TV123 và gói TV123 LMS. Seed dùng lại course đã tồn tại; nếu cấu trúc course trùng mã nhưng khác dữ liệu biên soạn, seed dừng để người phụ trách kiểm tra, không ghi đè tiến độ học. Xem [TV123](TV123_COURSES.md) và [gói LMS](TV123_PACKAGE_COURSES.md).
 
+Ngoài bộ seed trên, Git còn chứa dữ liệu nguồn và công cụ tái tạo 22 khóa học MSU OpenBooks (15 khóa Basic Vietnamese và 7 khóa Advanced Vietnamese, tổng cộng 124 bài học). Các khóa này được import qua API bằng tài khoản Content Manager để tránh phụ thuộc ID trong database cá nhân. Xem [MSU_OPENBOOKS_CONTENT.md](MSU_OPENBOOKS_CONTENT.md) để chạy import và kiểm tra mã khóa học trước khi nạp lại.
+
 Từ vựng không tự nạp dữ liệu mẫu; Admin tạo nội dung qua chức năng quản lý hoặc import Excel. Bộ seed điểm đến hiện tại chỉ đọc `demo/destinations.json`, không tạo từ vựng hay liên kết nội dung.
 
-Các tài khoản mẫu chỉ được tạo với profile `dev-demo`: `admin / admin123`, `contentmanager / contentmanager123`, `learner / learner123`. Khóa Cloudinary, SMTP, AI và cấu hình riêng phải đặt trong `.env.mysql` hoặc `.env.cloudinary` cục bộ; file mẫu để trống các khóa dịch vụ.
+Các tài khoản mẫu chỉ được tạo với profile `dev-demo`; mật khẩu chung của các tài khoản được lấy từ biến môi trường bắt buộc `APP_DEMO_PASSWORD` (tối thiểu 12 ký tự, tối đa 72 byte UTF-8). Khóa Cloudinary, SMTP, AI và cấu hình riêng phải đặt trong `.env.mysql` hoặc `.env.cloudinary` cục bộ; file mẫu để trống các khóa dịch vụ.
 
 ## Phạm vi dữ liệu được chia sẻ
 
 - Nội dung biên soạn, media và mã nạp dữ liệu nằm trong Git.
 - Tài khoản thực tế, hash mật khẩu, token, tiến độ học, nhật ký và khóa dịch vụ của database cục bộ không nằm trong gói này.
 - Mỗi máy tự sinh ID khi nạp. Liên kết bài học/từ/địa điểm được tạo từ ID vừa trả về; không dùng ID cố định của máy biên soạn.
-- MySQL vẫn lưu dữ liệu đang chạy trong Docker volume của từng máy; `git pull` không tự đồng bộ database đó. Phải chạy lệnh seed phía trên để có nội dung mẫu tương ứng.
+- MySQL vẫn lưu dữ liệu đang chạy trong Docker volume của từng máy; `git pull` không tự đồng bộ database đó. Phải chạy lệnh seed phía trên và, nếu cần bộ MSU, chạy hai importer được hướng dẫn trong `MSU_OPENBOOKS_CONTENT.md`.

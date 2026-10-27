@@ -67,8 +67,12 @@ public class VocabularyImportHandler implements ContentImportHandler {
         }
         for(var entry:entries.values()) {
             String status=entry.fields.getOrDefault("status","");
-            try { entry.status=status.isBlank()?VocabularyStatus.DRAFT:VocabularyStatus.valueOf(status); }
-            catch(IllegalArgumentException failure) { errors.add(error(entry.first,"status","Trạng thái: DRAFT, PENDING_REVIEW, PUBLISHED hoặc ARCHIVED.")); }
+            try {
+                entry.status=status.isBlank()?VocabularyStatus.DRAFT:VocabularyStatus.valueOf(status);
+                if (entry.status != VocabularyStatus.DRAFT)
+                    errors.add(error(entry.first,"status","Dữ liệu import phải ở trạng thái DRAFT trước khi gửi duyệt."));
+            }
+            catch(IllegalArgumentException failure) { errors.add(error(entry.first,"status","Trạng thái import hợp lệ: DRAFT.")); }
         }
         return entries;
     }

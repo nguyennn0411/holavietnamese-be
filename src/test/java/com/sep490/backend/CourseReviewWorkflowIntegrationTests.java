@@ -51,6 +51,7 @@ class CourseReviewWorkflowIntegrationTests {
     long course=createCourse(manager,"review-flow");
     assertThat(db.one("SELECT status,created_by FROM courses WHERE id=?",course))
         .containsEntry("status","DRAFT").containsEntry("createdBy",managerId);
+    mvc.perform(get("/api/courses/"+course)).andExpect(status().isNotFound());
     mvc.perform(patch("/api/admin/courses/"+course+"/status").with(actor(admin)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"REVIEW\"}"))
         .andExpect(status().isConflict());
@@ -76,6 +77,7 @@ class CourseReviewWorkflowIntegrationTests {
 
     mvc.perform(post("/api/admin/courses/"+course+"/submit").with(actor(manager)).with(csrf()))
         .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("REVIEW"));
+    mvc.perform(get("/api/courses/"+course)).andExpect(status().isNotFound());
     mvc.perform(post("/api/admin/courses/"+course+"/review").with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content("{\"decision\":\"APPROVE\"}"))
         .andExpect(status().isForbidden());
@@ -100,6 +102,23 @@ class CourseReviewWorkflowIntegrationTests {
   }
 
   @Test
+  void managerCanSeePublishedCatalogCoursesWithoutEditingThem() throws Exception {
+    long ownDraft=courses.create(request("own-draft"),managerId);
+    long published=courses.create(request("published-catalog"),adminId);
+    db.update("UPDATE courses SET status='PUBLISHED' WHERE id=?",published);
+
+    mvc.perform(get("/api/admin/courses").with(actor(manager)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[?(@.id == "+ownDraft+")]").exists())
+        .andExpect(jsonPath("$.content[?(@.id == "+published+")]").exists());
+    mvc.perform(get("/api/admin/courses/"+published).with(actor(manager)))
+        .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(published));
+    mvc.perform(put("/api/admin/courses/"+published).with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content(courseJson("published-catalog")))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void rejectionReturnsCourseForEditingAndDeleteArchivesIt() throws Exception {
     long course=courses.create(request("rejected-flow"),managerId);
     long module=courses.addModule(course,new ContentRequests.Module("Module","Description"));
@@ -109,6 +128,7 @@ class CourseReviewWorkflowIntegrationTests {
     workflow.review(course,"REJECT","Bổ sung mục tiêu học tập.",admin);
     assertThat(db.one("SELECT status,review_note FROM courses WHERE id=?",course))
         .containsEntry("status","REJECTED").containsEntry("reviewNote","Bổ sung mục tiêu học tập.");
+    mvc.perform(get("/api/courses/"+course)).andExpect(status().isNotFound());
 
     mvc.perform(put("/api/admin/courses/"+course).with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content(courseJson("rejected-flow")))
