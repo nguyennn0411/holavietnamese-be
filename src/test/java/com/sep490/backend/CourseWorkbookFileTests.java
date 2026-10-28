@@ -1,8 +1,8 @@
 package com.sep490.backend;
 
 
-import com.sep490.backend.modules.admin.importing.dto.ImportMode;
-import com.sep490.backend.modules.admin.importing.service.CourseImportService;
+import com.sep490.backend.modules.learning.importing.dto.ImportMode;
+import com.sep490.backend.modules.learning.importing.service.CourseImportService;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
