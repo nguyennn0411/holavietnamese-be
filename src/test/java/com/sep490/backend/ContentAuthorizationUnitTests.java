@@ -1,7 +1,11 @@
 package com.sep490.backend;
 
-import com.sep490.backend.config.LearnerPrincipal;
-import com.sep490.backend.controller.*;
+import com.sep490.backend.common.security.LearnerPrincipal;
+import com.sep490.backend.modules.admin.importing.controller.ContentImportController;
+import com.sep490.backend.modules.culture.controller.DestinationExploreController;
+import com.sep490.backend.modules.culture.controller.admin.AdminDestinationController;
+import com.sep490.backend.modules.culture.controller.admin.AdminRegionalVocabularyController;
+import com.sep490.backend.modules.vocabulary.controller.admin.AdminVocabularyController;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.prepost.PreAuthorize;

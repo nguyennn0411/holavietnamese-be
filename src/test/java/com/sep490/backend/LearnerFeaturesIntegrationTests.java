@@ -2,10 +2,11 @@ package com.sep490.backend;
 
 
 import com.fasterxml.jackson.databind.*;
-import com.sep490.backend.config.LearnerPrincipal;
-import com.sep490.backend.service.*;
-import com.sep490.backend.dto.model.LearningProgress;
-import com.sep490.backend.exception.LearningException;
+import com.sep490.backend.common.security.LearnerPrincipal;
+import com.sep490.backend.modules.learning.service.CourseService;
+import com.sep490.backend.modules.learning.service.LessonService;
+import com.sep490.backend.modules.learning.dto.model.LearningProgress;
+import com.sep490.backend.common.exception.LearningException;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
