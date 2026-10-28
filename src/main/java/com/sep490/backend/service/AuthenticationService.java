@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -42,6 +43,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationService {
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final long REGISTRATION_OTP_EXPIRY_MINUTES = 10;
 
     UserRepository userRepository;
     RoleRepository roleRepository;
@@ -75,6 +79,9 @@ public class AuthenticationService {
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
         if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
         if (!user.isEnabled() || !"ACTIVE".equals(user.getStatus())) throw new AppException(ErrorCode.USER_DEACTIVATED);
+        if (!Boolean.TRUE.equals(user.getEmailVerified()) && user.getEmailVerificationToken() != null) {
+            throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
 
         String token = generateToken(user);
         log.info("User [{}] đã đăng nhập thành công", request.getUsername());
@@ -88,6 +95,7 @@ public class AuthenticationService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .roles(roleNames)
+                .permissions(extractPermissions(user))
                 .build();
     }
 
@@ -140,7 +148,7 @@ public class AuthenticationService {
             newUser.setFullName(fullName != null && !fullName.isBlank() ? fullName : email);
             newUser.setAvatarUrl(pictureUrl);
             newUser.setNativeLanguage("en");
-            newUser.setTargetLevel("A1");
+            newUser.setTargetLevel(null);
             newUser.setEmailVerified(true);
             newUser.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
             newUser.setStatus("ACTIVE");
@@ -166,18 +174,60 @@ public class AuthenticationService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .roles(roleNames)
+                .permissions(extractPermissions(user))
                 .build();
     }
 
     @Transactional
     public void verifyEmail(String token) {
-        User user = userRepository.findAll().stream()
-                .filter(u -> token.equals(u.getEmailVerificationToken()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Mã xác minh email không hợp lệ hoặc đã hết hạn"));
+        if (token == null || token.matches("\\d{6}")) {
+            throw new AppException(ErrorCode.INVALID_OTP);
+        }
+        User user = userRepository.findByEmailVerificationToken(token)
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_OTP));
 
-        if (user.getVerificationTokenExpiry() != null && user.getVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Mã xác minh email đã hết hạn");
+        completeEmailVerification(user);
+    }
+
+    @Transactional
+    public void verifyRegistrationOtp(String email, String otp) {
+        User user = userRepository.findByEmail(normalizeEmail(email))
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_OTP));
+
+        if (Boolean.TRUE.equals(user.getEmailVerified())) {
+            return;
+        }
+        if (otp == null || !otp.equals(user.getEmailVerificationToken())) {
+            throw new AppException(ErrorCode.INVALID_OTP);
+        }
+
+        completeEmailVerification(user);
+    }
+
+    @Transactional
+    public String sendRegistrationVerificationOtp(User user) {
+        String otp = generateOtp();
+        user.setEmailVerificationToken(otp);
+        user.setVerificationTokenExpiry(LocalDateTime.now().plusMinutes(REGISTRATION_OTP_EXPIRY_MINUTES));
+        userRepository.save(user);
+
+        if (emailService.sendRegistrationVerificationOtp(
+                user.getEmail(), otp, REGISTRATION_OTP_EXPIRY_MINUTES)) {
+            log.info("Registration verification OTP sent to [{}]", user.getEmail());
+            return null;
+        }
+        if (emailService.isConfigured()) {
+            throw new AppException(ErrorCode.MAIL_DELIVERY_FAILED);
+        }
+        log.warn("Mail is disabled; returning registration OTP in the development response for [{}]", user.getEmail());
+        return otp;
+    }
+
+    private void completeEmailVerification(User user) {
+
+        if (user.getVerificationTokenExpiry() == null
+                || !user.getVerificationTokenExpiry().isAfter(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.INVALID_OTP);
         }
 
         user.setEmailVerified(true);
@@ -188,20 +238,33 @@ public class AuthenticationService {
 
     @Transactional
     public String resendVerificationEmail(String email) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(normalizeEmail(email))
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         if (Boolean.TRUE.equals(user.getEmailVerified())) {
             return null;
         }
 
-        String token = UUID.randomUUID().toString();
-        user.setEmailVerificationToken(token);
-        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
+        String otp = generateOtp();
+        user.setEmailVerificationToken(otp);
+        user.setVerificationTokenExpiry(LocalDateTime.now().plusMinutes(REGISTRATION_OTP_EXPIRY_MINUTES));
         userRepository.save(user);
 
-        log.info("ÄÃ£ táº¡o láº¡i token xÃ¡c minh email cho [{}]", email);
-        return token; // Returning token for development/testing until email delivery is configured.
+        boolean sent = emailService.sendRegistrationVerificationOtp(
+                user.getEmail(), otp, REGISTRATION_OTP_EXPIRY_MINUTES);
+        if (!sent && emailService.isConfigured()) {
+            throw new AppException(ErrorCode.MAIL_DELIVERY_FAILED);
+        }
+        log.info("Registration verification OTP regenerated for [{}]", user.getEmail());
+        return sent ? null : otp;
+    }
+
+    private String generateOtp() {
+        return String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
     }
 
     @Transactional
@@ -209,7 +272,7 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        String otp = String.format("%06d", new Random().nextInt(999999));
+        String otp = generateOtp();
         user.setResetPasswordOtp(otp);
         user.setResetPasswordOtpExpiry(LocalDateTime.now().plusMinutes(15));
         userRepository.save(user);
@@ -217,10 +280,13 @@ public class AuthenticationService {
         boolean sent = emailService.sendPasswordResetOtp(user.getEmail(), otp);
         if (sent) {
             log.info("Đã gửi mã OTP khôi phục mật khẩu cho email [{}]", email);
-        } else {
-            log.info("Đã tạo mã OTP khôi phục mật khẩu cho email [{}]: {}", email, otp);
+            return null;
         }
-        return sent ? null : otp; // Only expose OTP when email delivery is not configured.
+        if (emailService.isConfigured()) {
+            throw new AppException(ErrorCode.MAIL_DELIVERY_FAILED);
+        }
+        log.warn("Mail is disabled; returning password reset OTP in the development response for [{}]", email);
+        return otp;
     }
 
     @Transactional
@@ -282,6 +348,7 @@ public class AuthenticationService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .roles(roleNames)
+                .permissions(extractPermissions(user))
                 .build();
     }
 
@@ -374,7 +441,10 @@ public class AuthenticationService {
     private String[] buildScope(User user) {
         Set<String> scopes = java.util.Collections.newSetFromMap(new ConcurrentHashMap<>());
         if (!CollectionUtils.isEmpty(user.getRoles())) {
-            user.getRoles().forEach(role -> scopes.add("ROLE_" + role.getName()));
+            user.getRoles().forEach(role -> {
+                scopes.add("ROLE_" + role.getName());
+                if (role.getPermissions() != null) scopes.addAll(role.getPermissions());
+            });
         } else { scopes.add("ROLE_" + user.getRole()); }
         return scopes.toArray(new String[0]);
     }
@@ -383,6 +453,14 @@ public class AuthenticationService {
         if (user.getRoles() == null || user.getRoles().isEmpty()) return Set.of(user.getRole());
         return user.getRoles().stream()
                 .map(Role::getName)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<String> extractPermissions(User user) {
+        if (user.getRoles() == null || user.getRoles().isEmpty()) return Set.of();
+        return user.getRoles().stream()
+                .filter(role -> role.getPermissions() != null)
+                .flatMap(role -> role.getPermissions().stream())
                 .collect(Collectors.toSet());
     }
 }

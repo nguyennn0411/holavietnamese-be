@@ -19,14 +19,13 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-import java.time.Instant;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     public record ContentError(String code, String message, int status) {}
-    @ExceptionHandler(com.sep490.backend.learning.shared.ContentException.class)
-    ResponseEntity<ContentError> content(com.sep490.backend.learning.shared.ContentException e) {
+    @ExceptionHandler(com.sep490.backend.exception.ContentException.class)
+    ResponseEntity<ContentError> content(com.sep490.backend.exception.ContentException e) {
         return ResponseEntity.status(e.status).body(new ContentError(e.code,e.getMessage(),e.status.value()));
     }
 

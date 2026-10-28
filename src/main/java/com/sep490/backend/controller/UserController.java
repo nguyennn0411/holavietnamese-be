@@ -31,7 +31,7 @@ public class UserController {
         UserResponse response = userService.register(request);
         return ApiResponse.<UserResponse>builder()
                 .result(response)
-                .message("Đăng ký tài khoản học viên thành công")
+                .message("Đăng ký thành công. Vui lòng kiểm tra email để lấy mã OTP")
                 .build();
     }
 
@@ -75,6 +75,14 @@ public class UserController {
         return ApiResponse.<UserResponse>builder()
                 .result(response)
                 .message("Hoàn thành Onboarding thành công")
+                .build();
+    }
+
+    @GetMapping("/settings")
+    public ApiResponse<UserResponse> getSettings() {
+        UserResponse response = userService.getMyProfile();
+        return ApiResponse.<UserResponse>builder()
+                .result(response)
                 .build();
     }
 

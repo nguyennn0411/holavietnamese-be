@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -24,12 +23,29 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .requestMatchers("/api/auth/**", "/api/users/register", "/api/login", "/error",
                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-            .requestMatchers(HttpMethod.GET, "/media/foundation/**", "/media/pronunciation/**", "/api/csrf", "/api/courses", "/api/courses/{id}",
-                "/api/grammar", "/api/grammar/{id}", "/api/lessons/public/**", "/api/topics/public/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/media/**", "/api/csrf", "/api/courses", "/api/courses/{id}",
+                "/api/site-content", "/api/grammar", "/api/grammar/{id}", "/api/lessons/public/**", "/api/topics/public/**", "/api/notifications/stream",
+                "/api/ai/scenarios", "/api/ai/scenarios/*").permitAll()
+            .requestMatchers("/api/ai/roleplay/scenarios/*/complete", "/api/ai/roleplay/sessions/*/finish").permitAll()
+            .requestMatchers("/api/admin/courses/**", "/api/admin/modules/**",
+                "/api/admin/lessons/**", "/api/admin/activities/**",
+                "/api/admin/questions/**", "/api/admin/quizzes/**")
+                .hasAnyRole("ADMIN", "CONTENT_MANAGER")
+            .requestMatchers("/api/admin/vocabulary/**", "/api/admin/regional-language/**")
+                .hasAnyAuthority("ROLE_CONTENT_MANAGER", "ROLE_ADMIN", ContentPermissions.VOCABULARY_READ,
+                    ContentPermissions.VOCABULARY_WRITE, ContentPermissions.VOCABULARY_IMPORT,
+                    ContentPermissions.VOCABULARY_REVIEW, ContentPermissions.VOCABULARY_PUBLISH)
+            .requestMatchers("/api/admin/imports/**")
+                .hasAnyAuthority("ROLE_CONTENT_MANAGER", ContentPermissions.VOCABULARY_IMPORT)
+            .requestMatchers("/api/admin/destinations/**")
+                .hasAnyAuthority("ROLE_CONTENT_MANAGER", "ROLE_ADMIN", ContentPermissions.EXPLORE_READ,
+                    ContentPermissions.EXPLORE_WRITE, ContentPermissions.EXPLORE_LINK_WRITE,
+                    ContentPermissions.EXPLORE_REVIEW, ContentPermissions.EXPLORE_PUBLISH)
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated())
             // JWT clients send an explicit Authorization header; legacy session clients keep CSRF.
-            .csrf(c -> c.ignoringRequestMatchers("/api/auth/**", "/api/users/register")
+            .csrf(c -> c.ignoringRequestMatchers("/api/auth/**", "/api/users/register", "/api/notifications/**",
+                    "/api/ai/roleplay/scenarios/*/complete", "/api/ai/roleplay/sessions/*/finish")
                 .ignoringRequestMatchers(r -> r.getHeader("Authorization") != null
                     && r.getHeader("Authorization").startsWith("Bearer ")))
             .oauth2ResourceServer(o -> o.jwt(j -> j.decoder(decoder).jwtAuthenticationConverter(converter))

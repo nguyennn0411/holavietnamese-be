@@ -1,0 +1,4 @@
+services:
+  backend:
+    environment:
+      APP_CHAPTERTWO_SEED_ENABLED: "true"

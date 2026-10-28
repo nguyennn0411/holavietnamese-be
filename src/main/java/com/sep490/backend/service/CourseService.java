@@ -5,13 +5,11 @@ import java.util.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import com.sep490.backend.service.CourseService;
 import com.sep490.backend.repository.*;
 import com.sep490.backend.dto.response.*;
 import com.sep490.backend.dto.model.*;
 import com.sep490.backend.exception.LearningException;
 import com.sep490.backend.entity.enums.*;
-import static com.sep490.backend.exception.LearningException.Kind.*;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -19,7 +17,7 @@ public class CourseService {
     private final CourseRepository courses;
     private final EnrollmentRepository enrollments;
     private final Clock clock;
-    private final com.sep490.backend.learning.shared.ContentStore contentStore;
+    private final com.sep490.backend.service.ContentStore contentStore;
     public List<CourseResponse> availableCourses() {
         return courses.findAvailable().stream().map(this::response).toList();
     }

@@ -33,8 +33,11 @@ public class UserResponse {
     Boolean emailVerified;
     Integer streakCount;
     Integer totalXp;
+    Integer hearts;
     String status;
     Set<String> roles;
+    Set<String> permissions;
     String token;
+    String verificationOtp;
     LocalDateTime createdAt;
 }

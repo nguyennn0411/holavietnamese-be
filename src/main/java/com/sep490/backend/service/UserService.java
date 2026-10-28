@@ -25,9 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.List;
-import java.time.LocalDateTime;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -73,24 +71,20 @@ public class UserService {
         user.setNativeLanguage(request.getNativeLanguage() != null && !request.getNativeLanguage().isBlank() 
                 ? request.getNativeLanguage().trim() : "en");
         user.setLearningGoal(request.getLearningGoal());
-        user.setTargetLevel(request.getTargetLevel() != null && !request.getTargetLevel().isBlank() 
-                ? request.getTargetLevel().trim() : "A1");
+        user.setTargetLevel(request.getTargetLevel() != null && !request.getTargetLevel().isBlank()
+                ? request.getTargetLevel().trim() : null);
         user.setStatus("ACTIVE");
         user.setEnabled(true);
         user.setRole("LEARNER");
         user.setEmailVerified(false);
-        user.setEmailVerificationToken(UUID.randomUUID().toString());
-        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
         user.setRoles(new HashSet<>(Set.of(learnerRole)));
 
         User savedUser = userRepository.save(user);
+        String developmentOtp = authenticationService.sendRegistrationVerificationOtp(savedUser);
         log.info("Học viên [{}] đăng ký tài khoản thành công", savedUser.getUsername());
 
-        // Sinh token tự động để học viên đăng nhập ngay lập tức
-        String token = authenticationService.generateToken(savedUser);
         UserResponse response = toUserResponse(savedUser);
-        response.setToken(token);
-
+        response.setVerificationOtp(developmentOtp);
         return response;
     }
 
@@ -210,6 +204,9 @@ public class UserService {
     private UserResponse toUserResponse(User user) {
         Set<String> roleNames = user.getRoles() == null || user.getRoles().isEmpty() ? Set.of(user.getRole()) :
                 user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
+        Set<String> permissions = user.getRoles() == null || user.getRoles().isEmpty() ? Set.of() :
+                user.getRoles().stream().filter(role -> role.getPermissions() != null)
+                        .flatMap(role -> role.getPermissions().stream()).collect(Collectors.toSet());
 
         return UserResponse.builder()
                 .id(user.getId())
@@ -231,8 +228,10 @@ public class UserService {
                 .emailVerified(user.getEmailVerified())
                 .streakCount(user.getStreakCount())
                 .totalXp(user.getTotalXp())
+                .hearts(user.getHearts() != null ? user.getHearts() : 5)
                 .status(user.getStatus())
                 .roles(roleNames)
+                .permissions(permissions)
                 .createdAt(user.getCreatedAt())
                 .build();
     }

@@ -1,0 +1,10 @@
+services:
+  backend:
+    command:
+      - --app.foundation.seed.enabled=true
+      - --app.pronunciation.seed.enabled=true
+      - --app.chapterone.seed.enabled=true
+      - --app.chaptertwo.seed.enabled=true
+      - --app.chapterthree.seed.enabled=true
+      - --app.tv123.seed.enabled=true
+      - --app.tv123.package-seed.enabled=true

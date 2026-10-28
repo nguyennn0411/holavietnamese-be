@@ -11,6 +11,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashSet;
+
 /** Resolve both JWT and legacy session authentication to the same database user ID. */
 @Component
 @RequiredArgsConstructor
@@ -20,9 +22,17 @@ public class LearningJwtAuthenticationConverter implements Converter<Jwt, Abstra
         var user=users.findActiveByUsernameWithRoles(identifier)
             .orElseThrow(() -> new UsernameNotFoundException("Account not found."));
         if (!user.isEnabled() || !"ACTIVE".equals(user.getStatus())) throw new DisabledException("Account is disabled.");
-        boolean admin=user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()))
-            || (user.getRoles().isEmpty() && "ADMIN".equals(user.getRole()));
-        return new LearnerPrincipal(user.getId(),user.getEmail(),user.getPasswordHash(),true,admin?"ADMIN":"LEARNER");
+        var roleNames = new LinkedHashSet<String>();
+        var permissions = new LinkedHashSet<String>();
+        user.getRoles().forEach(role -> {
+            roleNames.add(role.getName());
+            if (role.getPermissions() != null) permissions.addAll(role.getPermissions());
+        });
+        if (roleNames.isEmpty() && user.getRole() != null) roleNames.add(user.getRole());
+        boolean admin=roleNames.contains("ADMIN");
+        boolean contentManager=roleNames.contains("CONTENT_MANAGER");
+        String effectiveRole=admin?"ADMIN":contentManager?"CONTENT_MANAGER":"LEARNER";
+        return new LearnerPrincipal(user.getId(),user.getEmail(),user.getPasswordHash(),true,effectiveRole,roleNames,permissions);
     }
     @Override public AbstractAuthenticationToken convert(Jwt jwt) {
         var principal=loadUserByUsername(jwt.getSubject());

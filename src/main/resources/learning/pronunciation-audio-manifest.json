@@ -20,19 +20,19 @@
     "key": "sound-5"
   },
   {
-    "text": "ă",
+    "text": "á",
     "key": "sound-6"
   },
   {
-    "text": "â",
+    "text": "ớ",
     "key": "sound-7"
   },
   {
-    "text": "đ",
+    "text": "đê",
     "key": "sound-8"
   },
   {
-    "text": "a. ă. â. đ",
+    "text": "a. á. ớ. đê",
     "key": "sound-9"
   },
   {
@@ -60,7 +60,7 @@
     "key": "sound-15"
   },
   {
-    "text": "ă. â. đ. ơ. ư",
+    "text": "á. ớ. đê. ơ. ư",
     "key": "sound-16"
   },
   {
@@ -200,7 +200,7 @@
     "key": "sound-50"
   },
   {
-    "text": "a. â. á. ở",
+    "text": "a. ớ. á. ở",
     "key": "sound-51"
   },
   {
@@ -562,5 +562,97 @@
   {
     "text": "người. ngươi. mười",
     "key": "sound-141"
+  },
+  {
+    "text": "bê",
+    "key": "sound-142"
+  },
+  {
+    "text": "xê",
+    "key": "sound-143"
+  },
+  {
+    "text": "dê",
+    "key": "sound-144"
+  },
+  {
+    "text": "e",
+    "key": "sound-145"
+  },
+  {
+    "text": "ê",
+    "key": "sound-146"
+  },
+  {
+    "text": "giê",
+    "key": "sound-147"
+  },
+  {
+    "text": "hát",
+    "key": "sound-148"
+  },
+  {
+    "text": "i ngắn",
+    "key": "sound-149"
+  },
+  {
+    "text": "ca",
+    "key": "sound-150"
+  },
+  {
+    "text": "e lờ",
+    "key": "sound-151"
+  },
+  {
+    "text": "em mờ",
+    "key": "sound-152"
+  },
+  {
+    "text": "en nờ",
+    "key": "sound-153"
+  },
+  {
+    "text": "o",
+    "key": "sound-154"
+  },
+  {
+    "text": "ô",
+    "key": "sound-155"
+  },
+  {
+    "text": "pê",
+    "key": "sound-156"
+  },
+  {
+    "text": "cu",
+    "key": "sound-157"
+  },
+  {
+    "text": "e rờ",
+    "key": "sound-158"
+  },
+  {
+    "text": "ét sì",
+    "key": "sound-159"
+  },
+  {
+    "text": "tê",
+    "key": "sound-160"
+  },
+  {
+    "text": "u",
+    "key": "sound-161"
+  },
+  {
+    "text": "vê",
+    "key": "sound-162"
+  },
+  {
+    "text": "ích xì",
+    "key": "sound-163"
+  },
+  {
+    "text": "i dài",
+    "key": "sound-164"
   }
 ]

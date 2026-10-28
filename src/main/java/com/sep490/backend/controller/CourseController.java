@@ -1,6 +1,5 @@
 package com.sep490.backend.controller;
 
-import java.util.List;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,7 +10,7 @@ import com.sep490.backend.dto.response.*;
 @RestController @RequestMapping("/api/courses") @RequiredArgsConstructor
 public class CourseController {
     private final CourseService courses;
-    private final com.sep490.backend.learning.course.CourseContentService content;
+    private final com.sep490.backend.service.CourseContentService content;
     @GetMapping public Object list(@RequestParam java.util.Map<String,String> params) { return params.containsKey("page") ? content.list(params,false) : content.list(java.util.Map.of("size","100"),false).content(); }
     @GetMapping("/{id}") public Object detail(@PathVariable Long id,@AuthenticationPrincipal LearnerPrincipal user) { return content.detail(id,user==null?null:user.id(),false); }
     @GetMapping("/{id}/enrollment-status")

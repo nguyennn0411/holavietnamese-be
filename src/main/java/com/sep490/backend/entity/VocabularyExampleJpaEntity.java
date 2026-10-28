@@ -41,7 +41,7 @@ public class VocabularyExampleJpaEntity {
     @Column(name = "example_vi", nullable = false, columnDefinition = "TEXT")
     private String exampleVi;
 
-    @Column(name = "translation_en", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "translation_en", columnDefinition = "TEXT")
     private String translationEn;
 
     @Column(name = "audio_url", length = 2048)

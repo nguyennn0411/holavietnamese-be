@@ -7,7 +7,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
-import java.util.Set;
 
 public record VocabularyWordRequest(
 
@@ -22,19 +21,13 @@ public record VocabularyWordRequest(
         @Size(max = 40)
         String partOfSpeech,
 
-        @NotBlank
-        @Size(max = 10)
-        String cefrLevel,
-
         @Size(max = 2048)
         String audioUrl,
 
         VocabularyStatus status,
 
-        Set<Long> topicIds,
-
         @Valid
         @NotEmpty
-        List<VocabularyMeaningRequest> meanings
+        List<@jakarta.validation.constraints.NotNull VocabularyMeaningRequest> meanings
 ) {
 }

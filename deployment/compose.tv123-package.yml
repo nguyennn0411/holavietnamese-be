@@ -1,0 +1,4 @@
+services:
+  backend:
+    environment:
+      APP_TV123_PACKAGE_SEED_ENABLED: "true"

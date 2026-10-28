@@ -7,12 +7,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.*;
 import com.sep490.backend.config.LearnerPrincipal;
-import com.sep490.backend.learning.course.CourseContentService;
-import com.sep490.backend.learning.demo.FoundationCourseSeed;
-import com.sep490.backend.learning.lesson.ActivityService;
-import com.sep490.backend.learning.progress.ActivityProgressService;
-import com.sep490.backend.learning.quiz.QuizService;
-import com.sep490.backend.learning.shared.*;
+import com.sep490.backend.service.CourseContentService;
+import com.sep490.backend.seed.FoundationCourseSeed;
+import com.sep490.backend.service.ActivityService;
+import com.sep490.backend.service.ActivityProgressService;
+import com.sep490.backend.service.QuizService;
+import com.sep490.backend.dto.request.ContentRequests;
+import com.sep490.backend.dto.response.learning.PageResponse;
+import com.sep490.backend.exception.ContentException;
+import com.sep490.backend.service.ContentList;
+import com.sep490.backend.service.ContentRules;
+import com.sep490.backend.service.ContentStore;
 import com.sep490.backend.service.CourseService;
 import java.math.BigDecimal;
 import java.util.*;

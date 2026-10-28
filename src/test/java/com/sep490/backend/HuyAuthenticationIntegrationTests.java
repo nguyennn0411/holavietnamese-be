@@ -3,7 +3,7 @@ package com.sep490.backend;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sep490.backend.learning.shared.ContentStore;
+import com.sep490.backend.service.ContentStore;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,14 +23,30 @@ class HuyAuthenticationIntegrationTests {
     @Autowired PasswordEncoder passwords;
     @Autowired jakarta.persistence.EntityManager entities;
 
-    @Test void registrationTokenConnectsProfileCourseAndOverview() throws Exception {
+    @Test void registrationOtpConnectsProfileCourseAndOverviewAfterVerification() throws Exception {
         String username = "learner" + UUID.randomUUID().toString().replace("-", "");
+        String email = username + "@test.local";
         var response = mvc.perform(post("/api/auth/register").contentType("application/json")
-            .content(json.writeValueAsString(Map.of("username", username, "email", username+"@test.local", "password", "Test-pass123"))))
-            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+            .content(json.writeValueAsString(Map.of("username", username, "email", email, "password", "Test-pass123"))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result.emailVerified").value(false))
+            .andExpect(jsonPath("$.result.token").doesNotExist())
+            .andExpect(jsonPath("$.result.verificationOtp").isString())
+            .andReturn().getResponse().getContentAsString();
         var result=json.readTree(response).path("result");
         long id=result.path("id").asLong();
-        String bearer="Bearer "+result.path("token").asText();
+        String otp=result.path("verificationOtp").asText();
+
+        mvc.perform(post("/api/auth/token").contentType("application/json")
+            .content(json.writeValueAsString(Map.of("username", email, "password", "Test-pass123"))))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value(1012));
+
+        mvc.perform(post("/api/auth/verify-email/otp").contentType("application/json")
+            .content(json.writeValueAsString(Map.of("email", email, "otp", otp))))
+            .andExpect(status().isOk());
+
+        String bearer=login(email);
         mvc.perform(get("/api/me/session").header("Authorization",bearer))
             .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(id));
         mvc.perform(get("/api/users/me").header("Authorization",bearer))

@@ -14,15 +14,17 @@ public final class VocabularyWordResponseMapper {
                 word.word(),
                 word.pronunciation(),
                 word.partOfSpeech(),
-                word.cefrLevel(),
                 word.audioUrl(),
                 word.status(),
                 word.publishedAt(),
                 word.archivedAt(),
-                word.topics(),
                 word.meanings(),
                 word.createdAt(),
-                word.updatedAt()
+                word.updatedAt(),word.source(),word.lexical()
         );
+    }
+
+    public static VocabularyWordResponse toPublishedResponse(VocabularyWord word) {
+        return toResponse(word);
     }
 }

@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.sep490.backend.service.LearningProgressService;
 import com.sep490.backend.repository.*;
 import com.sep490.backend.dto.response.LearningProgressResponse;
 import com.sep490.backend.dto.model.*;

@@ -50,7 +50,35 @@ public class EmailService {
         }
     }
 
-    private boolean isConfigured() {
+    public boolean sendRegistrationVerificationOtp(String to, String otp, long expiryMinutes) {
+        if (!isConfigured()) {
+            log.warn("Mail is not configured; registration verification OTP for [{}] was not sent", to);
+            return false;
+        }
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(mailUsername);
+        message.setTo(to);
+        message.setSubject("Verify your Hola Vietnamese account");
+        message.setText("""
+                Welcome to Hola Vietnamese!
+
+                Your email verification code is: %s
+
+                This code expires in %d minutes.
+                If you did not create this account, please ignore this email.
+                """.formatted(otp, expiryMinutes));
+
+        try {
+            mailSender.send(message);
+            return true;
+        } catch (MailException e) {
+            log.error("Could not send registration verification OTP to [{}]: {}", to, e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean isConfigured() {
         return mailEnabled
                 && mailUsername != null
                 && !mailUsername.isBlank()

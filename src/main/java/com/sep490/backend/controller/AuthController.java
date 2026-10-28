@@ -35,7 +35,7 @@ public class AuthController {
         return ApiResponse.<UserResponse>builder()
                 .code(1000)
                 .result(result)
-                .message("Đăng ký tài khoản thành công")
+                .message("Đăng ký thành công. Vui lòng kiểm tra email để lấy mã OTP")
                 .build();
     }
 
@@ -69,13 +69,22 @@ public class AuthController {
                 .build();
     }
 
+    @PostMapping("/verify-email/otp")
+    public ApiResponse<Void> verifyEmailOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        authenticationService.verifyRegistrationOtp(request.getEmail(), request.getOtp());
+        return ApiResponse.<Void>builder()
+                .code(1000)
+                .message("Xác minh email thành công")
+                .build();
+    }
+
     @PostMapping("/verify-email/resend")
     public ApiResponse<String> resendVerifyEmail(@Valid @RequestBody ForgotPasswordInitiateRequest request) {
-        String token = authenticationService.resendVerificationEmail(request.getEmail());
+        String otp = authenticationService.resendVerificationEmail(request.getEmail());
         return ApiResponse.<String>builder()
                 .code(1000)
-                .result(token)
-                .message(token == null ? "Email đã được xác minh" : "Đã tạo lại liên kết xác minh email")
+                .result(otp)
+                .message("Nếu email chưa được xác minh, mã OTP mới đã được gửi")
                 .build();
     }
 
