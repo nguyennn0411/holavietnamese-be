@@ -1,6 +1,6 @@
 package com.sep490.backend.service.websiteimport;
 
-import com.sep490.backend.learning.shared.ContentException;
+import com.sep490.backend.exception.ContentException;
 import java.io.ByteArrayOutputStream;
 import java.net.*;
 import java.net.http.*;

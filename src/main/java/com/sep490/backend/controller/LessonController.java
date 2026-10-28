@@ -10,7 +10,8 @@ import com.sep490.backend.dto.response.LessonResponse;
 @RestController @RequiredArgsConstructor
 public class LessonController {
     private final LessonService lessons;
-    private final com.sep490.backend.learning.lesson.ActivityService activities;
+    private final com.sep490.backend.service.ActivityService activities;
+    private final com.sep490.backend.service.ContentStore store;
     @GetMapping("/api/courses/{id}/lessons")
     public List<LessonResponse> list(@AuthenticationPrincipal LearnerPrincipal user, @PathVariable Long id) { return lessons.lessons(user.id(), id); }
     @GetMapping("/api/lessons/{id}")

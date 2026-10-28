@@ -2,7 +2,7 @@ package com.sep490.backend.service.websiteimport;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.sep490.backend.learning.shared.ContentException;
+import com.sep490.backend.exception.ContentException;
 import org.junit.jupiter.api.Test;
 
 class WebsiteCourseExtractorTest {

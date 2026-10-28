@@ -20,9 +20,9 @@ public class LessonService {
     private final CourseRepository courses;
     private final LearnerAccess access;
     private final Clock clock;
-    private final com.sep490.backend.learning.shared.ContentStore contentStore;
-    private final com.sep490.backend.learning.progress.ActivityProgressService activityProgress;
-    private final com.sep490.backend.learning.course.CourseContentService contentCourses;
+    private final com.sep490.backend.service.ContentStore contentStore;
+    private final com.sep490.backend.service.ActivityProgressService activityProgress;
+    private final com.sep490.backend.service.CourseContentService contentCourses;
     public List<LessonResponse> lessons(Long userId, Long courseId) {
         Enrollment e = access.requireEnrollment(userId, courseId, false);
         List<Lesson> list = lessons.findPublishedByCourse(courseId);
@@ -46,7 +46,7 @@ public class LessonService {
         if(contentStore.count("SELECT count(*) FROM lesson_activities WHERE lesson_id=?",lessonId)>0) {
             activityProgress.startLesson(userId,lessonId);
             if(complete&&!Boolean.TRUE.equals(activityProgress.evaluate(userId,lessonId).get("completed")))
-                throw com.sep490.backend.learning.shared.ContentException.conflict("LESSON_INCOMPLETE","Complete all required activities and pass the required quizzes first.");
+                throw com.sep490.backend.exception.ContentException.conflict("LESSON_INCOMPLETE","Complete all required activities and pass the required quizzes first.");
             return lesson(userId,lessonId);
         }
         Lesson l = published(lessonId);
@@ -66,7 +66,7 @@ public class LessonService {
         return lessons.findById(id).filter(Lesson::published).orElseThrow(() -> LearningException.notFound("Lesson"));
     }
     private void requireUnlocked(Long userId,Long lessonId) {
-        if(contentCourses.locked(userId,lessonId)) throw com.sep490.backend.learning.shared.ContentException.forbidden("LESSON_LOCKED","Complete prerequisite lesson first.");
+        if(contentCourses.locked(userId,lessonId)) throw com.sep490.backend.exception.ContentException.forbidden("LESSON_LOCKED","Complete prerequisite lesson first.");
     }
     private LessonResponse detail(Lesson lesson, LessonProgress p) {
         List<Lesson> list = lessons.findPublishedByCourse(lesson.courseId());

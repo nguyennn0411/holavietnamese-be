@@ -11,7 +11,7 @@ The original SQL files are preserved here without changes for reference.
 
 The active migration files match the shared `backup` branch. Some local databases
 used an earlier numbering scheme; compare their applied history with
-`INTEGRATION_DEMO.md` before starting the merged application. This merge does not
+`docs/INTEGRATION_DEMO.md` before starting the merged application. This merge does not
 rewrite database history or run Flyway Repair automatically.
 Do not copy the archived files back into `db/migration`: their version numbers
 collide with the canonical migrations.

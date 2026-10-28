@@ -4,7 +4,7 @@ import com.sep490.backend.config.LearnerPrincipal;
 import com.sep490.backend.dto.response.ApiResponse;
 import com.sep490.backend.exception.AppException;
 import com.sep490.backend.exception.ErrorCode;
-import com.sep490.backend.learning.shared.ContentStore;
+import com.sep490.backend.service.ContentStore;
 import com.sep490.backend.repository.UserRepository;
 import com.sep490.backend.service.MyCoursesService;
 import java.time.LocalDate;

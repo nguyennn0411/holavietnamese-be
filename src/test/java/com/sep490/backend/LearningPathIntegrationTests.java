@@ -2,9 +2,9 @@ package com.sep490.backend;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.sep490.backend.learning.path.LearningPathRequests;
-import com.sep490.backend.learning.path.LearningPathService;
-import com.sep490.backend.learning.shared.ContentStore;
+import com.sep490.backend.dto.request.LearningPathRequests;
+import com.sep490.backend.service.LearningPathService;
+import com.sep490.backend.service.ContentStore;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;

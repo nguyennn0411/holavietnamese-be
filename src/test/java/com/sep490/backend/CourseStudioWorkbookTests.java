@@ -2,9 +2,9 @@ package com.sep490.backend;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.sep490.backend.learning.course.CourseWorkbookService;
-import com.sep490.backend.learning.course.CourseReviewService;
-import com.sep490.backend.learning.shared.ContentStore;
+import com.sep490.backend.service.CourseWorkbookService;
+import com.sep490.backend.service.CourseReviewService;
+import com.sep490.backend.service.ContentStore;
 import java.io.ByteArrayInputStream;
 import java.util.Map;
 import java.util.UUID;

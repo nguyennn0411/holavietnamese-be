@@ -2,7 +2,7 @@ package com.sep490.backend.controller;
 
 import com.sep490.backend.config.LearnerPrincipal;
 import com.sep490.backend.dto.response.ApiResponse;
-import com.sep490.backend.learning.shared.ContentStore;
+import com.sep490.backend.service.ContentStore;
 import com.sep490.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

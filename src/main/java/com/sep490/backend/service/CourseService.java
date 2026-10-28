@@ -17,7 +17,7 @@ public class CourseService {
     private final CourseRepository courses;
     private final EnrollmentRepository enrollments;
     private final Clock clock;
-    private final com.sep490.backend.learning.shared.ContentStore contentStore;
+    private final com.sep490.backend.service.ContentStore contentStore;
     public List<CourseResponse> availableCourses() {
         return courses.findAvailable().stream().map(this::response).toList();
     }

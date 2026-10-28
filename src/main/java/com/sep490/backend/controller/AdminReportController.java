@@ -1,7 +1,7 @@
 package com.sep490.backend.controller;
 
 import com.sep490.backend.dto.response.ApiResponse;
-import com.sep490.backend.learning.shared.ContentStore;
+import com.sep490.backend.service.ContentStore;
 import com.sep490.backend.repository.CourseRepository;
 import com.sep490.backend.repository.LessonRepository;
 import com.sep490.backend.repository.UserRepository;

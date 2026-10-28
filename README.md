@@ -2,13 +2,23 @@
 
 Backend Spring Boot được tổ chức theo monolith phân lớp, sử dụng MySQL 8.4 và Flyway. Frontend là ứng dụng React riêng trong `FE/holavietnamese_fe`.
 
-Module course/activity/grammar/question bank/quiz mới nằm trong package `learning`.
+Các chức năng course/activity/grammar/question bank/quiz được xếp theo lớp dùng chung: endpoint trong `controller`, nghiệp vụ trong `service`, DTO trong `dto` và dữ liệu mẫu trong `seed`.
 Các lesson đã xuất bản được học theo thứ tự tùy ý sau khi đăng ký course; bài tiên quyết không còn khóa truy cập. Điều kiện hoàn thành activity, quiz và course vẫn được kiểm tra khi ghi nhận tiến độ.
-Chạy dữ liệu demo tùy chọn bằng `./start-demo.ps1`; xem báo cáo và quy trình kiểm tra ở `../MEMBER2_IMPLEMENTATION.md`.
+Chạy dữ liệu demo tùy chọn bằng `./scripts/dev/start-demo.ps1`.
 
 ## Cấu trúc
 
 ```text
+BE/
+├── deployment/         # Dockerfile và các Docker Compose overlay
+├── docs/               # Tài liệu kiến trúc, dữ liệu mẫu và hướng dẫn tính năng
+├── scripts/
+│   ├── dev/            # Script khởi động, dừng và kiểm thử môi trường local
+│   └── ...             # Script tạo/import nội dung học tập
+├── src/                 # Source code và test của Spring Boot
+├── pom.xml
+└── README.md
+
 src/main/java/com/sep490/backend/
 ├── BackendApplication.java
 ├── controller/          # REST endpoints
@@ -20,9 +30,10 @@ src/main/java/com/sep490/backend/
 │   └── enums/
 ├── dto/
 │   ├── request/
-│   ├── response/
+│   ├── response/        # Response DTO; response học tập nằm trong response/learning
 │   ├── model/           # Snapshot dữ liệu và tính toán tiến độ
 │   └── courseimport/    # Dữ liệu và hợp đồng workbook
+├── seed/                # Seed runner và dữ liệu khóa học mẫu
 ├── mapper/              # Chuyển JPA entity sang model
 ├── config/              # Security, principal và cấu hình Spring
 └── exception/           # Exception và REST error handler
@@ -37,18 +48,18 @@ Transaction, phân quyền và URL API được giữ nguyên. Flyway dùng migr
 
 Yêu cầu Java 21 và Maven. Cache dependency dùng mặc định `%USERPROFILE%\.m2\repository`.
 
-- Mở Docker Desktop (Linux containers), chạy `.\start-mysql.ps1 -StartBackend` bằng PowerShell 7 để chạy MySQL và BE trong Docker.
+- Mở Docker Desktop (Linux containers), chạy `.\scripts\dev\start-mysql.ps1 -StartBackend` bằng PowerShell 7 để chạy MySQL và BE trong Docker.
 - Script tự tạo `.env.mysql` với mật khẩu ngẫu nhiên nếu chưa có. Không commit file này.
-- Nếu chạy BE trong IntelliJ: chạy `.\start-mysql.ps1` để bật MySQL, rồi chạy `BackendApplication` với working directory là `BE`, hoặc `mvn spring-boot:run`.
+- Nếu chạy BE trong IntelliJ: chạy `.\scripts\dev\start-mysql.ps1` để bật MySQL, rồi chạy `BackendApplication` với working directory là `BE`, hoặc `mvn spring-boot:run`.
 - MySQL ở `localhost:3307`. BE Docker ở `http://localhost:18080` (biến `DOCKER_BACKEND_PORT`); chạy BE trực tiếp từ IntelliJ dùng `BACKEND_PORT` (máy hiện tại: 8088).
 - Chạy `mvn clean test` với Java 21. Test mặc định dùng H2 riêng.
 - MySQL dùng volume mới; dữ liệu SQL Server cũ chưa được chuyển tự động.
 
 ## Tài liệu
 
-- [DEMO_DATA.md](DEMO_DATA.md): nạp lại toàn bộ dữ liệu nội dung/demo từ nhánh backup trên máy của nhóm.
+- [DEMO_DATA.md](docs/DEMO_DATA.md): nạp lại toàn bộ dữ liệu nội dung/demo từ nhánh backup trên máy của nhóm.
 - [MSU_OPENBOOKS_CONTENT.md](MSU_OPENBOOKS_CONTENT.md): tái tạo 22 khóa học mẫu Basic/Advanced Vietnamese từ dữ liệu nguồn đã commit.
-- [INTEGRATION_DEMO.md](INTEGRATION_DEMO.md): luồng Khám phá Việt Nam hiện tại và lưu ý đối chiếu lịch sử migration.
+- [INTEGRATION_DEMO.md](docs/INTEGRATION_DEMO.md): luồng Khám phá Việt Nam hiện tại và lưu ý đối chiếu lịch sử migration.
 
 ### Từ vựng song ngữ và Excel
 
@@ -61,6 +72,6 @@ Yêu cầu Java 21 và Maven. Cache dependency dùng mặc định `%USERPROFILE
 - Preview không ghi mục từ. Confirm kiểm tra lại và nhập toàn bộ trong một giao dịch; từ/từ loại đã tồn tại bị từ chối, không ghi đè. `importedRows` đếm số mục từ tạo mới, có thể ít hơn số dòng Excel.
 - Nội dung, thông tin nguồn lịch sử và liên kết của các mục từ đã có vẫn được giữ. Không còn phương thức import JSONL hoặc dữ liệu pilot kèm source.
 
-- [LEARNER_FEATURES.md](LEARNER_FEATURES.md): API học viên và kiểm thử.
-- [COURSE_IMPORT.md](COURSE_IMPORT.md): import Excel dành cho ADMIN.
-- [MYSQL_DOCKER.md](MYSQL_DOCKER.md): cấu hình MySQL Docker và kiểm thử trên MySQL.
+- [LEARNER_FEATURES.md](docs/LEARNER_FEATURES.md): API học viên và kiểm thử.
+- [COURSE_IMPORT.md](docs/COURSE_IMPORT.md): import Excel dành cho ADMIN.
+- [MYSQL_DOCKER.md](docs/MYSQL_DOCKER.md): cấu hình MySQL Docker và kiểm thử trên MySQL.

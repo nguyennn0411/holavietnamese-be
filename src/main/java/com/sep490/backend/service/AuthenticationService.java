@@ -280,10 +280,13 @@ public class AuthenticationService {
         boolean sent = emailService.sendPasswordResetOtp(user.getEmail(), otp);
         if (sent) {
             log.info("Đã gửi mã OTP khôi phục mật khẩu cho email [{}]", email);
-        } else {
-            log.info("Đã tạo mã OTP khôi phục mật khẩu cho email [{}]: {}", email, otp);
+            return null;
         }
-        return sent ? null : otp; // Only expose OTP when email delivery is not configured.
+        if (emailService.isConfigured()) {
+            throw new AppException(ErrorCode.MAIL_DELIVERY_FAILED);
+        }
+        log.warn("Mail is disabled; returning password reset OTP in the development response for [{}]", email);
+        return otp;
     }
 
     @Transactional

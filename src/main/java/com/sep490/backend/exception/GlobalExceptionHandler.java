@@ -24,8 +24,8 @@ import java.io.IOException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     public record ContentError(String code, String message, int status) {}
-    @ExceptionHandler(com.sep490.backend.learning.shared.ContentException.class)
-    ResponseEntity<ContentError> content(com.sep490.backend.learning.shared.ContentException e) {
+    @ExceptionHandler(com.sep490.backend.exception.ContentException.class)
+    ResponseEntity<ContentError> content(com.sep490.backend.exception.ContentException e) {
         return ResponseEntity.status(e.status).body(new ContentError(e.code,e.getMessage(),e.status.value()));
     }
 
