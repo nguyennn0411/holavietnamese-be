@@ -868,8 +868,46 @@ public class AiTutorService {
         String grammarCorrection = null;
         List<Map<String, String>> words = new ArrayList<>();
 
+        // 0. Check Kinship Pronouns: "đại từ xưng hô", "xưng hô", "anh, chị, em, cô, chú"
+        if (unaccented.contains("dai tu xung ho") || unaccented.contains("xung ho") || (unaccented.contains("dai tu") && (unaccented.contains("anh") || unaccented.contains("em") || unaccented.contains("co") || unaccented.contains("chu"))) || (isEn && (lower.contains("pronoun") || lower.contains("address")))) {
+            reply = isEn
+                    ? "### 🏮 Vietnamese Kinship Pronoun System\n\n" +
+                      "Unlike English which relies on generic *'I'* and *'you'*, Vietnamese addresses people like extended family based on relative age and social connection:\n\n" +
+                      "| Person You Speak To | Call Them | Refer to Yourself As |\n" +
+                      "| :--- | :--- | :--- |\n" +
+                      "| **Male slightly older** | **Anh** | **Em** |\n" +
+                      "| **Female slightly older** | **Chị** | **Em** |\n" +
+                      "| **Someone younger** | **Em** | **Anh / Chị** |\n" +
+                      "| **Woman parent's age** | **Cô** (or Bác) | **Cháu** (or Con) |\n" +
+                      "| **Man parent's age** | **Chú** (or Bác) | **Cháu** |\n" +
+                      "| **Elderly person** | **Ông / Bà** | **Cháu** |\n" +
+                      "| **Peers of same age** | **Bạn / Cậu** | **Tôi / Mình / Tớ** |\n\n" +
+                      "💡 **Golden Rule:** When shopping, dining, or asking directions, calling the other person **'Anh / Chị'** and referring to yourself as **'Em'** is always considered polite and flattering!"
+                    : "### 🏮 Hướng dẫn sử dụng Hệ thống Đại từ Xưng hô tiếng Việt\n\n" +
+                      "Hệ thống xưng hô là nét văn hóa đặc sắc và tinh tế bậc nhất của tiếng Việt, nơi mọi người đối xử với nhau ấm áp như người trong một gia đình:\n\n" +
+                      "| Đối tượng giao tiếp | Xưng hô với họ | Tự xưng là |\n" +
+                      "| :--- | :--- | :--- |\n" +
+                      "| Nam lớn tuổi hơn một chút | **Anh** | **Em** |\n" +
+                      "| Nữ lớn tuổi hơn một chút | **Chị** | **Em** |\n" +
+                      "| Người nhỏ tuổi hơn bạn | **Em** | **Anh / Chị** |\n" +
+                      "| Phụ nữ trạc tuổi cha mẹ | **Cô** (hoặc Bác) | **Cháu** (hoặc Con) |\n" +
+                      "| Đàn ông trạc tuổi cha mẹ | **Chú** (hoặc Bác) | **Cháu** |\n" +
+                      "| Người cao tuổi (ngang ông bà) | **Ông / Bà** | **Cháu** |\n" +
+                      "| Bạn bè cùng trang lứa | **Bạn / Cậu** | **Tôi / Mình / Tớ** |\n\n" +
+                      "---\n\n" +
+                      "💡 **Mẹo vàng giao tiếp thực tế:**\n" +
+                      "1. **Khi vào quán xá / hỏi đường:** Luôn chủ động gọi người phục vụ hoặc người đối diện là **'Anh / Chị'** và xưng **'Em'** (ví dụ: *'Anh ơi cho em xem thực đơn với ạ!'*).\n" +
+                      "2. **Thêm trợ từ 'ạ':** Đặt từ **'ạ'** ở cuối câu khi nói chuyện với người lớn tuổi hơn (ví dụ: *'Dạ, em cảm ơn chị ạ!'*) để thể hiện sự lễ phép tối đa.";
+            nativeAlternative = "Dạ, cho em hỏi anh/chị cần hỗ trợ gì ạ?";
+            culturalNote = isEn
+                    ? "Vietnamese pronouns show deep respect, warmth, and close interpersonal connection."
+                    : "Xưng hô theo thứ bậc gia đình phản ánh văn hóa cộng đồng gắn kết và tôn trọng lễ nghĩa của người Việt.";
+            words.add(Map.of("word", "Đại từ xưng hô", "meaning", "Kinship pronouns / forms of address"));
+            words.add(Map.of("word", "Kính trên nhường dưới", "meaning", "Respecting elders and caring for youngsters"));
+            words.add(Map.of("word", "Dạ / Ạ", "meaning", "Polite particles showing respect to listeners"));
+        }
         // 1. Check Age Error: "tôi có 20 tuổi" / "tôi có ... tuổi"
-        if (unaccented.matches(".*(toi|minh|em)\\s+(co|la)\\s+\\d+\\s+tuoi.*") || lower.contains("có 20 tuổi") || lower.contains("có 18 tuổi") || lower.contains("có 25 tuổi")) {
+        else if (unaccented.matches(".*(toi|minh|em)\\s+(co|la)\\s+\\d+\\s+tuoi.*") || lower.contains("có 20 tuổi") || lower.contains("có 18 tuổi") || lower.contains("có 25 tuổi")) {
             reply = isEn
                     ? "In Vietnamese, when stating your age, we **do not use 'có' (have)** or **'là' (am/is)**. Instead, place your age directly after the pronoun!"
                     : "Trong tiếng Việt, khi nói về số tuổi, chúng ta **không dùng từ 'có'** (khác với tiếng Anh 'I am...' hay tiếng Pháp 'J'ai...'). Người Việt nói trực tiếp số tuổi ngay sau đại từ!";

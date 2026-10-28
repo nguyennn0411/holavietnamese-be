@@ -34,6 +34,15 @@ public class AiSession {
     @JoinColumn(name = "scenario_id")
     private AiScenario scenario;
 
+    @Column(name = "course_id")
+    private Long courseId;
+
+    @Column(name = "lesson_id")
+    private Long lessonId;
+
+    @Column(name = "coach_mode", length = 50)
+    private String coachMode;
+
     public String getScenarioId() {
         return scenario != null ? scenario.getId() : null;
     }
