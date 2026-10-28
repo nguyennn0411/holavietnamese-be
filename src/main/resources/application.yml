@@ -86,9 +86,6 @@ app:
   destination:
     seed:
       enabled: ${APP_DESTINATION_SEED_ENABLED:true}
-  msu-basic:
-    seed:
-      enabled: ${APP_MSU_BASIC_SEED_ENABLED:true}
   ai:
     gemini-api-key: ${GEMINI_API_KEY:${GOOGLE_AI_API_KEY:}}
     openai-api-key: ${OPENAI_API_KEY:}
