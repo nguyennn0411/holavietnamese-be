@@ -1,8 +1,8 @@
 package com.sep490.backend;
 
-import com.sep490.backend.entity.AiMessage;
-import com.sep490.backend.service.ConversationIntent;
-import com.sep490.backend.service.IntentClassifier;
+import com.sep490.backend.modules.ai.entity.AiMessage;
+import com.sep490.backend.modules.ai.service.ConversationIntent;
+import com.sep490.backend.modules.ai.service.IntentClassifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

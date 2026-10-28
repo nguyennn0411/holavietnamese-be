@@ -1,9 +1,9 @@
 package com.sep490.backend;
 
 import com.fasterxml.jackson.databind.*;
-import com.sep490.backend.config.LearnerPrincipal;
-import com.sep490.backend.service.VocabularyWordService;
-import com.sep490.backend.dto.request.VocabularyWordRequest;
+import com.sep490.backend.common.security.LearnerPrincipal;
+import com.sep490.backend.modules.vocabulary.service.VocabularyWordService;
+import com.sep490.backend.modules.vocabulary.dto.request.VocabularyWordRequest;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -4,7 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sep490.backend.service.ContentStore;
+import com.sep490.backend.modules.learning.store.ContentStore;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

@@ -6,11 +6,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sep490.backend.config.LearnerPrincipal;
-import com.sep490.backend.service.CourseContentService;
-import com.sep490.backend.service.CourseReviewService;
-import com.sep490.backend.dto.request.ContentRequests;
-import com.sep490.backend.service.ContentStore;
+import com.sep490.backend.common.security.LearnerPrincipal;
+import com.sep490.backend.modules.learning.service.CourseContentService;
+import com.sep490.backend.modules.learning.service.CourseReviewService;
+import com.sep490.backend.modules.learning.dto.request.ContentRequests;
+import com.sep490.backend.modules.learning.store.ContentStore;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;

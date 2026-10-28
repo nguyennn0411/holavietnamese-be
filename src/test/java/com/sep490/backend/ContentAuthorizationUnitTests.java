@@ -1,7 +1,11 @@
 package com.sep490.backend;
 
-import com.sep490.backend.config.LearnerPrincipal;
-import com.sep490.backend.controller.*;
+import com.sep490.backend.common.security.LearnerPrincipal;
+import com.sep490.backend.modules.vocabulary.importing.controller.VocabularyExcelImportController;
+import com.sep490.backend.modules.explore.destination.controller.DestinationExploreController;
+import com.sep490.backend.modules.explore.destination.controller.admin.AdminDestinationController;
+import com.sep490.backend.modules.explore.regional.controller.admin.AdminRegionalVocabularyController;
+import com.sep490.backend.modules.vocabulary.controller.admin.AdminVocabularyController;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +26,7 @@ class ContentAuthorizationUnitTests {
     @Test
     void administratorIsLimitedToReadAndReviewWhileContentManagersKeepWriteActions() {
         for (var controller : Set.of(AdminVocabularyController.class, AdminDestinationController.class,
-                AdminRegionalVocabularyController.class, ContentImportController.class,
+                AdminRegionalVocabularyController.class, VocabularyExcelImportController.class,
                 DestinationExploreController.class)) {
             for (var method : controller.getDeclaredMethods()) {
                 var rule = method.getAnnotation(PreAuthorize.class);
