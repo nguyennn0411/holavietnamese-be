@@ -1,8 +1,8 @@
-package com.sep490.backend.learning.demo;
+package com.sep490.backend.seed;
 
-import com.sep490.backend.learning.course.CourseContentService;
-import com.sep490.backend.learning.course.CourseWorkbookService;
-import com.sep490.backend.learning.shared.ContentStore;
+import com.sep490.backend.service.CourseContentService;
+import com.sep490.backend.service.CourseWorkbookService;
+import com.sep490.backend.service.ContentStore;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;
@@ -47,7 +47,6 @@ public class BasicVietnameseWorkbookSeed {
       "HolaVietnamese_Chapter15_News_and_the_Media.xlsx"
   );
 
-  @Transactional(rollbackFor = Exception.class)
   public int seed(long author) {
     int importedCount = 0;
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();

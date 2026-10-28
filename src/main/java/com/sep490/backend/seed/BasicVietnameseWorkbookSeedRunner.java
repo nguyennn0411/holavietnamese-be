@@ -1,6 +1,6 @@
-package com.sep490.backend.learning.demo;
+package com.sep490.backend.seed;
 
-import com.sep490.backend.learning.shared.ContentStore;
+import com.sep490.backend.service.ContentStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;

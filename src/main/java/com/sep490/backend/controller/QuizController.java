@@ -173,13 +173,23 @@ public class QuizController {
   }
 
   @GetMapping("/api/quizzes/{id}")
-  public Object quiz(@PathVariable long id) {
-    return quizzes.detail(id, false);
+  public Object quiz(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal u) {
+    return quizzes.detail(id, false, u != null ? u.id() : null);
   }
 
   @PostMapping({"/api/quizzes/{id}/start", "/api/quizzes/{id}/retry"})
   public Object start(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal u) {
     return quizzes.start(u.id(), id);
+  }
+
+  @PostMapping("/api/quizzes/{id}/restart")
+  public Object restartQuiz(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal u) {
+    return quizzes.start(u.id(), id, true);
+  }
+
+  @PostMapping("/api/quiz-attempts/{id}/restart")
+  public Object restartAttempt(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal u) {
+    return quizzes.restartAttempt(u.id(), id);
   }
 
   @GetMapping("/api/quiz-attempts/{id}")
