@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.admin.cms.entity;
+package com.sep490.backend.modules.admin.cms.entity;
 
 import com.sep490.backend.modules.admin.cms.entity.enums.SiteBannerActionType;
 import com.sep490.backend.modules.admin.cms.entity.enums.SiteBannerPlacement;

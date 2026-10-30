@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.common.exception;
+package com.sep490.backend.common.exception;
 
 import com.sep490.backend.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;

@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.dto.model;
+package com.sep490.backend.modules.vocabulary.dto.model;
 
 import java.util.List;
 

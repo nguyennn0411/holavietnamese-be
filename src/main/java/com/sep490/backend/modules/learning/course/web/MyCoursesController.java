@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.course.web;
+package com.sep490.backend.modules.learning.course.web;
 import com.sep490.backend.modules.learning.course.application.MyCoursesService;
 import com.sep490.backend.modules.learning.course.web.dto.MyCourseResponse;
 

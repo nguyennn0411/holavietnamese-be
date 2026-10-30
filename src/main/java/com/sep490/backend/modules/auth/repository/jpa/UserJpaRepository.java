@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.auth.repository.jpa;
+package com.sep490.backend.modules.auth.repository.jpa;
 
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

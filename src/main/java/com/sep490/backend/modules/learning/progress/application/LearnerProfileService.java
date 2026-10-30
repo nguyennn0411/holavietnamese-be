@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.progress.application;
+package com.sep490.backend.modules.learning.progress.application;
 
 import com.sep490.backend.modules.auth.dto.request.OnboardingRequest;
 import com.sep490.backend.modules.auth.dto.request.UserSettingsRequest;

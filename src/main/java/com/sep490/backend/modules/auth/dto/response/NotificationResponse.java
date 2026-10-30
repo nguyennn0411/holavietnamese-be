@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.auth.dto.response;
+package com.sep490.backend.modules.auth.dto.response;
 
 import lombok.*;
 

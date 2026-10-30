@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.progress.application;
+package com.sep490.backend.modules.learning.progress.application;
 import com.sep490.backend.modules.learning.course.domain.CourseStatus;
 import com.sep490.backend.modules.learning.course.infrastructure.persistence.CourseRepository;
 import com.sep490.backend.modules.learning.progress.domain.EnrollmentStatus;

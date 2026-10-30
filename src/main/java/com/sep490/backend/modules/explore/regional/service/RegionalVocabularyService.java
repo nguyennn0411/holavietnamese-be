@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.regional.service;
+package com.sep490.backend.modules.explore.regional.service;
 
 import com.sep490.backend.modules.explore.regional.dto.request.RegionalVocabularyRequest;
 import com.sep490.backend.common.dto.request.ContentReviewRequest;

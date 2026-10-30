@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.entity.enums;
+package com.sep490.backend.modules.explore.entity.enums;
 
 public enum VietnamRegion {
     NORTH,

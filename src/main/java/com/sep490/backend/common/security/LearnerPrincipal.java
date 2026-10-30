@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.common.security;
+package com.sep490.backend.common.security;
 
 import java.util.*;
 import org.springframework.security.core.*;

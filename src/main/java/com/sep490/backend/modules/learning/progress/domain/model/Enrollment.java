@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.progress.domain.model;
+package com.sep490.backend.modules.learning.progress.domain.model;
 import com.sep490.backend.modules.learning.progress.domain.EnrollmentStatus;
 
 

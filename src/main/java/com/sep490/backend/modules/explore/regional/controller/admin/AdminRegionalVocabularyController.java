@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.regional.controller.admin;
+package com.sep490.backend.modules.explore.regional.controller.admin;
 
 import com.sep490.backend.common.security.ContentPermissions;
 import com.sep490.backend.modules.explore.regional.dto.request.RegionalVocabularyRequest;

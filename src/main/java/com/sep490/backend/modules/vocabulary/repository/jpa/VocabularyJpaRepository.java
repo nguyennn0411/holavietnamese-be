@@ -1,4 +1,4 @@
-﻿
+
 package com.sep490.backend.modules.vocabulary.repository.jpa;
 
 import java.util.*;

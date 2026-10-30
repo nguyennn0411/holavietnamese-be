@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.importing.entity;
+package com.sep490.backend.modules.vocabulary.importing.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

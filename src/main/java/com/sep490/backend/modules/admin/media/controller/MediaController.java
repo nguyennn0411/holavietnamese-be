@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.admin.media.controller;
+package com.sep490.backend.modules.admin.media.controller;
 
 import com.sep490.backend.common.dto.ApiResponse;
 import com.sep490.backend.common.dto.CloudinaryUploadSignatureResponse;

@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.regional.controller;
+package com.sep490.backend.modules.explore.regional.controller;
 
 import com.sep490.backend.common.dto.ApiResponse;
 import com.sep490.backend.modules.explore.regional.dto.response.RegionalVocabularyResponse;

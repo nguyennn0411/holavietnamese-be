@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.auth.entity;
+package com.sep490.backend.modules.auth.entity;
 import com.sep490.backend.common.entity.BaseEntity;
 
 import jakarta.persistence.*;

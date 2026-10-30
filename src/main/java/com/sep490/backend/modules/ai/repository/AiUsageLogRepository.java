@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.ai.repository;
+package com.sep490.backend.modules.ai.repository;
 
 import com.sep490.backend.modules.ai.entity.AiUsageLog;
 import org.springframework.data.jpa.repository.JpaRepository;

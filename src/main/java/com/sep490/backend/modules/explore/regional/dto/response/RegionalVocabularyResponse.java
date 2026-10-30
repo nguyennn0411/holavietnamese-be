@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.regional.dto.response;
+package com.sep490.backend.modules.explore.regional.dto.response;
 
 import com.sep490.backend.modules.explore.entity.enums.VietnamRegion;
 import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus;

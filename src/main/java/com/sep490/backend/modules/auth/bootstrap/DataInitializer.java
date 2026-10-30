@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.auth.bootstrap;
+package com.sep490.backend.modules.auth.bootstrap;
 
 import com.sep490.backend.modules.auth.entity.Role;
 import com.sep490.backend.modules.auth.entity.User;

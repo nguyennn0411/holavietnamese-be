@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.progress.infrastructure.persistence.entity;
+package com.sep490.backend.modules.learning.progress.infrastructure.persistence.entity;
 import com.sep490.backend.modules.learning.lesson.domain.LessonStatus;
 import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.entity.LessonJpaEntity;
 

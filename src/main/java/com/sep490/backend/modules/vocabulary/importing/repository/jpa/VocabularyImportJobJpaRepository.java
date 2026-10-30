@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.importing.repository.jpa;
+package com.sep490.backend.modules.vocabulary.importing.repository.jpa;
 
 import com.sep490.backend.modules.vocabulary.importing.entity.VocabularyImportJobJpaEntity;
 import jakarta.persistence.LockModeType;

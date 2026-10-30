@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.destination.dto.response;
+package com.sep490.backend.modules.explore.destination.dto.response;
 
 import com.sep490.backend.modules.explore.regional.dto.response.RegionalVocabularyResponse;
 import java.util.List;

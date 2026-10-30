@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.dto.response;
+package com.sep490.backend.modules.vocabulary.dto.response;
 
 import java.util.List;
 import java.util.UUID;

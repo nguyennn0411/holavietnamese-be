@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.auth.security;
+package com.sep490.backend.modules.auth.security;
 import com.sep490.backend.common.security.LearnerPrincipal;
 
 import com.sep490.backend.modules.auth.repository.UserRepository;

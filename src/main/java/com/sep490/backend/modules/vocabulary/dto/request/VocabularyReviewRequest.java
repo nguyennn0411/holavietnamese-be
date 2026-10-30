@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.dto.request;
+package com.sep490.backend.modules.vocabulary.dto.request;
 
 import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyReviewRating;
 import jakarta.validation.constraints.NotNull;

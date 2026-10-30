@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.authoring.web.dto;
+package com.sep490.backend.modules.learning.authoring.web.dto;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonAlias;

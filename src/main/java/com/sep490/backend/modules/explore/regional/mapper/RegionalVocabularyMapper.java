@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.regional.mapper;
+package com.sep490.backend.modules.explore.regional.mapper;
 
 import com.sep490.backend.modules.explore.regional.dto.response.RegionalVocabularyResponse;
 import com.sep490.backend.modules.explore.regional.entity.RegionalVocabularyJpaEntity;

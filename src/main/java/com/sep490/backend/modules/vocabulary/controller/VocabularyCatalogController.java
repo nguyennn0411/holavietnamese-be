@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.controller;
+package com.sep490.backend.modules.vocabulary.controller;
 
 import com.sep490.backend.common.dto.ApiResponse;
 import com.sep490.backend.modules.vocabulary.dto.response.VocabularyWordResponse;

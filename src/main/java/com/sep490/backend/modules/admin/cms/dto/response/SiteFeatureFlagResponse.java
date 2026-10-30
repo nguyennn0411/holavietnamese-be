@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.admin.cms.dto.response;
+package com.sep490.backend.modules.admin.cms.dto.response;
 
 public record SiteFeatureFlagResponse(
         String key,

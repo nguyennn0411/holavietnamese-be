@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.repository;
+package com.sep490.backend.modules.vocabulary.repository;
 
 import com.sep490.backend.modules.vocabulary.entity.VocabularyJpaEntity;
 import com.sep490.backend.modules.vocabulary.entity.VocabularyReviewLogJpaEntity;

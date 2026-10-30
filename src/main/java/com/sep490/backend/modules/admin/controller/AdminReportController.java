@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.admin.controller;
+package com.sep490.backend.modules.admin.controller;
 import com.sep490.backend.modules.learning.course.infrastructure.persistence.CourseRepository;
 import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.LessonRepository;
 import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;

@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.progress.infrastructure.persistence.entity;
+package com.sep490.backend.modules.learning.progress.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

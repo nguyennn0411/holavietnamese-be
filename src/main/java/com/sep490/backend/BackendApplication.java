@@ -1,4 +1,4 @@
-﻿package com.sep490.backend;
+package com.sep490.backend;
 
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;

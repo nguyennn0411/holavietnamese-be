@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.shared.infrastructure.query;
+package com.sep490.backend.modules.learning.shared.infrastructure.query;
 
 import com.sep490.backend.common.exception.ContentException;
 import com.fasterxml.jackson.databind.*;

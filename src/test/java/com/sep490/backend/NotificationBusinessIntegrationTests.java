@@ -9,7 +9,7 @@ import com.sep490.backend.modules.learning.course.application.CourseService;
 import com.sep490.backend.modules.learning.path.application.LearningPathService;
 import com.sep490.backend.modules.learning.progress.application.AchievementService;
 import com.sep490.backend.modules.learning.progress.application.UserProgressService;
-import com.sep490.backend.modules.learning.store.ContentStore;
+import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;

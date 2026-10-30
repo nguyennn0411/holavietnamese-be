@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.shared.application;
+package com.sep490.backend.modules.learning.shared.application;
 import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
 import com.sep490.backend.modules.learning.shared.web.PageResponse;
 

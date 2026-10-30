@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.dto.model;
+package com.sep490.backend.modules.vocabulary.dto.model;
 
 import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus;
 

@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.dto.request;
+package com.sep490.backend.modules.vocabulary.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;

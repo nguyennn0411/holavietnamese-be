@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.importing.service;
+package com.sep490.backend.modules.vocabulary.importing.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

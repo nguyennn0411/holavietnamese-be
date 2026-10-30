@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.destination.dto.model;
+package com.sep490.backend.modules.explore.destination.dto.model;
 
 import com.sep490.backend.modules.explore.destination.entity.enums.DestinationStatus;
 import com.sep490.backend.modules.explore.entity.enums.VietnamRegion;

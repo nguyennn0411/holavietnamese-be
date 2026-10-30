@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.progress.web;
+package com.sep490.backend.modules.learning.progress.web;
 import com.sep490.backend.modules.learning.progress.application.LearningProgressService;
 import com.sep490.backend.modules.learning.progress.web.dto.LearningProgressResponse;
 

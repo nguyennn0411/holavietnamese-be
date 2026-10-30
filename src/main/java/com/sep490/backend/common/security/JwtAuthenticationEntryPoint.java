@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.common.security;
+package com.sep490.backend.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sep490.backend.common.dto.ApiResponse;

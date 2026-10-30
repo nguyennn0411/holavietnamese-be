@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.authoring.application;
+package com.sep490.backend.modules.learning.authoring.application;
 import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
 
 

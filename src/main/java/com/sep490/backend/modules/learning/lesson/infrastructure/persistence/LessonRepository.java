@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.lesson.infrastructure.persistence;
+package com.sep490.backend.modules.learning.lesson.infrastructure.persistence;
 import com.sep490.backend.modules.learning.lesson.domain.model.Lesson;
 import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.LessonJpaRepository;
 import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.LessonMapper;

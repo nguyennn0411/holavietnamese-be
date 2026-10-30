@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.auth.config;
+package com.sep490.backend.modules.auth.config;
 import com.sep490.backend.common.security.ContentPermissions;
 import com.sep490.backend.common.security.JwtAuthenticationEntryPoint;
 import com.sep490.backend.modules.auth.security.CustomJwtDecoder;

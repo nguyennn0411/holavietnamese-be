@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.lesson.web;
+package com.sep490.backend.modules.learning.lesson.web;
 import com.sep490.backend.modules.learning.authoring.application.ActivityService;
 import com.sep490.backend.modules.learning.authoring.web.dto.ContentRequests;
 import com.sep490.backend.modules.learning.lesson.application.ActivityProgressService;

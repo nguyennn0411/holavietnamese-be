@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.importing.dto;
+package com.sep490.backend.modules.vocabulary.importing.dto;
 
 import java.time.Instant;
 import java.util.*;

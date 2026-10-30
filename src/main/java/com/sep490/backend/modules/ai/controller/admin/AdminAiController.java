@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.ai.controller.admin;
+package com.sep490.backend.modules.ai.controller.admin;
 
 import com.sep490.backend.modules.ai.dto.request.AiScenarioRequest;
 import com.sep490.backend.modules.ai.dto.request.AiSettingUpdateRequest;

@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.importing.exception;
+package com.sep490.backend.modules.learning.importing.exception;
 
 import com.sep490.backend.modules.learning.importing.dto.CourseImportPreview;
 public class CourseImportRejected extends RuntimeException {

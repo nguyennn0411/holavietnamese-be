@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.importing.dto;
+package com.sep490.backend.modules.learning.importing.dto;
 
 import java.util.*;
 public record CourseImportPreview(String courseCode, ImportMode mode, boolean success,

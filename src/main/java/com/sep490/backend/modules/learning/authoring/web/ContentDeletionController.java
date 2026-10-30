@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.authoring.web;
+package com.sep490.backend.modules.learning.authoring.web;
 import com.sep490.backend.modules.learning.authoring.application.CourseReviewService;
 import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
 

@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.mapper;
+package com.sep490.backend.modules.vocabulary.mapper;
 
 import com.sep490.backend.modules.vocabulary.dto.model.VocabularyMeaning;
 import com.sep490.backend.modules.vocabulary.entity.VocabularyMeaningJpaEntity;

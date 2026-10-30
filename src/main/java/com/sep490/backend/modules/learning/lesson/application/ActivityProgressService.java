@@ -1,5 +1,6 @@
-﻿package com.sep490.backend.modules.learning.lesson.application;
+package com.sep490.backend.modules.learning.lesson.application;
 import com.sep490.backend.modules.learning.authoring.application.CourseContentService;
+import com.sep490.backend.modules.learning.progress.application.LearningEventService;
 import com.sep490.backend.modules.learning.shared.application.ContentList;
 import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
 import com.sep490.backend.modules.learning.shared.web.PageResponse;

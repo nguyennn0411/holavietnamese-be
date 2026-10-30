@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.progress.web.dto;
+package com.sep490.backend.modules.learning.progress.web.dto;
 import com.sep490.backend.modules.learning.lesson.domain.LessonStatus;
 import com.sep490.backend.modules.learning.progress.domain.EnrollmentStatus;
 

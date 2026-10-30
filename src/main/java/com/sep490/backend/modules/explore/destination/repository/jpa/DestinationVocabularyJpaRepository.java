@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.destination.repository.jpa;
+package com.sep490.backend.modules.explore.destination.repository.jpa;
 
 import com.sep490.backend.modules.explore.destination.entity.DestinationVocabularyJpaEntity;
 import java.util.List;

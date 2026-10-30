@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.quiz.application;
+package com.sep490.backend.modules.learning.quiz.application;
 import com.sep490.backend.modules.learning.shared.application.ContentRules;
 
 

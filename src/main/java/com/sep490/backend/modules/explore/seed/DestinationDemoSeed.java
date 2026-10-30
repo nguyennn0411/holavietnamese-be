@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.seed;
+package com.sep490.backend.modules.explore.seed;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

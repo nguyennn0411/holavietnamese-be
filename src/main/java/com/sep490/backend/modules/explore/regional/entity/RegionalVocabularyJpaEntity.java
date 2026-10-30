@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.regional.entity;
+package com.sep490.backend.modules.explore.regional.entity;
 import com.sep490.backend.modules.vocabulary.entity.VocabularyWordJpaEntity;
 
 import com.sep490.backend.modules.explore.entity.enums.VietnamRegion;

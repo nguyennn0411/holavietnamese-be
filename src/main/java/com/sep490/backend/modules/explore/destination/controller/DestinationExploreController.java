@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.destination.controller;
+package com.sep490.backend.modules.explore.destination.controller;
 
 import com.sep490.backend.common.security.ContentPermissions;
 import com.sep490.backend.modules.explore.destination.dto.request.DestinationExploreContentRequest;

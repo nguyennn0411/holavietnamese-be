@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.importing.service;
+package com.sep490.backend.modules.vocabulary.importing.service;
 
 import com.sep490.backend.modules.vocabulary.importing.dto.VocabularyImportResponse.*;
 import com.sep490.backend.modules.vocabulary.importing.dto.VocabularyImportResponse.Error;

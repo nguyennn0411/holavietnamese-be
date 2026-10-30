@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.common.config;
+package com.sep490.backend.common.config;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.course.domain.model;
+package com.sep490.backend.modules.learning.course.domain.model;
 import com.sep490.backend.modules.learning.course.domain.CourseStatus;
 
 

@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.destination.entity.enums;
+package com.sep490.backend.modules.explore.destination.entity.enums;
 
 public enum DestinationStatus {
     DRAFT,

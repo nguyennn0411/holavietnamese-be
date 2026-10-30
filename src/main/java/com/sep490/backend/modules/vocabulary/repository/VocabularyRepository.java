@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.repository;
+package com.sep490.backend.modules.vocabulary.repository;
 import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.entity.LessonJpaEntity;
 import com.sep490.backend.modules.learning.progress.port.VocabularyProgressReader;
 

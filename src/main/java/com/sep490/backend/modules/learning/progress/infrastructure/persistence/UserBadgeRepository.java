@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.progress.infrastructure.persistence;
+package com.sep490.backend.modules.learning.progress.infrastructure.persistence;
 import com.sep490.backend.modules.learning.progress.infrastructure.persistence.entity.UserBadge;
 
 

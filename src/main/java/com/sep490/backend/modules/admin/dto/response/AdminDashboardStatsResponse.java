@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.admin.dto.response;
+package com.sep490.backend.modules.admin.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;

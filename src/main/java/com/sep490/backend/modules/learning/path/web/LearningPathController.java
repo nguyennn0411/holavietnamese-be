@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.path.web;
+package com.sep490.backend.modules.learning.path.web;
 import com.sep490.backend.modules.learning.path.application.LearningPathService;
 import com.sep490.backend.modules.learning.path.web.dto.LearningPathRequests;
 

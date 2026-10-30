@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.ai.service;
+package com.sep490.backend.modules.ai.service;
 import com.sep490.backend.modules.ai.client.GeminiApiClient;
 
 import com.fasterxml.jackson.core.type.TypeReference;

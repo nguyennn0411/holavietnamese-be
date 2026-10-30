@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.course.web.dto;
+package com.sep490.backend.modules.learning.course.web.dto;
 import com.sep490.backend.modules.learning.course.domain.CourseStatus;
 import com.sep490.backend.modules.learning.course.domain.model.Course;
 

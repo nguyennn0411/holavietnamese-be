@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.vocabulary.entity;
+package com.sep490.backend.modules.vocabulary.entity;
 import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.entity.LessonJpaEntity;
 
 

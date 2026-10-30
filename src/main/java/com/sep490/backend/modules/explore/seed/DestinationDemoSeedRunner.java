@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.seed;
+package com.sep490.backend.modules.explore.seed;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

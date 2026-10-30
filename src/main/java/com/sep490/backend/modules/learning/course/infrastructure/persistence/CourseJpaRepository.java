@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.course.infrastructure.persistence;
+package com.sep490.backend.modules.learning.course.infrastructure.persistence;
 import com.sep490.backend.modules.learning.course.domain.CourseStatus;
 import com.sep490.backend.modules.learning.course.infrastructure.persistence.entity.CourseJpaEntity;
 

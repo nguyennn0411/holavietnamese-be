@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.explore.destination.controller.admin;
+package com.sep490.backend.modules.explore.destination.controller.admin;
 
 import com.sep490.backend.modules.explore.destination.dto.request.DestinationRequest;
 import com.sep490.backend.common.dto.request.ContentReviewRequest;

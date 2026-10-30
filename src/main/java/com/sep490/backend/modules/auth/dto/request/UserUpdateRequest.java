@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.auth.dto.request;
+package com.sep490.backend.modules.auth.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

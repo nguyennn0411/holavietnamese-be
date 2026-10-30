@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.auth.security;
+package com.sep490.backend.modules.auth.security;
 
 import com.nimbusds.jose.JOSEException;
 import com.sep490.backend.modules.auth.dto.request.IntrospectRequest;

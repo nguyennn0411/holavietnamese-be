@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.ai.client;
+package com.sep490.backend.modules.ai.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

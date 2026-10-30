@@ -1,4 +1,4 @@
-﻿package com.sep490.backend.modules.learning.path.web.dto;
+package com.sep490.backend.modules.learning.path.web.dto;
 
 import jakarta.validation.constraints.*;
 import java.time.Instant;
