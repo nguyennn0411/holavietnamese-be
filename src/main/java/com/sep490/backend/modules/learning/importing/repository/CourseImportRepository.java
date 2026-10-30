@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.admin.importing.repository;
+package com.sep490.backend.modules.learning.importing.repository;
 import com.sep490.backend.modules.learning.course.domain.CourseStatus;
 import com.sep490.backend.modules.learning.course.infrastructure.persistence.entity.CourseJpaEntity;
 import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.entity.LessonJpaEntity;
@@ -6,10 +6,10 @@ import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.ent
 
 
 
-import com.sep490.backend.modules.admin.importing.dto.CourseImportCommand;
-import com.sep490.backend.modules.admin.importing.dto.CourseImportError;
-import com.sep490.backend.modules.admin.importing.dto.ImportMode;
-import com.sep490.backend.modules.admin.importing.dto.ImportSheet;
+import com.sep490.backend.modules.learning.importing.dto.CourseImportCommand;
+import com.sep490.backend.modules.learning.importing.dto.CourseImportError;
+import com.sep490.backend.modules.learning.importing.dto.ImportMode;
+import com.sep490.backend.modules.learning.importing.dto.ImportSheet;
 import jakarta.persistence.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
-import static com.sep490.backend.modules.admin.importing.dto.ImportSheet.*;
+import static com.sep490.backend.modules.learning.importing.dto.ImportSheet.*;
 
 /** Reuses courses/lessons; separate curricular vocabulary never touches learner-owned vocabulary_entries. */
 @Repository

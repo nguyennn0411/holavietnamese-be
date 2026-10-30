@@ -21,12 +21,12 @@ class ArchitectureStructureTests {
     private static final String BASE_PACKAGE = "com.sep490.backend";
     private static final Path SOURCE_ROOT = Path.of("src/main/java/com/sep490/backend");
     private static final Set<String> MODULES = Set.of(
-            "admin", "ai", "auth", "culture", "learning", "vocabulary");
+            "admin", "ai", "auth", "explore", "learning", "vocabulary");
     private static final Map<String, Set<String>> LEARNING_SLICES = Map.of(
             "authoring", Set.of("application", "web"),
-            "bootstrap", Set.of("seed"),
             "course", Set.of("application", "domain", "infrastructure", "web"),
             "grammar", Set.of("application", "web"),
+            "importing", Set.of("controller", "dto", "exception", "repository", "service", "web"),
             "lesson", Set.of("application", "domain", "infrastructure", "web"),
             "path", Set.of("application", "web"),
             "progress", Set.of("application", "domain", "infrastructure", "port", "web"),

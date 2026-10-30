@@ -1,11 +1,11 @@
-package com.sep490.backend.modules.admin.importing.service;
+package com.sep490.backend.modules.learning.importing.service;
 
-import com.sep490.backend.modules.admin.importing.exception.CourseImportRejected;
+import com.sep490.backend.modules.learning.importing.exception.CourseImportRejected;
 
-import com.sep490.backend.modules.admin.importing.dto.CourseImportCommand;
-import com.sep490.backend.modules.admin.importing.dto.CourseImportPreview;
-import com.sep490.backend.modules.admin.importing.dto.ImportMode;
-import com.sep490.backend.modules.admin.importing.repository.CourseImportRepository;
+import com.sep490.backend.modules.learning.importing.dto.CourseImportCommand;
+import com.sep490.backend.modules.learning.importing.dto.CourseImportPreview;
+import com.sep490.backend.modules.learning.importing.dto.ImportMode;
+import com.sep490.backend.modules.learning.importing.repository.CourseImportRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
