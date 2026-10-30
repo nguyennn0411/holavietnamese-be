@@ -11,6 +11,9 @@ import com.sep490.backend.modules.auth.entity.Role;
 import com.sep490.backend.modules.auth.entity.User;
 import com.sep490.backend.common.exception.AppException;
 import com.sep490.backend.common.exception.ErrorCode;
+import com.sep490.backend.common.notification.NotificationMessage;
+import com.sep490.backend.common.notification.NotificationPort;
+import com.sep490.backend.common.notification.NotificationType;
 import com.sep490.backend.modules.auth.repository.RoleRepository;
 import com.sep490.backend.modules.auth.repository.UserRepository;
 import lombok.AccessLevel;
@@ -40,6 +43,7 @@ public class UserService {
     PasswordEncoder passwordEncoder;
     AuthenticationService authenticationService;
     CloudinarySignatureService cloudinarySignatureService;
+    NotificationPort notifications;
 
     /**
      * Đăng ký tài khoản mới cho học viên nước ngoài học tiếng Việt.
@@ -188,6 +192,11 @@ public class UserService {
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+        notifications.send(user.getId(), NotificationMessage.mandatory(
+                "Mật khẩu đã được thay đổi",
+                "Mật khẩu tài khoản của bạn vừa được thay đổi. Nếu không phải bạn thực hiện, hãy liên hệ hỗ trợ ngay.",
+                NotificationType.SECURITY,
+                "/settings"));
         log.info("Người dùng [{}] đổi mật khẩu thành công", username);
     }
 

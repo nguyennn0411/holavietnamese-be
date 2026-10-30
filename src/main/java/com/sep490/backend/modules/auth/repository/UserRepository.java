@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -14,6 +15,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles " +
            "WHERE (u.username = :usernameOrEmail OR u.email = :usernameOrEmail) AND u.isRemoved = false")
     Optional<User> findActiveByUsernameWithRoles(@Param("usernameOrEmail") String usernameOrEmail);
+
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles " +
+           "WHERE (u.username = :usernameOrEmail OR u.email = :usernameOrEmail) " +
+           "AND u.isRemoved = false AND u.enabled = true AND UPPER(u.status) = 'ACTIVE'")
+    Optional<User> findEnabledActiveByUsernameWithRoles(@Param("usernameOrEmail") String usernameOrEmail);
 
     Optional<User> findByUsername(String username);
 
@@ -28,4 +34,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
+
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN u.roles r " +
+           "WHERE u.isRemoved = false AND u.enabled = true AND UPPER(u.status) = 'ACTIVE' " +
+           "AND (UPPER(u.role) = UPPER(:role) OR UPPER(r.name) = UPPER(:role))")
+    List<User> findActiveUsersByRole(@Param("role") String role);
+
+    @Query("SELECT u FROM User u WHERE u.isRemoved = false AND u.enabled = true " +
+           "AND UPPER(u.status) = 'ACTIVE'")
+    List<User> findAllActiveUsers();
 }

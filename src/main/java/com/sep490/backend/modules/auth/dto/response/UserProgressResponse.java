@@ -21,6 +21,22 @@ public class UserProgressResponse {
     private Integer learnedVocabulariesCount;
     private List<XpHistoryItem> recentXpTransactions;
 
+    // Gamification Package 1: Level system
+    private Integer currentLevel;
+    private String levelTitle;
+    private String levelTitleEn;
+    private Integer currentLevelMinXp;
+    private Integer nextLevelRequiredXp;
+    private Integer levelProgressPercent;
+
+    // Gamification Package 2: Streak Freeze & Daily Goal
+    private Integer streakFreezeCount;
+    private LocalDate streakFreezeUsedDate;
+    private Integer dailyGoalXp;
+    private Integer xpEarnedToday;
+    private Integer dailyGoalProgressPercent;
+    private Boolean isDailyGoalCompleted;
+
     @Getter
     @Setter
     @Builder

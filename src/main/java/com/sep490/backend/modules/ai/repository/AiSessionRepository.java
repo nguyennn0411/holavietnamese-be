@@ -14,4 +14,5 @@ public interface AiSessionRepository extends JpaRepository<AiSession, String> {
     List<AiSession> findByUserIdAndModeOrderByCreatedAtDesc(Long userId, String mode);
     Optional<AiSession> findByIdAndUserId(String id, Long userId);
     long countByUserIdAndCreatedAtAfter(Long userId, LocalDateTime after);
+    long countByUserIdAndStatus(Long userId, String status);
 }

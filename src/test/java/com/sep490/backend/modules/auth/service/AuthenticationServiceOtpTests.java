@@ -4,6 +4,7 @@ import com.sep490.backend.modules.auth.dto.request.AuthenticationRequest;
 import com.sep490.backend.modules.auth.entity.User;
 import com.sep490.backend.common.exception.AppException;
 import com.sep490.backend.common.exception.ErrorCode;
+import com.sep490.backend.common.notification.NotificationPort;
 import com.sep490.backend.modules.auth.repository.RoleRepository;
 import com.sep490.backend.modules.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,12 +31,14 @@ class AuthenticationServiceOtpTests {
     @Mock RoleRepository roleRepository;
     @Mock PasswordEncoder passwordEncoder;
     @Mock EmailService emailService;
+    @Mock NotificationPort notifications;
 
     AuthenticationService service;
 
     @BeforeEach
     void setUp() {
-        service = new AuthenticationService(userRepository, roleRepository, passwordEncoder, emailService);
+        service = new AuthenticationService(
+                userRepository, roleRepository, passwordEncoder, emailService, notifications);
     }
 
     @Test

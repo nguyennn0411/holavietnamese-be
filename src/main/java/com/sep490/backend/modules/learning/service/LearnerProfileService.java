@@ -36,4 +36,9 @@ public class LearnerProfileService implements LearnerProfileUseCase {
     public List<BadgeResponse> getUserBadges() {
         return achievementService.getUserBadges();
     }
+
+    @Override
+    public UserProgressResponse equipStreakFreeze() {
+        return userProgressService.equipStreakFreeze();
+    }
 }

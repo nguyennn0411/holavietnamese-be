@@ -21,6 +21,8 @@ import com.sep490.backend.modules.ai.repository.AiSessionRepository;
 import com.sep490.backend.modules.ai.repository.AiSettingRepository;
 import com.sep490.backend.modules.ai.repository.AiUsageLogRepository;
 import com.sep490.backend.modules.auth.repository.UserRepository;
+import com.sep490.backend.modules.learning.service.AchievementService;
+import com.sep490.backend.modules.learning.service.UserProgressService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,6 +48,8 @@ public class AiRoleplayService {
     private final AiTutorService aiTutorService;
     private final AiProviderService aiProviderService;
     private final ObjectMapper objectMapper;
+    private final AchievementService achievementService;
+    private final UserProgressService userProgressService;
 
     /**
      * UC-105: Select Roleplay Scenario - List all active scenarios
@@ -310,6 +314,16 @@ public class AiRoleplayService {
             scenarioRepository.save(scenario);
         }
 
+        if (session.getUser() != null) {
+            try {
+                long completedCount = sessionRepository.countByUserIdAndStatus(session.getUser().getId(), "COMPLETED");
+                achievementService.checkAndAwardBadges(session.getUser(), "AI_ROLEPLAY_COMPLETED", (int) completedCount);
+                userProgressService.awardXp(session.getUser(), "AI_ROLEPLAY_COMPLETE", 25, "Hoàn thành tình huống giao tiếp AI: " + scenarioTitle);
+            } catch (Exception e) {
+                log.warn("Could not award AI roleplay badges/XP: {}", e.getMessage());
+            }
+        }
+
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("sessionId", session.getId());
         result.put("scenarioId", session.getScenarioId());
@@ -380,6 +394,16 @@ public class AiRoleplayService {
         scenario.setCompletionsCount(currentCount + 1);
         scenario.setAvgScore(newAvg);
         scenarioRepository.save(scenario);
+
+        if (currentUser != null) {
+            try {
+                long completedCount = sessionRepository.countByUserIdAndStatus(currentUser.getId(), "COMPLETED");
+                achievementService.checkAndAwardBadges(currentUser, "AI_ROLEPLAY_COMPLETED", (int) completedCount);
+                userProgressService.awardXp(currentUser, "AI_ROLEPLAY_COMPLETE", 25, "Hoàn thành tình huống giao tiếp AI: " + scenario.getTitle());
+            } catch (Exception e) {
+                log.warn("Could not award AI roleplay badges/XP: {}", e.getMessage());
+            }
+        }
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("scenarioId", scenario.getId());

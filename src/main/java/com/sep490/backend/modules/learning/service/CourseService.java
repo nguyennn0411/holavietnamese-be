@@ -23,6 +23,7 @@ public class CourseService {
     private final EnrollmentRepository enrollments;
     private final Clock clock;
     private final com.sep490.backend.modules.learning.store.ContentStore contentStore;
+    private final LearningEventService learningEvents;
     public List<CourseResponse> availableCourses() {
         return courses.findAvailable().stream().map(this::response).toList();
     }
@@ -50,7 +51,9 @@ public class CourseService {
             boolean modern=contentStore.count("SELECT count(*) FROM courses WHERE id=? AND slug IS NOT NULL",courseId)>0;
             enrollment = new Enrollment(null, userId, courseId, clock.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS), modern?EnrollmentStatus.NOT_STARTED:EnrollmentStatus.ACTIVE, null, null);
         }
-        return toResponse(enrollments.save(enrollment), c);
+        Enrollment saved = enrollments.save(enrollment);
+        learningEvents.record(userId, courseId, "COURSE_ENROLLED");
+        return toResponse(saved, c);
     }
     public Optional<EnrollmentResponse> enrollmentStatus(Long userId, Long courseId) {
         Course c = available(courseId);

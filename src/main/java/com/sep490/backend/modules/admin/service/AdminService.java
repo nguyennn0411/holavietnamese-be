@@ -20,6 +20,9 @@ import com.sep490.backend.modules.learning.entity.Badge;
 import com.sep490.backend.modules.learning.entity.XpRule;
 import com.sep490.backend.common.exception.AppException;
 import com.sep490.backend.common.exception.ErrorCode;
+import com.sep490.backend.common.notification.NotificationMessage;
+import com.sep490.backend.common.notification.NotificationPort;
+import com.sep490.backend.common.notification.NotificationType;
 import com.sep490.backend.modules.admin.repository.AuditLogRepository;
 import com.sep490.backend.modules.admin.repository.SystemSettingRepository;
 import com.sep490.backend.modules.auth.repository.RoleRepository;
@@ -53,6 +56,7 @@ public class AdminService {
     private final SystemSettingRepository systemSettingRepository;
     private final XpRuleRepository xpRuleRepository;
     private final BadgeRepository badgeRepository;
+    private final NotificationPort notifications;
 
     @Transactional(readOnly = true)
     public AdminDashboardStatsResponse getDashboardStats() {
@@ -151,9 +155,18 @@ public class AdminService {
     public AdminUserResponse toggleUserStatus(Long id, String status) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        String previousStatus = user.getStatus();
         String normalizedStatus = normalizeStatus(status);
         user.setStatus(normalizedStatus);
         userRepository.save(user);
+
+        if (!normalizedStatus.equalsIgnoreCase(nullToEmpty(previousStatus))) {
+            notifications.send(user.getId(), NotificationMessage.mandatory(
+                    "Trạng thái tài khoản đã thay đổi",
+                    "Quản trị viên đã chuyển trạng thái tài khoản của bạn thành " + normalizedStatus + ".",
+                    NotificationType.SECURITY,
+                    "/settings"));
+        }
 
         logAdminAction("TOGGLE_USER_STATUS", "User ID: " + id, "Set status to: " + normalizedStatus);
         return mapToAdminUserResponse(user);
@@ -166,6 +179,9 @@ public class AdminService {
         }
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        Set<String> previousRoleNames = user.getRoles() == null
+                ? Set.of()
+                : user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
 
         Set<Role> roles = roleNames.stream()
                 .map(this::normalizeRoleName)
@@ -184,6 +200,14 @@ public class AdminService {
                 : assignedRoleNames.contains("CONTENT_MANAGER") ? "CONTENT_MANAGER"
                 : "LEARNER");
         userRepository.save(user);
+
+        if (!previousRoleNames.equals(assignedRoleNames)) {
+            notifications.send(user.getId(), NotificationMessage.mandatory(
+                    "Quyền tài khoản đã được cập nhật",
+                    "Vai trò hiện tại của bạn: " + String.join(", ", assignedRoleNames) + ".",
+                    NotificationType.SECURITY,
+                    "/settings"));
+        }
 
         logAdminAction("UPDATE_USER_ROLES", "User ID: " + id, "Updated roles: " + String.join(", ", roleNames));
         return mapToAdminUserResponse(user);

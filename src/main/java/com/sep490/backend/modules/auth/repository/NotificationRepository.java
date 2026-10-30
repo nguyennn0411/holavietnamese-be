@@ -11,23 +11,30 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    List<Notification> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<Notification> findByUserIdOrderByCreatedAtDescIdDesc(Long userId);
 
-    Page<Notification> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    Page<Notification> findByUserIdOrderByCreatedAtDescIdDesc(Long userId, Pageable pageable);
 
-    Page<Notification> findByUserIdAndIsReadOrderByCreatedAtDesc(Long userId, Boolean isRead, Pageable pageable);
+    Page<Notification> findByUserIdAndIsReadOrderByCreatedAtDescIdDesc(Long userId, Boolean isRead, Pageable pageable);
 
     long countByUserIdAndIsReadFalse(Long userId);
 
     Optional<Notification> findByIdAndUserId(Long id, Long userId);
 
+    Optional<Notification> findByUserIdAndEventKey(Long userId, String eventKey);
+
     @Modifying
     @Query("UPDATE Notification n SET n.isRead = true WHERE n.user.id = :userId AND n.isRead = false")
     int markAllAsReadByUserId(@Param("userId") Long userId);
 
-    void deleteByIdAndUserId(Long id, Long userId);
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.id = :id AND n.user.id = :userId")
+    int deleteByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
+
+    long deleteByIsReadTrueAndCreatedAtBefore(LocalDateTime cutoff);
 }

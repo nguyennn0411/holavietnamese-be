@@ -20,6 +20,7 @@ public class ActivityProgressService {
   private final ContentStore db;
   private final CourseContentService courses;
   private final Clock clock;
+  private final LearningEventService learningEvents;
 
   public void lockUser(long user) {
     db.one("SELECT id FROM users WHERE id=? FOR UPDATE", user);
@@ -262,15 +263,6 @@ public class ActivityProgressService {
   }
 
   public void event(long user, long entity, String type) {
-    String key = type + ":" + user + ":" + entity;
-    if (db.count("SELECT count(*) FROM learning_events WHERE event_key=?", key) == 0)
-      db.insert(
-          "INSERT INTO learning_events(event_key,event_type,user_id,entity_id,occurred_at)"
-              + " VALUES(?,?,?,?,?)",
-          key,
-          type,
-          user,
-          entity,
-          Timestamp.from(clock.instant()));
+    learningEvents.record(user, entity, type);
   }
 }

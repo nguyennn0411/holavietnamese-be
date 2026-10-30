@@ -31,6 +31,7 @@ public class LessonService {
     private final com.sep490.backend.modules.learning.store.ContentStore contentStore;
     private final com.sep490.backend.modules.learning.service.ActivityProgressService activityProgress;
     private final com.sep490.backend.modules.learning.service.CourseContentService contentCourses;
+    private final LearningEventService learningEvents;
     public List<LessonResponse> lessons(Long userId, Long courseId) {
         Enrollment e = access.requireEnrollment(userId, courseId, false);
         List<Lesson> list = lessons.findPublishedByCourse(courseId);
@@ -62,12 +63,16 @@ public class LessonService {
         Enrollment e = access.requireEnrollment(userId, l.courseId(), true);
         var now = clock.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
         LessonProgress p = progress.find(e.id(), l.id()).orElseGet(() -> LessonProgress.start(e.id(), l.id(), now));
+        boolean newlyCompleted = complete && p.status() != LessonStatus.COMPLETED;
         if (complete) p = p.complete(now);
         p = progress.save(p);
         int total = courses.countPublishedLessons(l.courseId());
         int completed = enrollments.completedLessons(e.id());
         EnrollmentStatus status = new LearningProgress(total, completed).isComplete() ? EnrollmentStatus.COMPLETED : EnrollmentStatus.ACTIVE;
         enrollments.save(new Enrollment(e.id(), e.userId(), e.courseId(), e.enrolledAt(), status, l.id(), now));
+        if (newlyCompleted) learningEvents.record(userId, lessonId, "LESSON_COMPLETED");
+        if (status == EnrollmentStatus.COMPLETED && e.status() != EnrollmentStatus.COMPLETED)
+            learningEvents.record(userId, l.courseId(), "COURSE_COMPLETED");
         return detail(l, p);
     }
     private Lesson published(Long id) {

@@ -69,8 +69,8 @@ public class LearnerOverviewController {
         result.put("hearts", hearts);
         result.put("maxHearts", 5);
         result.put("hasCheckedInToday", hasCheckedInToday);
-        result.put("level", streak > 5 ? "A2 - Sơ cấp 2" : "A1 - Sơ cấp 1");
-        result.put("nextLevelXp", 600);
+        result.put("level", summary.getLevelTitle());
+        result.put("nextLevelXp", summary.getNextLevelRequiredXp());
         result.put("dailyGoalMinutes", dailyGoal);
         result.put("weeklyActivity", weeklyActivity);
         result.put("recentActivities", summary.getRecentXpTransactions());
@@ -78,6 +78,22 @@ public class LearnerOverviewController {
         result.put("recentXpTransactions", summary.getRecentXpTransactions());
         result.put("completedLessonsCount", completedLessons);
         result.put("learnedVocabulariesCount", savedVocab);
+
+        // Level details
+        result.put("currentLevel", summary.getCurrentLevel());
+        result.put("levelTitle", summary.getLevelTitle());
+        result.put("levelTitleEn", summary.getLevelTitleEn());
+        result.put("currentLevelMinXp", summary.getCurrentLevelMinXp());
+        result.put("nextLevelRequiredXp", summary.getNextLevelRequiredXp());
+        result.put("levelProgressPercent", summary.getLevelProgressPercent());
+
+        // Streak freeze & daily goal
+        result.put("streakFreezeCount", summary.getStreakFreezeCount());
+        result.put("streakFreezeUsedDate", summary.getStreakFreezeUsedDate());
+        result.put("dailyGoalXp", summary.getDailyGoalXp());
+        result.put("xpEarnedToday", summary.getXpEarnedToday());
+        result.put("dailyGoalProgressPercent", summary.getDailyGoalProgressPercent());
+        result.put("isDailyGoalCompleted", summary.getIsDailyGoalCompleted());
 
         return ApiResponse.<Map<String, Object>>builder().result(result).build();
     }
@@ -92,17 +108,12 @@ public class LearnerOverviewController {
         boolean alreadyCheckedIn = today.equals(user.getLastActivityDate());
 
         if (!alreadyCheckedIn) {
-            if (user.getLastActivityDate() != null && user.getLastActivityDate().equals(today.minusDays(1))) {
-                user.setStreakCount((user.getStreakCount() != null ? user.getStreakCount() : 0) + 1);
-            } else {
-                user.setStreakCount(Math.max(1, (user.getStreakCount() != null && user.getStreakCount() > 0 ? user.getStreakCount() : 1)));
-            }
-            user.setLastActivityDate(today);
             userProgress.awardXp(user, "DAILY_CHECKIN", 10, "Điểm danh hàng ngày");
+            user = userRepository.findById(principal.id()).orElse(user);
             if (user.getHearts() == null || user.getHearts() < 5) {
                 user.setHearts(Math.min(5, (user.getHearts() != null ? user.getHearts() : 4) + 1));
+                userRepository.save(user);
             }
-            userRepository.save(user);
         }
 
         Map<String, Object> res = new LinkedHashMap<>();
@@ -110,6 +121,7 @@ public class LearnerOverviewController {
         res.put("streakCount", user.getStreakCount() != null ? user.getStreakCount() : 1);
         res.put("totalXp", user.getTotalXp() != null ? user.getTotalXp() : 0);
         res.put("hearts", user.getHearts() != null ? user.getHearts() : 5);
+        res.put("streakFreezeCount", user.getStreakFreezeCount() != null ? user.getStreakFreezeCount() : 1);
         res.put("alreadyCheckedIn", alreadyCheckedIn);
 
         return ApiResponse.<Map<String, Object>>builder().result(res).build();
@@ -133,6 +145,7 @@ public class LearnerOverviewController {
         res.put("totalXp", user.getTotalXp() != null ? user.getTotalXp() : 0);
         res.put("streakCount", user.getStreakCount() != null ? user.getStreakCount() : 1);
         res.put("hearts", user.getHearts() != null ? user.getHearts() : 5);
+        res.put("streakFreezeCount", user.getStreakFreezeCount() != null ? user.getStreakFreezeCount() : 1);
         res.put("hasCheckedInToday", true);
 
         return ApiResponse.<Map<String, Object>>builder().result(res).build();

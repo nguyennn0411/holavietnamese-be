@@ -12,7 +12,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   flyway:
-    enabled: false
+    enabled: ${FLYWAY_ENABLED:false}
     baseline-on-migrate: true
     validate-on-migrate: false
     out-of-order: true
@@ -83,6 +83,18 @@ app:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
   mail:
     enabled: ${MAIL_ENABLED:false}
+  notification:
+    enabled: ${NOTIFICATION_ENABLED:true}
+    realtime-enabled: ${NOTIFICATION_REALTIME_ENABLED:true}
+    test-endpoint-enabled: ${NOTIFICATION_TEST_ENDPOINT_ENABLED:false}
+    max-page-size: ${NOTIFICATION_MAX_PAGE_SIZE:100}
+    max-connections-per-user: ${NOTIFICATION_MAX_CONNECTIONS_PER_USER:5}
+    stream-timeout: ${NOTIFICATION_STREAM_TIMEOUT:30m}
+    heartbeat-interval: ${NOTIFICATION_HEARTBEAT_INTERVAL:25s}
+    retention-days: ${NOTIFICATION_RETENTION_DAYS:90}
+    cleanup-cron: "${NOTIFICATION_CLEANUP_CRON:0 0 3 * * *}"
+    learning-event-poll-interval: ${NOTIFICATION_EVENT_POLL_INTERVAL:30s}
+    learning-event-batch-size: ${NOTIFICATION_EVENT_BATCH_SIZE:50}
   destination:
     seed:
       enabled: ${APP_DESTINATION_SEED_ENABLED:true}

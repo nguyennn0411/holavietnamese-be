@@ -124,6 +124,15 @@ public class UserController {
                 .build();
     }
 
+    @PostMapping("/streak-freeze/equip")
+    public ApiResponse<UserProgressResponse> equipStreakFreeze() {
+        UserProgressResponse response = learnerProfile.equipStreakFreeze();
+        return ApiResponse.<UserProgressResponse>builder()
+                .result(response)
+                .message("Trang bị Đóng Băng Chuỗi thành công")
+                .build();
+    }
+
     @GetMapping("/notifications")
     public ApiResponse<List<NotificationResponse>> getNotifications() {
         List<NotificationResponse> response = notificationService.getUserNotifications();

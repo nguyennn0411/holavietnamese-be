@@ -48,7 +48,7 @@ public class SecurityConfig {
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated())
             // JWT clients send an explicit Authorization header; legacy session clients keep CSRF.
-            .csrf(c -> c.ignoringRequestMatchers("/api/auth/**", "/api/users/register", "/api/notifications/**",
+            .csrf(c -> c.ignoringRequestMatchers("/api/auth/**", "/api/users/register",
                     "/api/ai/roleplay/scenarios/*/complete", "/api/ai/roleplay/sessions/*/finish")
                 .ignoringRequestMatchers(r -> r.getHeader("Authorization") != null
                     && r.getHeader("Authorization").startsWith("Bearer ")))

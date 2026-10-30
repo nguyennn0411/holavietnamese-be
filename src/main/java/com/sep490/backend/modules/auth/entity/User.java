@@ -118,6 +118,12 @@ public class User extends BaseEntity {
     @Column(name = "hearts")
     private Integer hearts = 5;
 
+    @Column(name = "streak_freeze_count")
+    private Integer streakFreezeCount = 1;
+
+    @Column(name = "streak_freeze_used_date")
+    private LocalDate streakFreezeUsedDate;
+
     @ColumnDefault("'ACTIVE'")
     @Column(name = "status", length = 20)
     private String status = "ACTIVE";

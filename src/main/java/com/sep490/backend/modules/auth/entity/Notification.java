@@ -9,7 +9,11 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "notifications")
+@Table(
+        name = "notifications",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_notification_user_event",
+                columnNames = {"user_id", "event_key"}))
 public class Notification {
 
     @Id
@@ -31,6 +35,10 @@ public class Notification {
 
     @Column(name = "link_url", length = 500)
     private String linkUrl;
+
+    /** Optional idempotency key of the domain/outbox event that created this notification. */
+    @Column(name = "event_key", length = 200)
+    private String eventKey;
 
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;

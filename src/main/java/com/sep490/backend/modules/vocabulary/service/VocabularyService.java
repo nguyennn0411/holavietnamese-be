@@ -1,25 +1,32 @@
 package com.sep490.backend.modules.vocabulary.service;
-import com.sep490.backend.modules.learning.service.LearnerAccess;
 
-import java.time.Clock;
-import java.util.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.sep490.backend.common.exception.LearningException;
+import com.sep490.backend.modules.auth.repository.UserRepository;
+import com.sep490.backend.modules.learning.dto.model.Course;
+import com.sep490.backend.modules.learning.dto.model.Lesson;
 import com.sep490.backend.modules.learning.repository.CourseRepository;
 import com.sep490.backend.modules.learning.repository.LessonRepository;
+import com.sep490.backend.modules.learning.service.AchievementService;
+import com.sep490.backend.modules.learning.service.LearnerAccess;
+import com.sep490.backend.modules.vocabulary.dto.model.VocabularyEntry;
+import com.sep490.backend.modules.vocabulary.dto.model.VocabularyWord;
+import com.sep490.backend.modules.vocabulary.dto.request.VocabularyRequest;
+import com.sep490.backend.modules.vocabulary.dto.response.VocabularyResponse;
+import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus;
 import com.sep490.backend.modules.vocabulary.repository.VocabularyCatalogRepository;
 import com.sep490.backend.modules.vocabulary.repository.VocabularyRepository;
 import com.sep490.backend.modules.vocabulary.repository.VocabularyReviewRepository;
-import com.sep490.backend.modules.vocabulary.dto.request.VocabularyRequest;
-import com.sep490.backend.modules.vocabulary.dto.response.VocabularyResponse;
-import com.sep490.backend.modules.learning.dto.model.Course;
-import com.sep490.backend.modules.learning.dto.model.Lesson;
-import com.sep490.backend.modules.vocabulary.dto.model.VocabularyEntry;
-import com.sep490.backend.modules.vocabulary.dto.model.VocabularyWord;
-import com.sep490.backend.common.exception.LearningException;
-import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus;
-@Service @RequiredArgsConstructor @Transactional(readOnly = true)
+import java.time.Clock;
+import java.util.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+@Slf4j
 public class VocabularyService {
     private final VocabularyRepository vocabulary;
     private final VocabularyCatalogRepository catalog;
@@ -28,10 +35,14 @@ public class VocabularyService {
     private final CourseRepository courses;
     private final LearnerAccess access;
     private final Clock clock;
+    private final UserRepository userRepository;
+    private final AchievementService achievementService;
+
     public List<VocabularyResponse> search(Long userId, String search, Long courseId, Long lessonId) {
         if (search != null && search.length() > 200) throw new LearningException(LearningException.Kind.INVALID, "Search must be at most 200 characters.");
         return vocabulary.search(userId, search == null ? "" : search.trim(), courseId, lessonId).stream().map(this::response).toList();
     }
+
     public VocabularyResponse get(Long userId, Long id) { return response(owned(userId, id)); }
 
     @Transactional
@@ -39,7 +50,6 @@ public class VocabularyService {
         validateLesson(userId, r.lessonId());
 
         Long masterVocabularyId = r.masterVocabularyId();
-
 
         if (masterVocabularyId != null) {
             var masterWord = catalog.findById(masterVocabularyId)
@@ -73,8 +83,7 @@ public class VocabularyService {
             }
         }
 
-
-        return response(vocabulary.save(new VocabularyEntry(
+        var entry = vocabulary.save(new VocabularyEntry(
                 null,
                 userId,
                 r.lessonId(),
@@ -85,7 +94,18 @@ public class VocabularyService {
                 trim(r.note()),
                 clock.instant(),
                 masterVocabularyId
-        )));
+        ));
+
+        // Evaluate vocabulary badge conditions (e.g. VOCAB_50)
+        try {
+            int totalWords = vocabulary.countByUser(userId);
+            userRepository.findById(userId).ifPresent(user ->
+                    achievementService.checkAndAwardBadges(user, "VOCAB_LEARNED", totalWords));
+        } catch (Exception ex) {
+            log.warn("Không thể kiểm tra huy hiệu từ vựng: {}", ex.getMessage());
+        }
+
+        return response(entry);
     }
 
     @Transactional
@@ -100,14 +120,18 @@ public class VocabularyService {
         if (!Objects.equals(e.lessonId(), r.lessonId())) validateLesson(userId, r.lessonId());
         return response(vocabulary.save(new VocabularyEntry(e.id(), userId, r.lessonId(), r.word().trim(), r.meaning().trim(), trim(r.pronunciation()), trim(r.exampleSentence()), trim(r.note()), e.createdAt(), e.masterVocabularyId())));
     }
+
     @Transactional
     public void delete(Long userId, Long id) { vocabulary.delete(owned(userId, id)); }
+
     private VocabularyEntry owned(Long userId, Long id) { return vocabulary.findOwned(id, userId).orElseThrow(() -> LearningException.notFound("Vocabulary entry")); }
+
     private void validateLesson(Long userId, Long lessonId) {
         if (lessonId == null) return;
         var l = lessons.findById(lessonId).filter(Lesson::published).orElseThrow(() -> LearningException.notFound("Lesson"));
         access.requireEnrollment(userId, l.courseId(), false);
     }
+
     private static String trim(String value) { return value == null ? null : value.trim(); }
 
     VocabularyResponse response(VocabularyEntry e) {
@@ -139,5 +163,4 @@ public class VocabularyService {
                 state
         );
     }
-
 }

@@ -22,4 +22,6 @@ public class BadgeResponse {
     private Boolean isUnlocked;
     private LocalDateTime unlockedAt;
     private Integer badgeLevel;
+    private Integer currentProgress;
+    private Integer progressPercent;
 }

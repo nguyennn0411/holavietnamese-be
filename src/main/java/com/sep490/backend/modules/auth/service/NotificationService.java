@@ -1,179 +1,265 @@
 package com.sep490.backend.modules.auth.service;
 
-import com.sep490.backend.modules.auth.dto.response.NotificationResponse;
 import com.sep490.backend.common.dto.PageResponse;
-import com.sep490.backend.modules.auth.entity.Notification;
-import com.sep490.backend.modules.auth.entity.User;
 import com.sep490.backend.common.exception.AppException;
 import com.sep490.backend.common.exception.ErrorCode;
+import com.sep490.backend.common.notification.NotificationMessage;
+import com.sep490.backend.common.notification.NotificationPort;
+import com.sep490.backend.common.notification.NotificationProperties;
+import com.sep490.backend.common.notification.NotificationType;
+import com.sep490.backend.modules.auth.dto.response.NotificationResponse;
+import com.sep490.backend.modules.auth.entity.Notification;
+import com.sep490.backend.modules.auth.entity.User;
 import com.sep490.backend.modules.auth.repository.NotificationRepository;
 import com.sep490.backend.modules.auth.repository.UserRepository;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.http.HttpStatus;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class NotificationService {
+public class NotificationService implements NotificationPort {
+
+    private static final String DEFAULT_TYPE = NotificationType.SYSTEM.name();
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final NotificationStreamHub streamHub;
+    private final NotificationProperties properties;
+    private final Clock clock;
 
-    /**
-     * Lấy toàn bộ thông báo của người dùng hiện tại (danh sách phẳng).
-     */
     @Transactional(readOnly = true)
     public List<NotificationResponse> getUserNotifications() {
         User user = getCurrentUser();
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(user.getId())
+        return notificationRepository.findByUserIdOrderByCreatedAtDescIdDesc(user.getId())
                 .stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    /**
-     * Lấy danh sách thông báo có phân trang và tùy chọn lọc theo trạng thái đã đọc.
-     */
     @Transactional(readOnly = true)
     public PageResponse<NotificationResponse> getUserNotifications(int page, int size, Boolean isRead) {
         User user = getCurrentUser();
-        Pageable pageable = PageRequest.of(Math.max(0, page - 1), Math.max(1, size));
+        int safePage = Math.max(1, page);
+        int safeSize = Math.min(Math.max(1, size), Math.max(1, properties.getMaxPageSize()));
+        PageRequest pageable = PageRequest.of(safePage - 1, safeSize);
 
-        Page<Notification> notificationPage;
-        if (isRead != null) {
-            notificationPage = notificationRepository.findByUserIdAndIsReadOrderByCreatedAtDesc(user.getId(), isRead, pageable);
-        } else {
-            notificationPage = notificationRepository.findByUserIdOrderByCreatedAtDesc(user.getId(), pageable);
-        }
-
-        List<NotificationResponse> content = notificationPage.getContent()
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        Page<Notification> notifications = isRead == null
+                ? notificationRepository.findByUserIdOrderByCreatedAtDescIdDesc(user.getId(), pageable)
+                : notificationRepository.findByUserIdAndIsReadOrderByCreatedAtDescIdDesc(
+                        user.getId(), isRead, pageable);
 
         return PageResponse.<NotificationResponse>builder()
-                .content(content)
-                .page(page)
-                .size(size)
-                .totalElements(notificationPage.getTotalElements())
-                .totalPages(notificationPage.getTotalPages())
+                .content(notifications.getContent().stream().map(this::mapToResponse).toList())
+                .page(safePage)
+                .size(safeSize)
+                .totalElements(notifications.getTotalElements())
+                .totalPages(notifications.getTotalPages())
                 .build();
     }
 
-    /**
-     * Đếm số lượng thông báo chưa đọc của người dùng hiện tại (cho badge chuông thông báo).
-     */
     @Transactional(readOnly = true)
     public long countUnread() {
-        User user = getCurrentUser();
-        return notificationRepository.countByUserIdAndIsReadFalse(user.getId());
+        return notificationRepository.countByUserIdAndIsReadFalse(getCurrentUser().getId());
     }
 
-    /**
-     * Đánh dấu 1 thông báo là đã đọc.
-     */
     @Transactional
     public void markAsRead(Long notificationId) {
         User user = getCurrentUser();
-
         Notification notification = notificationRepository.findByIdAndUserId(notificationId, user.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Thông báo không tồn tại hoặc không thuộc về bạn"));
+                .orElseThrow(() -> notFound());
 
-        if (!Boolean.TRUE.equals(notification.getIsRead())) {
-            notification.setIsRead(true);
-            notificationRepository.save(notification);
-
-            // Bắn event đồng bộ realtime giữa các tab đang mở của user
-            streamHub.pushRead(user.getId(), notificationId);
+        if (Boolean.TRUE.equals(notification.getIsRead())) {
+            return;
         }
+
+        notification.setIsRead(true);
+        notificationRepository.saveAndFlush(notification);
+        long unreadCount = notificationRepository.countByUserIdAndIsReadFalse(user.getId());
+        afterCommit(() -> streamHub.pushRead(user.getId(), notificationId, unreadCount));
     }
 
-    /**
-     * Đánh dấu toàn bộ thông báo của người dùng là đã đọc.
-     */
     @Transactional
     public void markAllAsRead() {
         User user = getCurrentUser();
-        notificationRepository.markAllAsReadByUserId(user.getId());
+        int changed = notificationRepository.markAllAsReadByUserId(user.getId());
+        if (changed > 0) {
+            afterCommit(() -> streamHub.pushReadAll(user.getId()));
+        }
     }
 
-    /**
-     * Xóa 1 thông báo của người dùng.
-     */
     @Transactional
     public void deleteNotification(Long notificationId) {
         User user = getCurrentUser();
-        notificationRepository.deleteByIdAndUserId(notificationId, user.getId());
-    }
-
-    /**
-     * Tạo thông báo mới và gửi realtime tới người dùng (qua SSE Stream).
-     */
-    @Transactional
-    public NotificationResponse createNotification(User user, String title, String message, String type, String linkUrl) {
-        Notification notification = new Notification();
-        notification.setUser(user);
-        notification.setTitle(title);
-        notification.setMessage(message);
-        notification.setType(type != null ? type : "SYSTEM");
-        notification.setLinkUrl(linkUrl);
-        notification.setIsRead(false);
-        notification.setCreatedAt(LocalDateTime.now());
-
-        Notification saved = notificationRepository.save(notification);
-        NotificationResponse response = mapToResponse(saved);
-
-        // Bắn thông báo Realtime tới các tab đang kết nối SSE của user
-        try {
-            streamHub.push(user.getId(), response);
-        } catch (Exception e) {
-            log.warn("Không thể đẩy SSE notification tới user {}: {}", user.getId(), e.getMessage());
+        if (notificationRepository.deleteByIdAndUserId(notificationId, user.getId()) == 0) {
+            throw notFound();
         }
-
-        return response;
+        long unreadCount = notificationRepository.countByUserIdAndIsReadFalse(user.getId());
+        afterCommit(() -> streamHub.pushDeleted(user.getId(), notificationId, unreadCount));
     }
 
-    /**
-     * Tạo thông báo mới theo userId.
-     */
+    /** Direct creation API retained for administrative/dev use. */
     @Transactional
-    public NotificationResponse createNotification(Long userId, String title, String message, String type, String linkUrl) {
+    public NotificationResponse createNotification(
+            User user, String title, String message, String type, String linkUrl) {
+        return persist(user, NotificationMessage.standard(
+                title, message, parseType(type), linkUrl), null);
+    }
+
+    @Transactional
+    public NotificationResponse createNotification(
+            Long userId, String title, String message, String type, String linkUrl) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return createNotification(user, title, message, type, linkUrl);
     }
 
-    /**
-     * Gửi thông báo hệ thống tới toàn bộ người dùng active.
-     */
+    /** Broadcasts a non-mandatory message to active users who have notifications enabled. */
     @Transactional
-    public void createNotificationForAll(String title, String message, String type, String linkUrl) {
-        List<User> activeUsers = userRepository.findAll().stream()
-                .filter(u -> !Boolean.TRUE.equals(u.getIsRemoved()) && "ACTIVE".equalsIgnoreCase(u.getStatus()))
-                .collect(Collectors.toList());
+    public int createNotificationForAll(
+            String title, String message, String type, String linkUrl) {
+        return broadcast(NotificationMessage.standard(title, message, parseType(type), linkUrl));
+    }
 
-        for (User user : activeUsers) {
-            createNotification(user, title, message, type, linkUrl);
+    @Override
+    @Transactional
+    public boolean send(Long userId, NotificationMessage message) {
+        return sendOnce(userId, message, null);
+    }
+
+    @Override
+    @Transactional
+    public boolean sendOnce(Long userId, NotificationMessage message, String eventKey) {
+        if (!properties.isEnabled()) {
+            return false;
         }
+
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            log.debug("Bỏ qua thông báo vì user {} không còn tồn tại", userId);
+            return false;
+        }
+        if (!isEligible(user, message)) {
+            return false;
+        }
+
+        String normalizedEventKey = normalizeEventKey(eventKey);
+        if (normalizedEventKey != null
+                && notificationRepository.findByUserIdAndEventKey(userId, normalizedEventKey).isPresent()) {
+            return false;
+        }
+
+        persist(user, message, normalizedEventKey);
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public int sendToRole(String role, NotificationMessage message) {
+        if (!properties.isEnabled() || role == null || role.isBlank()) {
+            return 0;
+        }
+        int sent = 0;
+        for (User user : userRepository.findActiveUsersByRole(role.trim().toUpperCase(Locale.ROOT))) {
+            if (isEligible(user, message)) {
+                persist(user, message, null);
+                sent++;
+            }
+        }
+        return sent;
+    }
+
+    @Override
+    @Transactional
+    public int broadcast(NotificationMessage message) {
+        if (!properties.isEnabled()) {
+            return 0;
+        }
+        int sent = 0;
+        for (User user : userRepository.findAllActiveUsers()) {
+            if (isEligible(user, message)) {
+                persist(user, message, null);
+                sent++;
+            }
+        }
+        return sent;
     }
 
     public User getCurrentUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findActiveByUsernameWithRoles(username)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        return userRepository.findActiveByUsernameWithRoles(authentication.getName())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+    }
+
+    private NotificationResponse persist(
+            User user, NotificationMessage message, String eventKey) {
+        Notification notification = new Notification();
+        notification.setUser(user);
+        notification.setTitle(requireLength(message.title(), 200, "title"));
+        notification.setMessage(message.message());
+        notification.setType(message.type().name());
+        notification.setLinkUrl(requireLength(message.linkUrl(), 500, "linkUrl"));
+        notification.setEventKey(requireLength(eventKey, 200, "eventKey"));
+        notification.setIsRead(false);
+        notification.setCreatedAt(LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC));
+
+        Notification saved = notificationRepository.save(notification);
+        NotificationResponse response = mapToResponse(saved);
+        afterCommit(() -> streamHub.push(user.getId(), response));
+        return response;
+    }
+
+    private boolean isEligible(User user, NotificationMessage message) {
+        if (Boolean.TRUE.equals(user.getIsRemoved())) {
+            return false;
+        }
+        if (message.mandatory()) {
+            return true;
+        }
+        return user.isEnabled()
+                && "ACTIVE".equalsIgnoreCase(user.getStatus())
+                && !Boolean.FALSE.equals(user.getNotificationsEnabled());
+    }
+
+    private void afterCommit(Runnable action) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()
+                && TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    safelyRun(action);
+                }
+            });
+        } else {
+            safelyRun(action);
+        }
+    }
+
+    private void safelyRun(Runnable action) {
+        try {
+            action.run();
+        } catch (RuntimeException exception) {
+            log.warn("Không thể đẩy sự kiện thông báo realtime: {}", exception.getMessage());
+        }
     }
 
     private NotificationResponse mapToResponse(Notification notification) {
@@ -186,5 +272,33 @@ public class NotificationService {
                 .isRead(notification.getIsRead())
                 .createdAt(notification.getCreatedAt())
                 .build();
+    }
+
+    private NotificationType parseType(String type) {
+        if (type == null || type.isBlank()) {
+            return NotificationType.SYSTEM;
+        }
+        try {
+            return NotificationType.valueOf(type.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ignored) {
+            log.debug("Loại thông báo '{}' không hợp lệ; dùng {}", type, DEFAULT_TYPE);
+            return NotificationType.SYSTEM;
+        }
+    }
+
+    private String normalizeEventKey(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private String requireLength(String value, int maxLength, String field) {
+        if (value != null && value.length() > maxLength) {
+            throw new IllegalArgumentException(field + " must not exceed " + maxLength + " characters");
+        }
+        return value;
+    }
+
+    private ResponseStatusException notFound() {
+        return new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Thông báo không tồn tại hoặc không thuộc về bạn");
     }
 }

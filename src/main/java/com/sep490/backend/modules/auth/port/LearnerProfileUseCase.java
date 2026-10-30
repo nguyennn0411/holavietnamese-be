@@ -16,4 +16,6 @@ public interface LearnerProfileUseCase {
     UserProgressResponse getUserProgress();
 
     List<BadgeResponse> getUserBadges();
+
+    UserProgressResponse equipStreakFreeze();
 }

@@ -21,6 +21,9 @@ import com.sep490.backend.modules.auth.entity.Role;
 import com.sep490.backend.modules.auth.entity.User;
 import com.sep490.backend.common.exception.AppException;
 import com.sep490.backend.common.exception.ErrorCode;
+import com.sep490.backend.common.notification.NotificationMessage;
+import com.sep490.backend.common.notification.NotificationPort;
+import com.sep490.backend.common.notification.NotificationType;
 import com.sep490.backend.modules.auth.repository.RoleRepository;
 import com.sep490.backend.modules.auth.repository.UserRepository;
 import lombok.AccessLevel;
@@ -56,6 +59,7 @@ public class AuthenticationService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     EmailService emailService;
+    NotificationPort notifications;
 
     Set<String> invalidatedTokens = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -138,7 +142,9 @@ public class AuthenticationService {
         String fullName = (String) payload.get("name");
         String pictureUrl = (String) payload.get("picture");
 
-        User user = userRepository.findActiveByEmailWithRoles(email).orElseGet(() -> {
+        Optional<User> existingUser = userRepository.findActiveByEmailWithRoles(email);
+        boolean newAccount = existingUser.isEmpty();
+        User user = existingUser.orElseGet(() -> {
             Role learnerRole = roleRepository.findByName("LEARNER")
                     .orElseGet(() -> {
                         Role role = new Role();
@@ -162,6 +168,14 @@ public class AuthenticationService {
             newUser.setRoles(new HashSet<>(Set.of(learnerRole)));
             return userRepository.save(newUser);
         });
+
+        if (newAccount) {
+            notifications.send(user.getId(), NotificationMessage.standard(
+                    "Chào mừng đến với Hola Vietnamese!",
+                    "Hồ sơ học tiếng Việt của bạn đã sẵn sàng. Hãy chọn mục tiêu và bắt đầu bài học đầu tiên.",
+                    NotificationType.WELCOME,
+                    "/onboarding"));
+        }
 
         if (!user.isEnabled() || !"ACTIVE".equals(user.getStatus())) {
             throw new AppException(ErrorCode.USER_DEACTIVATED);
@@ -239,6 +253,11 @@ public class AuthenticationService {
         user.setEmailVerificationToken(null);
         user.setVerificationTokenExpiry(null);
         userRepository.save(user);
+        notifications.send(user.getId(), NotificationMessage.standard(
+                "Xác minh email thành công",
+                "Chào mừng bạn đến với Hola Vietnamese. Hãy hoàn thiện mục tiêu học tập để bắt đầu.",
+                NotificationType.WELCOME,
+                "/onboarding"));
     }
 
     @Transactional
@@ -318,6 +337,11 @@ public class AuthenticationService {
         user.setResetPasswordOtp(null);
         user.setResetPasswordOtpExpiry(null);
         userRepository.save(user);
+        notifications.send(user.getId(), NotificationMessage.mandatory(
+                "Mật khẩu đã được đặt lại",
+                "Mật khẩu tài khoản của bạn vừa được đặt lại. Nếu không phải bạn thực hiện, hãy liên hệ hỗ trợ ngay.",
+                NotificationType.SECURITY,
+                "/settings"));
     }
 
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {

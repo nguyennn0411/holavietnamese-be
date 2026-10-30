@@ -3,6 +3,9 @@ import com.sep490.backend.modules.learning.store.ContentStore;
 
 import com.sep490.backend.common.security.LearnerPrincipal;
 import com.sep490.backend.common.exception.ContentException;
+import com.sep490.backend.common.notification.NotificationMessage;
+import com.sep490.backend.common.notification.NotificationPort;
+import com.sep490.backend.common.notification.NotificationType;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CourseReviewService {
   private final ContentStore db;
   private final CourseContentService courses;
+  private final NotificationPort notifications;
 
   public boolean isAdmin(LearnerPrincipal actor) {
     return actor != null && "ADMIN".equals(actor.role());
@@ -74,12 +78,19 @@ public class CourseReviewService {
     db.update("UPDATE courses SET status='REVIEW',submitted_by=?,submitted_at=CURRENT_TIMESTAMP,"
         +" reviewed_by=NULL,reviewed_at=NULL,review_note=NULL,updated_at=CURRENT_TIMESTAMP WHERE id=?",
         actor.id(),courseId);
+    var course = db.one("SELECT title FROM courses WHERE id=?", courseId);
+    notifications.sendToRole("ADMIN", NotificationMessage.mandatory(
+        "Khóa học mới đang chờ duyệt",
+        "Khóa học \"" + course.get("title") + "\" vừa được gửi để phê duyệt.",
+        NotificationType.CONTENT_REVIEW,
+        "/admin/courses/" + courseId));
   }
 
   @Transactional
   public void review(long courseId, String decision, String note, LearnerPrincipal actor) {
     if(!isAdmin(actor)) throw ContentException.forbidden("ADMIN_REQUIRED","Only an administrator can review courses.");
-    var course=db.one("SELECT status FROM courses WHERE id=? FOR UPDATE",courseId);
+    var course=db.one("SELECT status,title,COALESCE(submitted_by,created_by) AS recipient_id"
+        + " FROM courses WHERE id=? FOR UPDATE",courseId);
     if(!"REVIEW".equals(course.get("status")))
       throw ContentException.conflict("COURSE_NOT_IN_REVIEW","Only courses waiting for review can be approved or rejected.");
     if("APPROVE".equals(decision)) {
@@ -92,6 +103,18 @@ public class CourseReviewService {
     } else throw ContentException.invalid("Decision must be APPROVE or REJECT.");
     db.update("UPDATE courses SET reviewed_by=?,reviewed_at=CURRENT_TIMESTAMP,review_note=?,updated_at=CURRENT_TIMESTAMP WHERE id=?",
         actor.id(),note==null?null:note.trim(),courseId);
+    if (course.get("recipientId") != null) {
+      boolean approved = "APPROVE".equals(decision);
+      String detail = approved
+          ? "Khóa học \"" + course.get("title") + "\" đã được phê duyệt và xuất bản."
+          : "Khóa học \"" + course.get("title") + "\" cần chỉnh sửa."
+              + (note == null || note.isBlank() ? "" : " Phản hồi: " + note.trim());
+      notifications.send(ContentStore.id(course,"recipientId"), NotificationMessage.mandatory(
+          approved ? "Khóa học đã được phê duyệt" : "Khóa học cần chỉnh sửa",
+          detail,
+          NotificationType.CONTENT_REVIEW,
+          "/admin/courses/" + courseId));
+    }
   }
 
   public List<String> readiness(long courseId) {

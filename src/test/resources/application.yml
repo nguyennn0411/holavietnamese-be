@@ -31,6 +31,9 @@ google:
 app:
   mail:
     enabled: false
+  notification:
+    test-endpoint-enabled: true
+    cleanup-cron: "-"
   destination:
     seed:
       enabled: false

@@ -1,8 +1,11 @@
 package com.sep490.backend.modules.learning.service;
-import com.sep490.backend.modules.learning.store.ContentStore;
 
+import com.sep490.backend.modules.learning.store.ContentStore;
 import static com.sep490.backend.modules.learning.store.ContentStore.*;
 
+import com.sep490.backend.common.notification.NotificationMessage;
+import com.sep490.backend.common.notification.NotificationPort;
+import com.sep490.backend.common.notification.NotificationType;
 import com.sep490.backend.modules.learning.dto.request.LearningPathRequests;
 import com.sep490.backend.common.exception.ContentException;
 import java.text.Normalizer;
@@ -35,6 +38,7 @@ public class LearningPathService {
   );
   private final ContentStore db;
   private final CourseService enrollments;
+  private final NotificationPort notifications;
 
   @Transactional(readOnly = true)
   public Map<String,Object> me(long user) {
@@ -102,6 +106,13 @@ public class LearningPathService {
         onboarding, source, goals, request.dailyStudyMinutes(), user);
     if (requestedLevel != null && Set.of("USER_CONFIRMED","PROFILE").contains(source))
       db.update("UPDATE users SET target_level=?,updated_at=CURRENT_TIMESTAMP WHERE id=?", requestedLevel, user);
+
+    notifications.send(user, NotificationMessage.standard(
+        "Tùy chỉnh lộ trình học đã lưu",
+        "Mục tiêu và trình độ học tập của bạn đã được cập nhật thành công.",
+        NotificationType.COURSE,
+        "/learning-path"));
+
     return me(user);
   }
 
@@ -135,6 +146,13 @@ public class LearningPathService {
       db.update("UPDATE learning_path_preferences SET active_course_id=?,"
           + " preference_version=preference_version+1,updated_at=CURRENT_TIMESTAMP WHERE user_id=?",
           firstCourseId, user);
+
+    notifications.send(user, NotificationMessage.standard(
+        "Đã áp dụng lộ trình học tập",
+        "Lộ trình học mới đã được thiết lập. Hãy bắt đầu bài học đầu tiên ngay!",
+        NotificationType.COURSE,
+        "/learning-path"));
+
     return me(user);
   }
 
