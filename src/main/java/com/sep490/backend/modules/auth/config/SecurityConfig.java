@@ -29,7 +29,7 @@ public class SecurityConfig {
                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
             .requestMatchers(HttpMethod.GET, "/media/**", "/api/csrf", "/api/courses", "/api/courses/{id}",
                 "/api/site-content", "/api/grammar", "/api/grammar/{id}", "/api/lessons/public/**", "/api/topics/public/**", "/api/notifications/stream",
-                "/api/ai/scenarios", "/api/ai/scenarios/*").permitAll()
+                "/api/ai/scenarios", "/api/ai/scenarios/*", "/api/culture/**").permitAll()
             .requestMatchers("/api/ai/roleplay/scenarios/*/complete", "/api/ai/roleplay/sessions/*/finish").permitAll()
             .requestMatchers("/api/admin/courses/**", "/api/admin/modules/**",
                 "/api/admin/lessons/**", "/api/admin/activities/**",
@@ -45,6 +45,7 @@ public class SecurityConfig {
                 .hasAnyAuthority("ROLE_CONTENT_MANAGER", "ROLE_ADMIN", ContentPermissions.EXPLORE_READ,
                     ContentPermissions.EXPLORE_WRITE, ContentPermissions.EXPLORE_LINK_WRITE,
                     ContentPermissions.EXPLORE_REVIEW, ContentPermissions.EXPLORE_PUBLISH)
+            .requestMatchers("/api/admin/culture/**").hasAnyRole("ADMIN", "STAFF", "CONTENT_MANAGER")
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated())
             // JWT clients send an explicit Authorization header; legacy session clients keep CSRF.

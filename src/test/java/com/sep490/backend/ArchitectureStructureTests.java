@@ -21,7 +21,7 @@ class ArchitectureStructureTests {
     private static final String BASE_PACKAGE = "com.sep490.backend";
     private static final Path SOURCE_ROOT = Path.of("src/main/java/com/sep490/backend");
     private static final Set<String> MODULES = Set.of(
-            "admin", "ai", "auth", "explore", "learning", "vocabulary");
+            "admin", "ai", "auth", "culture", "explore", "learning", "vocabulary");
     private static final Map<String, Set<String>> LEARNING_SLICES = Map.of(
             "authoring", Set.of("application", "web"),
             "course", Set.of("application", "domain", "infrastructure", "web"),
@@ -61,7 +61,7 @@ class ArchitectureStructureTests {
             }
 
             String topLevel = relative.getName(0).toString();
-            if (!Set.of("common", "modules").contains(topLevel)) {
+            if (!Set.of("common", "modules", "seed").contains(topLevel)) {
                 violations.add(relative + " uses a legacy package-by-layer directory");
             } else if ("modules".equals(topLevel)
                     && (relative.getNameCount() < 3 || !MODULES.contains(relative.getName(1).toString()))) {
