@@ -16,21 +16,19 @@ com.sep490.backend
 │   └── security        # Shared principal and authorization contracts
 ├── modules
 │   ├── auth            # Authentication, users, roles, profiles, notifications
-│   ├── learning        # Courses, lessons, activities, quizzes, progress, seeds
+│   ├── learning        # Course, lesson, grammar, quiz, progress, path, and importing
 │   ├── vocabulary      # Dictionary, personal notebook, and SRS review
 │   ├── ai              # Tutor, roleplay, provider adapters, usage tracking
-│   ├── culture         # Destinations and regional Vietnamese
+│   ├── explore         # Destinations and regional Vietnamese
 │   └── admin
 │       ├── cms         # Banner, menu, and feature-flag management
-│       ├── importing   # Excel and website import adapters
 │       └── media       # Administrative upload endpoints
 └── BackendApplication.java
 ```
 
-Admin-facing controllers for AI, culture, learning, and vocabulary remain inside the module that
-owns the business rule. The `admin` module contains only cross-domain administration, CMS, import,
-and media orchestration. Java reserves the word `import`, so the source package is named
-`admin.importing`.
+Admin-facing controllers for AI, explore, learning, and vocabulary remain inside the module that
+owns the business rule. The `admin` module contains only cross-domain administration, CMS, and
+media orchestration. Course Excel and website imports are owned by `learning.importing`.
 
 ## Dependency direction
 
@@ -39,8 +37,8 @@ flowchart LR
     Admin[admin] --> Vocabulary[vocabulary]
     Admin --> Learning[learning]
     Admin --> Auth[auth]
-    Culture[culture] --> AI[ai]
-    Culture --> Vocabulary
+    Explore[explore] --> AI[ai]
+    Explore --> Vocabulary
     Vocabulary --> Learning
     Vocabulary --> Auth
     Learning --> Auth
@@ -49,14 +47,14 @@ flowchart LR
     Learning --> Common
     Vocabulary --> Common
     AI --> Common
-    Culture --> Common
+    Explore --> Common
     Admin --> Common
 ```
 
 `common` never imports a feature module. Two ports remove otherwise circular dependencies:
 
 - `auth.port.LearnerProfileUseCase` is implemented by the learning module.
-- `learning.port.VocabularyProgressReader` is implemented by the vocabulary module.
+- `learning.progress.port.VocabularyProgressReader` is implemented by the vocabulary module.
 
 The architecture test verifies package/path consistency, rejects legacy top-level layer packages,
 prevents `common -> modules` imports, and detects cycles between feature modules.
