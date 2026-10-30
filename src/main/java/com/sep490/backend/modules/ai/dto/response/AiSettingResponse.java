@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.ai.dto.response;
+﻿package com.sep490.backend.modules.ai.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

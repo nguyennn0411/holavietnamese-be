@@ -1,4 +1,4 @@
-package com.sep490.backend.common.security;
+﻿package com.sep490.backend.common.security;
 
 /** Authorities used by the Vocabulary and Explore content-management APIs. */
 public final class ContentPermissions {

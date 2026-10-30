@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.vocabulary.dto.response;
+﻿package com.sep490.backend.modules.vocabulary.dto.response;
 
 import com.sep490.backend.modules.vocabulary.dto.model.VocabularyMeaning;
 import com.sep490.backend.modules.vocabulary.dto.model.DictionaryMetadata;

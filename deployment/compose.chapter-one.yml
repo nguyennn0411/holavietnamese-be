@@ -1,4 +1,0 @@
-services:
-  backend:
-    environment:
-      APP_CHAPTERONE_SEED_ENABLED: "true"

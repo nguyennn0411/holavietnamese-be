@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.vocabulary.repository;
+﻿package com.sep490.backend.modules.vocabulary.repository;
 
 import com.sep490.backend.modules.vocabulary.dto.model.VocabularyExample;
 import com.sep490.backend.modules.vocabulary.dto.model.VocabularyMeaning;

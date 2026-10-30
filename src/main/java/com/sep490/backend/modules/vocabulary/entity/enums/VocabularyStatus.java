@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.vocabulary.entity.enums;
+﻿package com.sep490.backend.modules.vocabulary.entity.enums;
 
 public enum VocabularyStatus {
     DRAFT,

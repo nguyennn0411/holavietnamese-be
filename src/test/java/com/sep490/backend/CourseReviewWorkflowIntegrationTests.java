@@ -7,10 +7,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sep490.backend.common.security.LearnerPrincipal;
-import com.sep490.backend.modules.learning.service.CourseContentService;
-import com.sep490.backend.modules.learning.service.CourseReviewService;
-import com.sep490.backend.modules.learning.dto.request.ContentRequests;
-import com.sep490.backend.modules.learning.store.ContentStore;
+import com.sep490.backend.modules.learning.authoring.application.CourseContentService;
+import com.sep490.backend.modules.learning.authoring.application.CourseReviewService;
+import com.sep490.backend.modules.learning.authoring.web.dto.ContentRequests;
+import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;

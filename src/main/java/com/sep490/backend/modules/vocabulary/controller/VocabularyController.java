@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.vocabulary.controller;
+﻿package com.sep490.backend.modules.vocabulary.controller;
 
 import java.util.List;
 import jakarta.validation.Valid;

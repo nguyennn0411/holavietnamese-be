@@ -1,4 +1,8 @@
-package com.sep490.backend.modules.vocabulary.repository;
+﻿package com.sep490.backend.modules.vocabulary.repository;
+import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.entity.LessonJpaEntity;
+import com.sep490.backend.modules.learning.progress.port.VocabularyProgressReader;
+
+
 
 import java.util.*;
 import jakarta.persistence.EntityManager;
@@ -6,8 +10,6 @@ import org.springframework.stereotype.Repository;
 import lombok.RequiredArgsConstructor;
 import com.sep490.backend.modules.vocabulary.repository.jpa.VocabularyJpaRepository;
 import com.sep490.backend.modules.auth.entity.User;
-import com.sep490.backend.modules.learning.entity.LessonJpaEntity;
-import com.sep490.backend.modules.learning.port.VocabularyProgressReader;
 import com.sep490.backend.modules.vocabulary.entity.VocabularyJpaEntity;
 import com.sep490.backend.modules.vocabulary.entity.VocabularyWordJpaEntity;
 import com.sep490.backend.modules.vocabulary.mapper.VocabularyMapper;

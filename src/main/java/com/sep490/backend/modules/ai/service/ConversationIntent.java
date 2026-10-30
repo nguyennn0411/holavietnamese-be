@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.ai.service;
+﻿package com.sep490.backend.modules.ai.service;
 
 /**
  * ConversationIntent - Detected intent behind the learner's message.

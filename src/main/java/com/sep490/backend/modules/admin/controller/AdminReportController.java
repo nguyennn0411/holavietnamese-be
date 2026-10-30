@@ -1,9 +1,11 @@
-package com.sep490.backend.modules.admin.controller;
+﻿package com.sep490.backend.modules.admin.controller;
+import com.sep490.backend.modules.learning.course.infrastructure.persistence.CourseRepository;
+import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.LessonRepository;
+import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
+
+
 
 import com.sep490.backend.common.dto.ApiResponse;
-import com.sep490.backend.modules.learning.store.ContentStore;
-import com.sep490.backend.modules.learning.repository.CourseRepository;
-import com.sep490.backend.modules.learning.repository.LessonRepository;
 import com.sep490.backend.modules.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;

@@ -2,10 +2,10 @@ package com.sep490.backend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sep490.backend.common.security.LearnerPrincipal;
-import com.sep490.backend.modules.culture.dto.request.DestinationRequest;
-import com.sep490.backend.modules.culture.entity.enums.DestinationStatus;
-import com.sep490.backend.modules.culture.entity.enums.VietnamRegion;
-import com.sep490.backend.modules.culture.service.DestinationService;
+import com.sep490.backend.modules.explore.destination.dto.request.DestinationRequest;
+import com.sep490.backend.modules.explore.destination.entity.enums.DestinationStatus;
+import com.sep490.backend.modules.explore.entity.enums.VietnamRegion;
+import com.sep490.backend.modules.explore.destination.service.DestinationService;
 import java.util.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

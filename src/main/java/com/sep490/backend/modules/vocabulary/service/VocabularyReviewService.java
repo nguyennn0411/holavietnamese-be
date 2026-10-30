@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.vocabulary.service;
+﻿package com.sep490.backend.modules.vocabulary.service;
 
 import com.sep490.backend.modules.vocabulary.dto.request.VocabularyReviewRequest;
 import com.sep490.backend.modules.vocabulary.dto.response.VocabularyReviewResultResponse;

@@ -1,13 +1,12 @@
 package com.sep490.backend.modules.vocabulary.service;
-
 import com.sep490.backend.common.exception.LearningException;
 import com.sep490.backend.modules.auth.repository.UserRepository;
-import com.sep490.backend.modules.learning.dto.model.Course;
-import com.sep490.backend.modules.learning.dto.model.Lesson;
-import com.sep490.backend.modules.learning.repository.CourseRepository;
-import com.sep490.backend.modules.learning.repository.LessonRepository;
-import com.sep490.backend.modules.learning.service.AchievementService;
-import com.sep490.backend.modules.learning.service.LearnerAccess;
+import com.sep490.backend.modules.learning.course.domain.model.Course;
+import com.sep490.backend.modules.learning.course.infrastructure.persistence.CourseRepository;
+import com.sep490.backend.modules.learning.lesson.domain.model.Lesson;
+import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.LessonRepository;
+import com.sep490.backend.modules.learning.progress.application.AchievementService;
+import com.sep490.backend.modules.learning.progress.application.LearnerAccess;
 import com.sep490.backend.modules.vocabulary.dto.model.VocabularyEntry;
 import com.sep490.backend.modules.vocabulary.dto.model.VocabularyWord;
 import com.sep490.backend.modules.vocabulary.dto.request.VocabularyRequest;

@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.admin.cms.repository;
+﻿package com.sep490.backend.modules.admin.cms.repository;
 
 import com.sep490.backend.modules.admin.cms.entity.SiteFeatureFlag;
 import org.springframework.data.jpa.repository.JpaRepository;

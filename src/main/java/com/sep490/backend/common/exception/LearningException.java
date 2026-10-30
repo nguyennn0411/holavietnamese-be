@@ -1,4 +1,4 @@
-package com.sep490.backend.common.exception;
+﻿package com.sep490.backend.common.exception;
 
 public class LearningException extends RuntimeException {
     public enum Kind { NOT_FOUND, CONFLICT, FORBIDDEN, INVALID }

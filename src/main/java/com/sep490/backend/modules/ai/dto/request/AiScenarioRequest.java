@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.ai.dto.request;
+﻿package com.sep490.backend.modules.ai.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

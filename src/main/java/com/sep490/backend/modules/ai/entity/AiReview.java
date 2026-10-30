@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.ai.entity;
+﻿package com.sep490.backend.modules.ai.entity;
 import com.sep490.backend.modules.auth.entity.User;
 
 import jakarta.persistence.*;

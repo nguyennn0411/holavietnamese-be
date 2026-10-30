@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.vocabulary.controller.admin;
+﻿package com.sep490.backend.modules.vocabulary.controller.admin;
 
 import com.sep490.backend.modules.vocabulary.dto.request.VocabularyWordRequest;
 import com.sep490.backend.common.dto.request.ContentReviewRequest;

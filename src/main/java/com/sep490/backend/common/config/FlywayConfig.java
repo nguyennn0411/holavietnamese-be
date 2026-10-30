@@ -1,4 +1,4 @@
-package com.sep490.backend.common.config;
+﻿package com.sep490.backend.common.config;
 
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.annotation.Bean;

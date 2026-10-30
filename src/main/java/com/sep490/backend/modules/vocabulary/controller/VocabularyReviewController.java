@@ -1,4 +1,4 @@
-package com.sep490.backend.modules.vocabulary.controller;
+﻿package com.sep490.backend.modules.vocabulary.controller;
 
 import com.sep490.backend.common.security.LearnerPrincipal;
 import com.sep490.backend.modules.vocabulary.dto.request.VocabularyReviewRequest;

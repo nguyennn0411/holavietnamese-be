@@ -21,7 +21,17 @@ class ArchitectureStructureTests {
     private static final String BASE_PACKAGE = "com.sep490.backend";
     private static final Path SOURCE_ROOT = Path.of("src/main/java/com/sep490/backend");
     private static final Set<String> MODULES = Set.of(
-            "admin", "ai", "auth", "culture", "learning", "vocabulary");
+            "admin", "ai", "auth", "explore", "learning", "vocabulary");
+    private static final Map<String, Set<String>> LEARNING_SLICES = Map.of(
+            "authoring", Set.of("application", "web"),
+            "course", Set.of("application", "domain", "infrastructure", "web"),
+            "grammar", Set.of("application", "web"),
+            "importing", Set.of("controller", "dto", "exception", "repository", "service", "web"),
+            "lesson", Set.of("application", "domain", "infrastructure", "web"),
+            "path", Set.of("application", "web"),
+            "progress", Set.of("application", "domain", "infrastructure", "port", "web"),
+            "quiz", Set.of("application", "web"),
+            "shared", Set.of("application", "infrastructure", "web"));
     private static final Pattern PACKAGE = Pattern.compile("(?m)^package\\s+([\\w.]+)\\s*;");
     private static final Pattern MODULE_IMPORT = Pattern.compile(
             "(?m)^import\\s+(?:static\\s+)?com\\.sep490\\.backend\\.modules\\.([^.]+)[.;]");
@@ -74,6 +84,36 @@ class ArchitectureStructureTests {
                 }
             }
         }
+        assertTrue(violations.isEmpty(), String.join(System.lineSeparator(), violations));
+    }
+
+    @Test
+    void learningUsesCapabilityFirstPackages() throws IOException {
+        List<String> violations = new ArrayList<>();
+
+        for (Path source : productionSources()) {
+            Path relative = SOURCE_ROOT.relativize(source);
+            if (relative.getNameCount() < 3
+                    || !"modules".equals(relative.getName(0).toString())
+                    || !"learning".equals(relative.getName(1).toString())) {
+                continue;
+            }
+
+            if (relative.getNameCount() < 5) {
+                violations.add(relative + " must belong to a learning capability and layer");
+                continue;
+            }
+
+            String capability = relative.getName(2).toString();
+            String layer = relative.getName(3).toString();
+            Set<String> allowedLayers = LEARNING_SLICES.get(capability);
+            if (allowedLayers == null) {
+                violations.add(relative + " uses unknown learning capability " + capability);
+            } else if (!allowedLayers.contains(layer)) {
+                violations.add(relative + " uses invalid layer " + layer + " for " + capability);
+            }
+        }
+
         assertTrue(violations.isEmpty(), String.join(System.lineSeparator(), violations));
     }
 
