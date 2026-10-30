@@ -48,6 +48,10 @@ public class QuizService {
   }
 
   public Map<String, Object> detail(long id, boolean admin) {
+    return detail(id, admin, null);
+  }
+
+  public Map<String, Object> detail(long id, boolean admin, Long user) {
     var q =
         db.one("SELECT * FROM quizzes WHERE id=?" + (admin ? "" : " AND status='PUBLISHED'"), id);
     q.put(
@@ -66,6 +70,24 @@ public class QuizService {
       q.put("courseStatus", course.get("status"));
       q.put("courseTitle", course.get("title"));
       q.put("courseAuthorRole", course.get("authorRole"));
+    }
+    // Attach active in-progress attempt info so the start screen can offer resume/restart
+    if (user != null) {
+      var active = db.rows(
+          "SELECT id, started_at,"
+              + " (SELECT count(*) FROM quiz_answers WHERE attempt_id=qa.id AND answer_json IS NOT NULL) AS answered_count"
+              + " FROM quiz_attempts qa WHERE user_id=? AND quiz_id=? AND status='IN_PROGRESS'"
+              + " ORDER BY id DESC LIMIT 1",
+          user, id);
+      if (!active.isEmpty()) {
+        var a = active.getFirst();
+        if (!expired(a)) {
+          q.put("activeAttempt", Map.of(
+              "id", a.get("id"),
+              "startedAt", a.get("startedAt"),
+              "answeredCount", a.get("answeredCount")));
+        }
+      }
     }
     return q;
   }
@@ -230,6 +252,11 @@ public class QuizService {
 
   @Transactional
   public Map<String, Object> start(long user, long quiz) {
+    return start(user, quiz, false);
+  }
+
+  @Transactional
+  public Map<String, Object> start(long user, long quiz, boolean restart) {
     progress.lockUser(user);
     var q = db.one("SELECT * FROM quizzes WHERE id=? FOR UPDATE", quiz);
     if (!"PUBLISHED".equals(q.get("status")))
@@ -243,11 +270,17 @@ public class QuizService {
             quiz);
     if (!active.isEmpty()) {
       var a = active.getFirst();
-      if (!expired(a)) return attempt(user, id(a, "id"), false);
-      db.update("UPDATE quiz_attempts SET status='ABANDONED' WHERE id=?", a.get("id"));
+      if (restart) {
+        // Abandon current in-progress attempt so a fresh one can be started
+        db.update("UPDATE quiz_attempts SET status='ABANDONED' WHERE id=?", a.get("id"));
+      } else if (!expired(a)) {
+        return attempt(user, id(a, "id"), false);
+      } else {
+        db.update("UPDATE quiz_attempts SET status='ABANDONED' WHERE id=?", a.get("id"));
+      }
     }
     if (q.get("maxAttempts") != null
-        && db.count("SELECT count(*) FROM quiz_attempts WHERE user_id=? AND quiz_id=?", user, quiz)
+        && db.count("SELECT count(*) FROM quiz_attempts WHERE user_id=? AND quiz_id=? AND status != 'ABANDONED'", user, quiz)
             >= id(q, "maxAttempts"))
       throw ContentException.conflict(
           "MAX_ATTEMPTS_REACHED", "You have reached the attempt limit.");
@@ -466,6 +499,16 @@ public class QuizService {
       }
     }
     return attempt(user, attempt, false);
+  }
+
+  @Transactional
+  public Map<String, Object> restartAttempt(long user, long attemptId) {
+    progress.lockUser(user);
+    var a = owned(user, attemptId, false, true);
+    if (!"IN_PROGRESS".equals(a.get("status")))
+      throw ContentException.conflict("ATTEMPT_NOT_IN_PROGRESS", "Only in-progress attempts can be restarted.");
+    db.update("UPDATE quiz_attempts SET status='ABANDONED' WHERE id=?", attemptId);
+    return start(user, id(a, "quizId"), false);
   }
 
   public Map<String, Object> result(long user, long attempt) {
