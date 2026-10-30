@@ -1,8 +1,8 @@
 package com.sep490.backend.seed;
 
-import com.sep490.backend.modules.learning.service.CourseContentService;
+import com.sep490.backend.modules.learning.authoring.application.CourseContentService;
 import com.sep490.backend.modules.learning.importing.service.CourseWorkbookService;
-import com.sep490.backend.modules.learning.store.ContentStore;
+import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;

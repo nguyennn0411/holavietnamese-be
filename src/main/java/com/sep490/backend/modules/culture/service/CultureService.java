@@ -135,18 +135,22 @@ public class CultureService {
 
     public boolean matchesCategory(CultureArticle article, CultureCategory category) {
         if (article == null || category == null) return false;
-        if (article.getCategory() != null) {
-            if (category.getId() != null && category.getId().equalsIgnoreCase(article.getCategory().getId())) return true;
-            if (category.getSlug() != null && category.getSlug().equalsIgnoreCase(article.getCategory().getSlug())) return true;
-        }
+        try {
+            if (article.getCategory() != null) {
+                if (category.getId() != null && category.getId().equalsIgnoreCase(article.getCategory().getId())) return true;
+                if (category.getSlug() != null && category.getSlug().equalsIgnoreCase(article.getCategory().getSlug())) return true;
+                if (category.getName() != null && category.getName().equalsIgnoreCase(article.getCategory().getName())) return true;
+            }
+        } catch (Exception ignored) {}
+
         String aCatName = article.getCategoryName();
         if (aCatName != null && !aCatName.trim().isEmpty()) {
-            String name = aCatName.trim();
-            if (category.getId() != null && category.getId().equalsIgnoreCase(name)) return true;
-            if (category.getSlug() != null && category.getSlug().equalsIgnoreCase(name)) return true;
-            if (category.getName() != null && category.getName().equalsIgnoreCase(name)) return true;
-            if (category.getNameVi() != null && category.getNameVi().equalsIgnoreCase(name)) return true;
-            if (category.getNameEn() != null && category.getNameEn().equalsIgnoreCase(name)) return true;
+            String name = aCatName.trim().toLowerCase();
+            if (category.getId() != null && (name.equalsIgnoreCase(category.getId()) || name.contains(category.getId().toLowerCase()))) return true;
+            if (category.getSlug() != null && (name.equalsIgnoreCase(category.getSlug()) || name.contains(category.getSlug().toLowerCase()))) return true;
+            if (category.getName() != null && (name.equalsIgnoreCase(category.getName()) || name.contains(category.getName().toLowerCase()))) return true;
+            if (category.getNameVi() != null && (name.equalsIgnoreCase(category.getNameVi()) || name.contains(category.getNameVi().toLowerCase()))) return true;
+            if (category.getNameEn() != null && (name.equalsIgnoreCase(category.getNameEn()) || name.contains(category.getNameEn().toLowerCase()))) return true;
         }
         return false;
     }

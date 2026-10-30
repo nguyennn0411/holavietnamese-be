@@ -48,15 +48,15 @@ CREATE TABLE IF NOT EXISTS culture_articles (
     related_article_ids JSON,
     created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    CONSTRAINT fk_culture_article_category FOREIGN KEY (category_id) REFERENCES culture_categories(id) ON DELETE SET NULL
+    CONSTRAINT fk_culture_article_category FOREIGN KEY (category_id) REFERENCES culture_categories(id) ON DELETE SET NULL,
+    INDEX idx_culture_articles_status_featured (status, is_featured, published_at),
+    INDEX idx_culture_articles_category (category_id, status),
+    INDEX idx_culture_articles_destination (destination_id, status)
 );
 
-CREATE INDEX idx_culture_articles_status_featured ON culture_articles(status, is_featured, published_at);
-CREATE INDEX idx_culture_articles_category ON culture_articles(category_id, status);
-CREATE INDEX idx_culture_articles_destination ON culture_articles(destination_id, status);
 
 -- Insert Default Categories
-INSERT INTO culture_categories (id, name, name_vi, name_en, slug, icon, description, display_order) VALUES
+INSERT IGNORE INTO culture_categories (id, name, name_vi, name_en, slug, icon, description, display_order) VALUES
 ('culinary', 'Ẩm thực', 'Ẩm thực', 'Food & Cuisine', 'culinary', '🍜', 'Món ăn, đồ uống, văn hóa ẩm thực và nghệ thuật thưởng vị 3 miền.', 1),
 ('tradition', 'Lễ hội & Phong tục', 'Lễ hội & Phong tục', 'Festivals & Traditions', 'tradition', '🏮', 'Tết Nguyên Đán, Trung Thu, hội làng và phong tục tập quán truyền thống.', 2),
 ('daily-life', 'Đời sống thường nhật', 'Đời sống thường nhật', 'Daily Life', 'daily-life', '☕', 'Cà phê vỉa hè, xe máy phố thị, nếp sinh hoạt quen thuộc của người Việt.', 3),
@@ -65,7 +65,7 @@ INSERT INTO culture_categories (id, name, name_vi, name_en, slug, icon, descript
 ('etiquette', 'Ứng xử & Xưng hô', 'Ứng xử & Xưng hô', 'Etiquette & Politeness', 'etiquette', '🙏', 'Nghệ thuật xưng hô, kính trên nhường dưới, văn hóa mời cơm và chào hỏi.', 6);
 
 -- Insert Initial Featured Articles
-INSERT INTO culture_articles (
+INSERT IGNORE INTO culture_articles (
     id, title, title_vi, title_en, subtitle, subtitle_vi, subtitle_en,
     summary, summary_vi, summary_en,
     content, content_vi, content_en,
@@ -207,3 +207,4 @@ INSERT INTO culture_articles (
     '[{"word":"Cây bẹo","pronunciation":"cây-bẹo","meaning":"Bamboo pole used on boats to display merchandise for sale","context":"Nét sáng tạo độc đáo của chợ nổi Nam Bộ."},{"word":"Thương hồ","pronunciation":"thương-hồ","meaning":"River traders / boat merchants living on waters","context":"Từ ngữ chỉ những người buôn bán lênh đênh trên sông."},{"word":"Miệt vườn sông nước","pronunciation":"miệt-vườn-sông-nước","meaning":"Fruit orchard countryside along waterways","context":"Cảnh quan đặc trưng của vùng đồng bằng sông Cửu Long."}]',
     '["kham-pha-hoi-an","van-hoa-ca-phe-viet-nam"]'
 );
+

@@ -114,6 +114,12 @@ public class AdminCultureService {
             String catParam = request.getCategory().trim();
             CultureCategory cat = categoryRepository.findById(catParam)
                     .or(() -> categoryRepository.findBySlug(catParam))
+                    .or(() -> categoryRepository.findAll().stream()
+                            .filter(c -> catParam.equalsIgnoreCase(c.getName())
+                                    || catParam.equalsIgnoreCase(c.getNameVi())
+                                    || catParam.equalsIgnoreCase(c.getNameEn())
+                                    || (c.getName() != null && c.getName().toLowerCase().contains(catParam.toLowerCase())))
+                            .findFirst())
                     .orElse(null);
             article.setCategory(cat);
             article.setCategoryName(cat != null ? cat.getName() : request.getCategoryName());
