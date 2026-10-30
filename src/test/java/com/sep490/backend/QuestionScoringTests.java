@@ -3,7 +3,7 @@ package com.sep490.backend;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sep490.backend.modules.learning.service.QuestionScoring;
+import com.sep490.backend.modules.learning.quiz.application.QuestionScoring;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

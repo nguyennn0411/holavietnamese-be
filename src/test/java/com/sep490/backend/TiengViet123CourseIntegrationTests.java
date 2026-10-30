@@ -6,8 +6,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sep490.backend.modules.learning.seed.TiengViet123CourseSeed;
-import com.sep490.backend.modules.learning.store.ContentStore;
+import com.sep490.backend.modules.learning.bootstrap.seed.TiengViet123CourseSeed;
+import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

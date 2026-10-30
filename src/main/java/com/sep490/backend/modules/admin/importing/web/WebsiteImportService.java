@@ -1,4 +1,9 @@
 package com.sep490.backend.modules.admin.importing.web;
+import com.sep490.backend.modules.learning.authoring.application.ActivityService;
+import com.sep490.backend.modules.learning.authoring.application.CourseContentService;
+import com.sep490.backend.modules.learning.authoring.web.dto.ContentRequests;
+
+
 
 import static com.sep490.backend.modules.admin.importing.web.WebsiteImportModel.*;
 
@@ -6,9 +11,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sep490.backend.common.security.LearnerPrincipal;
-import com.sep490.backend.modules.learning.service.CourseContentService;
-import com.sep490.backend.modules.learning.service.ActivityService;
-import com.sep490.backend.modules.learning.dto.request.ContentRequests;
 import com.sep490.backend.common.exception.ContentException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;

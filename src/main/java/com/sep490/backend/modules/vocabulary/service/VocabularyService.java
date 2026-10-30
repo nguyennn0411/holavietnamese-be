@@ -1,20 +1,21 @@
 package com.sep490.backend.modules.vocabulary.service;
-import com.sep490.backend.modules.learning.service.LearnerAccess;
+import com.sep490.backend.modules.learning.course.domain.model.Course;
+import com.sep490.backend.modules.learning.course.infrastructure.persistence.CourseRepository;
+import com.sep490.backend.modules.learning.lesson.domain.model.Lesson;
+import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.LessonRepository;
+import com.sep490.backend.modules.learning.progress.application.LearnerAccess;
+
 
 import java.time.Clock;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.sep490.backend.modules.learning.repository.CourseRepository;
-import com.sep490.backend.modules.learning.repository.LessonRepository;
 import com.sep490.backend.modules.vocabulary.repository.VocabularyCatalogRepository;
 import com.sep490.backend.modules.vocabulary.repository.VocabularyRepository;
 import com.sep490.backend.modules.vocabulary.repository.VocabularyReviewRepository;
 import com.sep490.backend.modules.vocabulary.dto.request.VocabularyRequest;
 import com.sep490.backend.modules.vocabulary.dto.response.VocabularyResponse;
-import com.sep490.backend.modules.learning.dto.model.Course;
-import com.sep490.backend.modules.learning.dto.model.Lesson;
 import com.sep490.backend.modules.vocabulary.dto.model.VocabularyEntry;
 import com.sep490.backend.modules.vocabulary.dto.model.VocabularyWord;
 import com.sep490.backend.common.exception.LearningException;

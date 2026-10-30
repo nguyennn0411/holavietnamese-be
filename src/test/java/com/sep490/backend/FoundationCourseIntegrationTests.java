@@ -7,13 +7,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.*;
 import com.sep490.backend.common.security.LearnerPrincipal;
-import com.sep490.backend.modules.learning.service.CourseContentService;
-import com.sep490.backend.modules.learning.seed.FoundationCourseSeed;
-import com.sep490.backend.modules.learning.service.ActivityService;
-import com.sep490.backend.modules.learning.service.ActivityProgressService;
-import com.sep490.backend.modules.learning.service.QuizService;
-import com.sep490.backend.modules.learning.store.ContentStore;
-import com.sep490.backend.modules.learning.service.CourseService;
+import com.sep490.backend.modules.learning.authoring.application.CourseContentService;
+import com.sep490.backend.modules.learning.bootstrap.seed.FoundationCourseSeed;
+import com.sep490.backend.modules.learning.authoring.application.ActivityService;
+import com.sep490.backend.modules.learning.lesson.application.ActivityProgressService;
+import com.sep490.backend.modules.learning.quiz.application.QuizService;
+import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
+import com.sep490.backend.modules.learning.course.application.CourseService;
 import java.math.BigDecimal;
 import java.util.*;
 import org.junit.jupiter.api.Test;

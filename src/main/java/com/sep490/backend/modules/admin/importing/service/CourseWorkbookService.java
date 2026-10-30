@@ -1,15 +1,17 @@
 package com.sep490.backend.modules.admin.importing.service;
-import com.sep490.backend.modules.learning.service.ActivityService;
-import com.sep490.backend.modules.learning.service.CourseContentService;
-import com.sep490.backend.modules.learning.service.QuestionBankService;
-import com.sep490.backend.modules.learning.service.QuestionScoring;
-import com.sep490.backend.modules.learning.service.QuizService;
-import com.sep490.backend.modules.learning.service.support.ContentRules;
-import com.sep490.backend.modules.learning.store.ContentStore;
+import com.sep490.backend.modules.learning.authoring.application.ActivityService;
+import com.sep490.backend.modules.learning.authoring.application.CourseContentService;
+import com.sep490.backend.modules.learning.authoring.web.dto.ContentRequests;
+import com.sep490.backend.modules.learning.quiz.application.QuestionBankService;
+import com.sep490.backend.modules.learning.quiz.application.QuestionScoring;
+import com.sep490.backend.modules.learning.quiz.application.QuizService;
+import com.sep490.backend.modules.learning.shared.application.ContentRules;
+import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
+
+
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sep490.backend.modules.learning.dto.request.ContentRequests;
 import com.sep490.backend.common.exception.ContentException;
 import java.io.*;
 import java.math.BigDecimal;

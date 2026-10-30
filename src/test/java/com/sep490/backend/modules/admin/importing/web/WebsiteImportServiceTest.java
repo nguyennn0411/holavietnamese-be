@@ -6,8 +6,8 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sep490.backend.common.security.LearnerPrincipal;
-import com.sep490.backend.modules.learning.service.CourseContentService;
-import com.sep490.backend.modules.learning.service.ActivityService;
+import com.sep490.backend.modules.learning.authoring.application.CourseContentService;
+import com.sep490.backend.modules.learning.authoring.application.ActivityService;
 import java.nio.charset.StandardCharsets;
 import java.time.*;
 import java.util.concurrent.atomic.AtomicLong;

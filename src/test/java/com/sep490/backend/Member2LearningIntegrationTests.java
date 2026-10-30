@@ -7,17 +7,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.*;
 import com.sep490.backend.common.security.LearnerPrincipal;
-import com.sep490.backend.modules.learning.controller.admin.ContentDeletionController;
-import com.sep490.backend.modules.learning.service.CourseContentService;
-import com.sep490.backend.modules.learning.service.ActivityService;
-import com.sep490.backend.modules.learning.service.ActivityProgressService;
-import com.sep490.backend.modules.learning.service.CourseService;
-import com.sep490.backend.modules.learning.service.GrammarService;
-import com.sep490.backend.modules.learning.service.LessonService;
-import com.sep490.backend.modules.learning.service.QuestionBankService;
-import com.sep490.backend.modules.learning.service.QuizService;
-import com.sep490.backend.modules.learning.store.ContentStore;
-import com.sep490.backend.modules.learning.dto.request.ContentRequests;
+import com.sep490.backend.modules.learning.authoring.web.ContentDeletionController;
+import com.sep490.backend.modules.learning.authoring.application.CourseContentService;
+import com.sep490.backend.modules.learning.authoring.application.ActivityService;
+import com.sep490.backend.modules.learning.lesson.application.ActivityProgressService;
+import com.sep490.backend.modules.learning.course.application.CourseService;
+import com.sep490.backend.modules.learning.grammar.application.GrammarService;
+import com.sep490.backend.modules.learning.lesson.application.LessonService;
+import com.sep490.backend.modules.learning.quiz.application.QuestionBankService;
+import com.sep490.backend.modules.learning.quiz.application.QuizService;
+import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
+import com.sep490.backend.modules.learning.authoring.web.dto.ContentRequests;
 import com.sep490.backend.common.exception.ContentException;
 import java.math.BigDecimal;
 import java.util.*;
@@ -43,7 +43,7 @@ class Member2LearningIntegrationTests {
   @Autowired LessonService legacy;
   @Autowired MockMvc mvc;
   @Autowired ContentDeletionController deletion;
-  @Autowired com.sep490.backend.modules.learning.service.GrammarService grammar;
+  @Autowired com.sep490.backend.modules.learning.grammar.application.GrammarService grammar;
   long user, other, course, module, lesson, next, text, quizActivity, question, quiz;
   LearnerPrincipal principal;
 

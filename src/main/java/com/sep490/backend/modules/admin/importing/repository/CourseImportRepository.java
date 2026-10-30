@@ -1,13 +1,15 @@
 package com.sep490.backend.modules.admin.importing.repository;
+import com.sep490.backend.modules.learning.course.domain.CourseStatus;
+import com.sep490.backend.modules.learning.course.infrastructure.persistence.entity.CourseJpaEntity;
+import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.entity.LessonJpaEntity;
+
+
 
 
 import com.sep490.backend.modules.admin.importing.dto.CourseImportCommand;
 import com.sep490.backend.modules.admin.importing.dto.CourseImportError;
 import com.sep490.backend.modules.admin.importing.dto.ImportMode;
 import com.sep490.backend.modules.admin.importing.dto.ImportSheet;
-import com.sep490.backend.modules.learning.entity.CourseJpaEntity;
-import com.sep490.backend.modules.learning.entity.LessonJpaEntity;
-import com.sep490.backend.modules.learning.entity.enums.CourseStatus;
 import jakarta.persistence.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;

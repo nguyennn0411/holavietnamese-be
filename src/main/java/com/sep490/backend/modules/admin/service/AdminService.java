@@ -1,4 +1,13 @@
 package com.sep490.backend.modules.admin.service;
+import com.sep490.backend.modules.learning.course.infrastructure.persistence.CourseRepository;
+import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.LessonRepository;
+import com.sep490.backend.modules.learning.progress.infrastructure.persistence.BadgeRepository;
+import com.sep490.backend.modules.learning.progress.infrastructure.persistence.entity.Badge;
+import com.sep490.backend.modules.learning.progress.infrastructure.persistence.entity.XpRule;
+import com.sep490.backend.modules.learning.progress.infrastructure.persistence.XpRuleRepository;
+import com.sep490.backend.modules.learning.progress.infrastructure.persistence.XpTransactionRepository;
+
+
 
 import com.sep490.backend.modules.admin.dto.request.BadgeRequest;
 import com.sep490.backend.modules.admin.dto.request.RoleRequest;
@@ -16,19 +25,12 @@ import com.sep490.backend.modules.admin.entity.AuditLog;
 import com.sep490.backend.modules.admin.entity.SystemSetting;
 import com.sep490.backend.modules.auth.entity.Role;
 import com.sep490.backend.modules.auth.entity.User;
-import com.sep490.backend.modules.learning.entity.Badge;
-import com.sep490.backend.modules.learning.entity.XpRule;
 import com.sep490.backend.common.exception.AppException;
 import com.sep490.backend.common.exception.ErrorCode;
 import com.sep490.backend.modules.admin.repository.AuditLogRepository;
 import com.sep490.backend.modules.admin.repository.SystemSettingRepository;
 import com.sep490.backend.modules.auth.repository.RoleRepository;
 import com.sep490.backend.modules.auth.repository.UserRepository;
-import com.sep490.backend.modules.learning.repository.BadgeRepository;
-import com.sep490.backend.modules.learning.repository.CourseRepository;
-import com.sep490.backend.modules.learning.repository.LessonRepository;
-import com.sep490.backend.modules.learning.repository.XpRuleRepository;
-import com.sep490.backend.modules.learning.repository.XpTransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;

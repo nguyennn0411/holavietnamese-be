@@ -1,6 +1,8 @@
 package com.sep490.backend.modules.vocabulary.entity;
+import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.entity.LessonJpaEntity;
+
+
 import com.sep490.backend.modules.auth.entity.User;
-import com.sep490.backend.modules.learning.entity.LessonJpaEntity;
 
 import jakarta.persistence.*;
 import lombok.*;

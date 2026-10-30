@@ -1,11 +1,10 @@
 package com.sep490.backend;
 
-
 import com.fasterxml.jackson.databind.*;
 import com.sep490.backend.common.security.LearnerPrincipal;
-import com.sep490.backend.modules.learning.service.CourseService;
-import com.sep490.backend.modules.learning.service.LessonService;
-import com.sep490.backend.modules.learning.dto.model.LearningProgress;
+import com.sep490.backend.modules.learning.course.application.CourseService;
+import com.sep490.backend.modules.learning.lesson.application.LessonService;
+import com.sep490.backend.modules.learning.progress.domain.model.LearningProgress;
 import com.sep490.backend.common.exception.LearningException;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
