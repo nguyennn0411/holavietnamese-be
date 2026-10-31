@@ -125,9 +125,30 @@ public class CourseContentService {
   }
 
   public boolean locked(Long user, long lesson) {
-    // Lessons can be studied in any order. Keep prerequisite metadata for authors,
-    // but do not use it to restrict learning access or mark curriculum rows as locked.
-    return false;
+    if (user == null) return true;
+
+    var targets =
+        db.rows(
+            "SELECT course_id,lesson_order FROM lessons WHERE id=? AND published=true", lesson);
+    if (targets.isEmpty()) return true;
+
+    var target = targets.getFirst();
+    long course = id(target, "courseId");
+    int lessonOrder = ((Number) target.get("lessonOrder")).intValue();
+
+    return db.count(
+            "SELECT count(*) FROM lessons previous WHERE previous.course_id=?"
+                + " AND previous.published=true AND previous.lesson_order<?"
+                + " AND NOT EXISTS(SELECT 1 FROM lesson_progress progress"
+                + " JOIN enrollments enrollment ON enrollment.id=progress.enrollment_id"
+                + " WHERE enrollment.user_id=? AND enrollment.course_id=?"
+                + " AND enrollment.status NOT IN ('CANCELLED','DROPPED')"
+                + " AND progress.lesson_id=previous.id AND progress.status='COMPLETED')",
+            course,
+            lessonOrder,
+            user,
+            course)
+        > 0;
   }
 
   @Transactional

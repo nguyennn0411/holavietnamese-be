@@ -3,11 +3,13 @@ package com.sep490.backend.modules.ai.controller;
 import com.sep490.backend.modules.ai.dto.request.AiMessageSendRequest;
 import com.sep490.backend.modules.ai.dto.request.AiReviewCreateRequest;
 import com.sep490.backend.modules.ai.dto.request.AiSessionCreateRequest;
+import com.sep490.backend.modules.ai.dto.request.AiVocabularyEnrichmentRequest;
 import com.sep490.backend.common.dto.ApiResponse;
 import com.sep490.backend.modules.ai.dto.response.AiMessageResponse;
 import com.sep490.backend.modules.ai.dto.response.AiReviewResponse;
 import com.sep490.backend.modules.ai.dto.response.AiScenarioResponse;
 import com.sep490.backend.modules.ai.dto.response.AiSessionResponse;
+import com.sep490.backend.modules.ai.dto.response.AiVocabularyEnrichmentResponse;
 import com.sep490.backend.modules.ai.service.AiRoleplayService;
 import com.sep490.backend.modules.ai.service.AiTutorService;
 import jakarta.validation.Valid;
@@ -33,6 +35,16 @@ public class AiTutorController {
         Map<String, Object> status = aiTutorService.getAiStatus();
         return ApiResponse.<Map<String, Object>>builder()
                 .result(status)
+                .build();
+    }
+
+    @PostMapping("/vocabulary/enrich")
+    public ApiResponse<AiVocabularyEnrichmentResponse> enrichVocabulary(
+            @Valid @RequestBody AiVocabularyEnrichmentRequest request
+    ) {
+        return ApiResponse.<AiVocabularyEnrichmentResponse>builder()
+                .result(aiTutorService.enrichVocabulary(request))
+                .message("AI đã bổ sung thông tin từ vựng")
                 .build();
     }
 

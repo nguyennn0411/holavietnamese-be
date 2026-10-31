@@ -33,6 +33,7 @@ public enum ErrorCode {
     AI_QUOTA_EXCEEDED(3001, "Bạn đã đạt giới hạn số phiên hội thoại AI trong ngày (BR-24)", HttpStatus.TOO_MANY_REQUESTS),
     AI_RATE_LIMIT_EXCEEDED(3002, "Tần suất gửi tin nhắn quá nhanh. Vui lòng thử lại sau.", HttpStatus.TOO_MANY_REQUESTS),
     AI_TURN_LIMIT_EXCEEDED(3003, "Phiên hội thoại đã đạt số lượt trao đổi tối đa.", HttpStatus.BAD_REQUEST),
+    AI_UNAVAILABLE(3004, "AI hiện không thể xử lý từ vựng. Vui lòng thử lại sau.", HttpStatus.SERVICE_UNAVAILABLE),
 
     // === Gamification (4xxx) ===
     INSUFFICIENT_XP(4001, "Bạn không đủ điểm XP để thực hiện thao tác này", HttpStatus.BAD_REQUEST),

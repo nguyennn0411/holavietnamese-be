@@ -203,12 +203,27 @@ class Member2LearningIntegrationTests {
   }
 
   @Test
-  void lessonsCanBeStudiedOutOfOrderWithoutCompletingPrerequisites() throws Exception {
+  void lessonsRequireAllPreviousLessonsToBeCompleted() throws Exception {
+    mvc.perform(get("/api/courses/" + course).with(user(principal)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.modules[0].lessons[1].isLocked").value(true));
+    mvc.perform(get("/api/lessons/" + next).with(user(principal)))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value("LESSON_LOCKED"));
+    assertThatThrownBy(() -> progress.startLesson(user, next))
+        .isInstanceOf(ContentException.class)
+        .hasMessageContaining("prerequisite");
+
+    activities.interact(user, text, null, true);
+    long quizAttempt = start();
+    quizzes.save(user, quizAttempt, question, answer("a"));
+    quizzes.submit(user, quizAttempt);
+    assertThat(progress.lessonProgress(user, lesson).get("completed")).isEqualTo(true);
+
     mvc.perform(get("/api/courses/" + course).with(user(principal)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.modules[0].lessons[1].isLocked").value(false));
-    mvc.perform(get("/api/lessons/" + next).with(user(principal)))
-        .andExpect(status().isOk());
+    mvc.perform(get("/api/lessons/" + next).with(user(principal))).andExpect(status().isOk());
     progress.startLesson(user, next);
     legacy.start(user, next);
     assertThat(activities.lesson(next, user, false)).containsEntry("id", next);
@@ -216,9 +231,8 @@ class Member2LearningIntegrationTests {
     assertThat(activities.interact(user, nextActivity, null, true).get("activityCompleted"))
         .isEqualTo(true);
     assertThat(progress.lessonProgress(user, next).get("completed")).isEqualTo(true);
-    assertThat(progress.lessonProgress(user, lesson).get("completed")).isEqualTo(false);
-    assertThat(progress.courseProgress(user, course).get("completedLessons")).isEqualTo(1L);
-    assertThat(progress.courseProgress(user, course).get("status")).isEqualTo("IN_PROGRESS");
+    assertThat(progress.courseProgress(user, course).get("completedLessons")).isEqualTo(2L);
+    assertThat(progress.courseProgress(user, course).get("status")).isEqualTo("COMPLETED");
   }
 
   @Test

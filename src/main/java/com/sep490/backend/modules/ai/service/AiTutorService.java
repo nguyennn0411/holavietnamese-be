@@ -6,9 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sep490.backend.modules.ai.dto.request.AiMessageSendRequest;
 import com.sep490.backend.modules.ai.dto.request.AiReviewCreateRequest;
 import com.sep490.backend.modules.ai.dto.request.AiSessionCreateRequest;
+import com.sep490.backend.modules.ai.dto.request.AiVocabularyEnrichmentRequest;
 import com.sep490.backend.modules.ai.dto.response.AiMessageResponse;
 import com.sep490.backend.modules.ai.dto.response.AiReviewResponse;
 import com.sep490.backend.modules.ai.dto.response.AiSessionResponse;
+import com.sep490.backend.modules.ai.dto.response.AiVocabularyEnrichmentResponse;
 import com.sep490.backend.modules.ai.entity.AiMessage;
 import com.sep490.backend.modules.ai.entity.AiReview;
 import com.sep490.backend.modules.ai.entity.AiScenario;
@@ -55,6 +57,74 @@ public class AiTutorService {
     private final AiProviderService aiProviderService;
     private final ObjectMapper objectMapper;
     private final IntentClassifier intentClassifier;
+
+    public AiVocabularyEnrichmentResponse enrichVocabulary(AiVocabularyEnrichmentRequest request) {
+        User user = getCurrentUser();
+        AiSetting settings = getOrInitSettings();
+        String model = settings.getActiveModel() != null ? settings.getActiveModel() : "openrouter/free";
+        if (!aiProviderService.isApiKeyAvailable(model)) {
+            throw new AppException(ErrorCode.AI_UNAVAILABLE);
+        }
+
+        String selectedWord = request.word().trim();
+        String context = request.context() == null ? "" : request.context().trim();
+        String lessonTitle = request.lessonTitle() == null ? "" : request.lessonTitle().trim();
+        String prompt = "Selected Vietnamese text: " + selectedWord
+                + "\nLesson: " + lessonTitle
+                + "\nNearby context: " + context
+                + "\nReturn only a valid JSON object with exactly these string fields: "
+                + "word, meaning, pronunciation, exampleSentence, note. "
+                + "Keep word exactly as selected. meaning must be a concise English translation. "
+                + "pronunciation should help an English-speaking learner. "
+                + "exampleSentence must be a natural Vietnamese sentence using the selected text. "
+                + "note must briefly explain usage or nuance in English. Do not use markdown.";
+
+        try {
+            var result = aiProviderService.generateContent(
+                    "You are a precise Vietnamese-language dictionary assistant. Use lesson context to choose the correct meaning.",
+                    prompt,
+                    model
+            );
+            if (result == null || result.text() == null || result.text().isBlank()) {
+                throw new AppException(ErrorCode.AI_UNAVAILABLE);
+            }
+
+            String raw = result.text().trim();
+            int start = raw.indexOf('{');
+            int end = raw.lastIndexOf('}');
+            if (start < 0 || end <= start) {
+                throw new AppException(ErrorCode.AI_UNAVAILABLE);
+            }
+            AiVocabularyEnrichmentResponse parsed = objectMapper.readValue(
+                    raw.substring(start, end + 1),
+                    AiVocabularyEnrichmentResponse.class
+            );
+            if (parsed.meaning() == null || parsed.meaning().isBlank()) {
+                throw new AppException(ErrorCode.AI_UNAVAILABLE);
+            }
+
+            logUsage(user, "vocabulary-enrichment", "vocabulary", result.tokensIn(), result.tokensOut(),
+                    (int) result.latencyMs(), 200, null);
+            return new AiVocabularyEnrichmentResponse(
+                    selectedWord,
+                    parsed.meaning().trim(),
+                    trimToLength(parsed.pronunciation(), 200),
+                    trimToLength(parsed.exampleSentence(), 2000),
+                    trimToLength(parsed.note(), 2000)
+            );
+        } catch (AppException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            log.warn("Could not enrich selected vocabulary '{}': {}", selectedWord, exception.getMessage());
+            throw new AppException(ErrorCode.AI_UNAVAILABLE);
+        }
+    }
+
+    private static String trimToLength(String value, int maxLength) {
+        if (value == null) return "";
+        String trimmed = value.trim();
+        return trimmed.length() <= maxLength ? trimmed : trimmed.substring(0, maxLength);
+    }
 
     /**
      * UC-099: Open AI Tutor & UC-100: Start AI Conversation
