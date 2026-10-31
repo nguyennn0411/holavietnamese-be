@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @Order(140)
-@ConditionalOnProperty(name = "app.msu-basic.seed.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "app.msu-basic.seed.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class BasicVietnameseWorkbookSeedRunner implements CommandLineRunner {
   private final BasicVietnameseWorkbookSeed seed;

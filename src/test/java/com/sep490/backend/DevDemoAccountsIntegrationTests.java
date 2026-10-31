@@ -8,6 +8,7 @@ import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentSt
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest(properties = "APP_DEMO_PASSWORD=LongTestPass123")
 @AutoConfigureMockMvc
 @ActiveProfiles({"mysql-test", "dev-demo"})
+@EnabledIfEnvironmentVariable(named = "RUN_MYSQL_TESTS", matches = "true")
 class DevDemoAccountsIntegrationTests {
   private static final String DEMO_PASSWORD = "LongTestPass123";
 

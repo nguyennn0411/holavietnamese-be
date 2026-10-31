@@ -5,7 +5,6 @@ import com.sep490.backend.common.exception.ErrorCode;
 import com.sep490.backend.common.notification.NotificationMessage;
 import com.sep490.backend.common.notification.NotificationPort;
 import com.sep490.backend.common.notification.NotificationType;
-import com.sep490.backend.modules.ai.repository.AiSessionRepository;
 import com.sep490.backend.modules.auth.dto.response.BadgeResponse;
 import com.sep490.backend.modules.auth.entity.User;
 import com.sep490.backend.modules.auth.repository.UserRepository;
@@ -15,6 +14,7 @@ import com.sep490.backend.modules.learning.progress.infrastructure.persistence.U
 import com.sep490.backend.modules.learning.progress.infrastructure.persistence.entity.Badge;
 import com.sep490.backend.modules.learning.progress.infrastructure.persistence.entity.UserBadge;
 import com.sep490.backend.modules.learning.progress.port.VocabularyProgressReader;
+import com.sep490.backend.modules.learning.progress.port.AiProgressReader;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,7 @@ public class AchievementService {
     private final NotificationPort notifications;
     private final EnrollmentRepository enrollmentRepository;
     private final VocabularyProgressReader vocabularyProgressReader;
-    private final AiSessionRepository aiSessionRepository;
+    private final AiProgressReader aiProgressReader;
     private final JdbcTemplate jdbcTemplate;
 
     @Transactional(readOnly = true)
@@ -69,7 +69,7 @@ public class AchievementService {
 
         int completedRoleplay = 0;
         try {
-            completedRoleplay = (int) aiSessionRepository.countByUserIdAndStatus(user.getId(), "COMPLETED");
+            completedRoleplay = (int) aiProgressReader.countCompletedRoleplays(user.getId());
         } catch (Exception e) {
             log.warn("Could not calculate completed roleplay for user {}: {}", user.getId(), e.getMessage());
         }

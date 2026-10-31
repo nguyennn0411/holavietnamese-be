@@ -46,6 +46,13 @@ public class VocabularyCatalogRepository {
         } else {
             entity = repository.findById(word.id())
                     .orElseThrow();
+            if (entity.getSourceMetadata() != null && !entity.getSourceMetadata().isBlank()) {
+                var source = com.sep490.backend.modules.vocabulary.dto.model.DictionaryMetadata.decode(
+                        entity.getSourceMetadata(),
+                        com.sep490.backend.modules.vocabulary.dto.model.DictionaryMetadata.Source.class);
+                entity.setSourceMetadata(com.sep490.backend.modules.vocabulary.dto.model.DictionaryMetadata.encode(
+                        source.markEdited()));
+            }
         }
 
         entity.setWord(word.word());

@@ -196,9 +196,9 @@ class VocabularyIntegrationTests {
         var delegatedAdmin = new LearnerPrincipal(819904L, "write-admin@example.test", "", true,
                 "ADMIN", Set.of("ADMIN"), Set.of("VOCABULARY_WRITE"));
         mvc.perform(post("/api/admin/vocabulary").with(user(delegatedAdmin)).with(csrf()).contentType("application/json")
-                .content(word("DRAFT"))).andExpect(status().isCreated());
+                .content(word("DRAFT").replace("tạm biệt", "tạm biệt quản trị"))).andExpect(status().isCreated());
         mvc.perform(post("/api/admin/vocabulary").with(user(delegatedAdmin)).with(csrf()).contentType("application/json")
-                .content(word("PUBLISHED"))).andExpect(status().isBadRequest());
+                .content(word("PUBLISHED").replace("tạm biệt", "tạm biệt xuất bản"))).andExpect(status().isBadRequest());
     }
 
     @Test @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
