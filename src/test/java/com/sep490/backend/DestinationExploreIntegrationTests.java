@@ -48,6 +48,11 @@ class DestinationExploreIntegrationTests {
         db.update("INSERT INTO ai_scenarios(id,title,ai_role_name,ai_role_initial_greeting,status) VALUES(?,'Gọi món','Người bán','Xin chào',?)",id,status);
         return id;
     }
+    String culture(String status) {
+        String id="culture-"+UUID.randomUUID();
+        db.update("INSERT INTO culture_articles(id,title,status,is_featured,views) VALUES(?,'Văn hóa',?,FALSE,0)",id,status);
+        return id;
+    }
     ResultActions save(long id,List<Long> words,List<String> cultures,List<String> scenarios,LearnerPrincipal actor) throws Exception {
         return mvc.perform(put("/api/admin/destinations/"+id+"/explore-content").with(user(actor)).with(csrf()).contentType("application/json")
                 .content(json.writeValueAsString(Map.of("vocabularyIds",words,"cultureIds",cultures,"scenarioIds",scenarios))));
@@ -88,16 +93,17 @@ class DestinationExploreIntegrationTests {
     @Test void referencesPersistInOrderWithoutEditingSourceAndLearnersSeeOnlyAvailableContent() throws Exception {
         long id=destination(DestinationStatus.PUBLISHED), published=word("PUBLISHED"), draft=word("DRAFT");
         String active=scenario("ACTIVE"), hidden=scenario("DRAFT");
+        String firstCulture=culture("PUBLISHED"), secondCulture=culture("PUBLISHED");
         db.update("INSERT INTO regional_vocabularies(vocabulary_id,region,word,meaning,status) VALUES(?,'CENTRAL','mô','Ở đâu','PUBLISHED')",published);
         var sources=List.of("vocabularies","ai_scenarios","courses","lesson_progress","ai_sessions");
         var before=sources.stream().map(t -> db.queryForList("SELECT * FROM "+t+" ORDER BY 1")).toList();
-        save(id,List.of(published,draft),List.of("van-hoa-hue","am-thuc-hue"),List.of(active,hidden),admin)
+        save(id,List.of(published,draft),List.of(firstCulture,secondCulture),List.of(active,hidden),admin)
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.scenarios.length()").value(2));
         em.flush(); em.clear();
         mvc.perform(get("/api/destinations/"+id+"/content").with(user(learner))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.vocabulary.length()").value(1))
                 .andExpect(jsonPath("$.result.regionalVariants[0].word").value("mô"))
-                .andExpect(jsonPath("$.result.cultureIds[0]").value("van-hoa-hue"))
+                .andExpect(jsonPath("$.result.cultureIds[0]").value(firstCulture))
                 .andExpect(jsonPath("$.result.scenarios.length()").value(1))
                 .andExpect(jsonPath("$.result.scenarios[0].id").value(active));
         assertThat(sources.stream().map(t -> db.queryForList("SELECT * FROM "+t+" ORDER BY 1")).toList()).usingRecursiveComparison().isEqualTo(before);
@@ -108,19 +114,22 @@ class DestinationExploreIntegrationTests {
     }
     @Test void invalidReferencesAndDuplicatesDoNotReplaceExistingLinks() throws Exception {
         long id=destination(DestinationStatus.PUBLISHED), word=word("PUBLISHED");
-        save(id,List.of(word),List.of("hue"),List.of(),admin).andExpect(status().isOk());
+        String cultureId=culture("PUBLISHED");
+        save(id,List.of(word),List.of(cultureId),List.of(),admin).andExpect(status().isOk());
         save(id,List.of(word,word),List.of(),List.of(),admin).andExpect(status().isBadRequest());
         save(id,List.of(),List.of(),List.of("not-found"),admin).andExpect(status().isNotFound());
+        save(id,List.of(),List.of("missing-culture"),List.of(),admin).andExpect(status().isNotFound());
+        save(id,List.of(),List.of(culture("DRAFT")),List.of(),admin).andExpect(status().isNotFound());
         save(id,List.of(word),List.of("../bad"),List.of(),admin).andExpect(status().isBadRequest());
         save(id,List.of(),List.of(),List.of(),learner).andExpect(status().isForbidden());
         var systemAdmin = new LearnerPrincipal(899901L,"system-admin@explore.test","",true,"ADMIN");
         save(id,List.of(),List.of(),List.of(),systemAdmin).andExpect(status().isForbidden());
         var delegatedAdmin = new LearnerPrincipal(899902L,"delegated-admin@explore.test","",true,
                 "ADMIN",Set.of("ADMIN"),Set.of("EXPLORE_LINK_WRITE"));
-        save(id,List.of(word),List.of("hue"),List.of(),delegatedAdmin).andExpect(status().isOk());
+        save(id,List.of(word),List.of(cultureId),List.of(),delegatedAdmin).andExpect(status().isOk());
         mvc.perform(get("/api/admin/destinations/"+id+"/explore-content").with(user(admin)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.vocabulary[0].id").value(word))
-                .andExpect(jsonPath("$.result.cultureIds[0]").value("hue"));
+                .andExpect(jsonPath("$.result.cultureIds[0]").value(cultureId));
     }
     @Test void draftArchivedAndAnonymousAccessRemainProtected() throws Exception {
         for (var state:List.of(DestinationStatus.DRAFT,DestinationStatus.ARCHIVED)) {
@@ -144,5 +153,11 @@ class DestinationExploreIntegrationTests {
         assertThat(routes).noneMatch(path -> path.startsWith("/api/me/journey")
                 || path.startsWith("/api/admin/journey") || path.equals("/api/learner/journey/progress"));
         assertThat(routes).doesNotContain("/api/admin/destinations/{id}/content");
+        assertThat(db.queryForObject("""
+                SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES
+                WHERE TABLE_SCHEMA='PUBLIC' AND TABLE_NAME IN (
+                    'JOURNEY_STOPS','USER_JOURNEY_PROGRESS','USER_PASSPORT_ENTRIES','DESTINATION_LESSONS',
+                    'VOCABULARY_TOPIC_MAPPINGS','VOCABULARY_TOPICS')
+                """, Integer.class)).isZero();
     }
 }

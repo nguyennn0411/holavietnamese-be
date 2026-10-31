@@ -164,6 +164,27 @@ class LearnerFeaturesIntegrationTests {
         mvc.perform(delete("/api/me/vocabulary/" + id).with(user(learner)).with(csrf())).andExpect(status().isNoContent());
         mvc.perform(get("/api/me/vocabulary/" + id).with(user(learner))).andExpect(status().isNotFound());
     }
+    @Test void vocabularyMasteryReadsTheSeparateReviewStateTable() throws Exception {
+        var saved = mvc.perform(post("/api/me/vocabulary").with(user(learner)).with(csrf())
+                        .contentType("application/json").content(vocabulary(null, "Reviewed word")))
+                .andExpect(status().isCreated()).andReturn();
+        long id = json.readTree(saved.getResponse().getContentAsString()).get("id").asLong();
+        jdbc.update("""
+                INSERT INTO vocabulary_review_states(
+                    vocabulary_entry_id,repetition_count,interval_minutes,ease_factor,lapse_count,next_review_at)
+                VALUES(?,3,1440,2.50,0,CURRENT_TIMESTAMP)
+                """, id);
+
+        mvc.perform(get("/api/learner/vocabulary/mastery").with(user(learner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.totalWords").value(1))
+                .andExpect(jsonPath("$.result.masteredWords").value(1))
+                .andExpect(jsonPath("$.result.learningWords").value(0))
+                .andExpect(jsonPath("$.result.words[0].vi").value("Reviewed word"))
+                .andExpect(jsonPath("$.result.words[0].pronunciation").exists())
+                .andExpect(jsonPath("$.result.words[0].masteryLevel").value(3))
+                .andExpect(jsonPath("$.result.words[0].reviewCount").value(3));
+    }
     @Test void vocabularyValidationAndLessonAccessAreEnforced() throws Exception {
         mvc.perform(post("/api/me/vocabulary").with(user(learner)).with(csrf()).contentType("application/json").content(vocabulary(null, " "))).andExpect(status().isBadRequest());
         mvc.perform(post("/api/me/vocabulary").with(user(learner)).with(csrf()).contentType("application/json").content(vocabulary(null, "x".repeat(201)))).andExpect(status().isBadRequest());

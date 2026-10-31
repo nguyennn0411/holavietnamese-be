@@ -11,6 +11,7 @@ import com.sep490.backend.modules.explore.destination.entity.enums.DestinationSt
 import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus;
 import com.sep490.backend.common.exception.LearningException;
 import com.sep490.backend.modules.ai.repository.AiScenarioRepository;
+import com.sep490.backend.modules.culture.repository.CultureArticleRepository;
 import com.sep490.backend.modules.explore.destination.repository.jpa.DestinationJpaRepository;
 import com.sep490.backend.modules.explore.destination.repository.jpa.DestinationVocabularyJpaRepository;
 import com.sep490.backend.modules.vocabulary.repository.jpa.VocabularyWordJpaRepository;
@@ -29,6 +30,7 @@ public class DestinationExploreService {
     private final DestinationVocabularyJpaRepository links;
     private final VocabularyWordJpaRepository words;
     private final AiScenarioRepository scenarios;
+    private final CultureArticleRepository cultureArticles;
     private final RegionalVocabularyService regional;
     private final JdbcTemplate jdbc;
     private final EntityManager em;
@@ -61,6 +63,10 @@ public class DestinationExploreService {
         if (selected.size() != request.vocabularyIds().size()) throw LearningException.notFound("Vocabulary");
         if (scenarios.findAllById(request.scenarioIds()).size() != request.scenarioIds().size())
             throw LearningException.notFound("Scenario");
+        var selectedCultures = cultureArticles.findAllById(request.cultureIds());
+        if (selectedCultures.size() != request.cultureIds().size()
+                || selectedCultures.stream().anyMatch(article -> !"PUBLISHED".equals(article.getStatus())))
+            throw LearningException.notFound("Published culture article");
         var previous = links.findByDestinationIdOrderByDisplayOrderAscIdAsc(id).stream()
                 .collect(java.util.stream.Collectors.toMap(l -> l.getVocabulary().getId(),l -> l));
         links.deleteAll(previous.values().stream().filter(l -> !selected.containsKey(l.getVocabulary().getId())).toList());

@@ -58,16 +58,25 @@ public class LearnerProgressReportController {
     @Transactional(readOnly = true)
     public ApiResponse<Map<String, Object>> getVocabularyMastery(@AuthenticationPrincipal LearnerPrincipal user) {
         int totalSaved = (int) db.count("SELECT COUNT(*) FROM vocabulary_entries WHERE user_id=?", user.id());
-        int masteredCount = (int) db.count("SELECT COUNT(*) FROM vocabulary_entries WHERE user_id=? AND mastery_level >= 3", user.id());
-        if (masteredCount == 0 && totalSaved > 0) {
-            masteredCount = Math.max(1, totalSaved / 2);
-        }
+        int masteredCount = (int) db.count("""
+                SELECT COUNT(*)
+                FROM vocabulary_entries ve
+                JOIN vocabulary_review_states vrs ON vrs.vocabulary_entry_id = ve.id
+                WHERE ve.user_id = ? AND vrs.repetition_count >= 3
+                """, user.id());
 
         List<Map<String, Object>> list = db.rows("""
-                SELECT id, word AS vi, meaning AS en, pinyin AS pronunciation, mastery_level, review_count, next_review_at
-                FROM vocabulary_entries
-                WHERE user_id = ?
-                ORDER BY mastery_level DESC, created_at DESC
+                SELECT ve.id,
+                       ve.word AS vi,
+                       ve.meaning AS en,
+                       ve.pronunciation,
+                       COALESCE(vrs.repetition_count, 0) AS mastery_level,
+                       COALESCE(vrs.repetition_count, 0) AS review_count,
+                       vrs.next_review_at
+                FROM vocabulary_entries ve
+                LEFT JOIN vocabulary_review_states vrs ON vrs.vocabulary_entry_id = ve.id
+                WHERE ve.user_id = ?
+                ORDER BY COALESCE(vrs.repetition_count, 0) DESC, ve.created_at DESC
                 LIMIT 50
                 """, user.id());
 
