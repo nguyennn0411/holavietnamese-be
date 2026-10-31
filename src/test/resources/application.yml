@@ -16,10 +16,7 @@ spring:
       hibernate.jdbc.time_zone: UTC
   flyway:
     enabled: true
-    # V39 is a MySQL-only repair for databases that previously recorded a
-    # conflicting migration version. The canonical H2 schema already receives
-    # those notification changes from V36.
-    locations: classpath:db/migration
+    locations: classpath:db/migration,classpath:db/migration-vendor/{vendor}
 
 server:
   port: 0

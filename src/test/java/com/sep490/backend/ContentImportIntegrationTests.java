@@ -127,7 +127,7 @@ class ContentImportIntegrationTests {
         var job=data(preview(upload,"complete.xlsx",admin).andExpect(jsonPath("$.result.canConfirm").value(true)));
         assertThat(count()).isZero();
         confirm(job.path("id").asText(),admin).andExpect(jsonPath("$.result.importedRows").value(1));
-        mvc.perform(get("/api/vocabulary/search").with(user(learner)).param("keyword","coffee"))
+        mvc.perform(get("/api/admin/vocabulary/search").with(user(admin)).param("keyword","coffee"))
                 .andExpect(jsonPath("$.result.content.length()").value(1))
                 .andExpect(jsonPath("$.result.content[0].audioUrl").value("/coffee.mp3"))
                 .andExpect(jsonPath("$.result.content[0].meanings.length()").value(2))

@@ -115,6 +115,8 @@ class LearnerFeaturesIntegrationTests {
     @Test void lessonNavigationAndProgressPersistAndCompletionIsIdempotent() throws Exception {
         enroll();
         mvc.perform(get("/api/courses/10/lessons").with(user(learner))).andExpect(jsonPath("$.length()").value(3)).andExpect(jsonPath("$[0].learningStatus").value("NOT_STARTED"));
+        mvc.perform(post("/api/lessons/102/start").with(user(learner)).with(csrf()))
+            .andExpect(status().isForbidden());
         mvc.perform(post("/api/lessons/101/start").with(user(learner)).with(csrf())).andExpect(jsonPath("$.learningStatus").value("IN_PROGRESS")).andExpect(jsonPath("$.nextLessonId").value(102)).andExpect(jsonPath("$.previousLessonId").isEmpty());
         var first = complete(101).andExpect(jsonPath("$.learningStatus").value("COMPLETED")).andReturn();
         var timestamp = json.readTree(first.getResponse().getContentAsString()).get("completedAt").asText();
@@ -196,10 +198,12 @@ class LearnerFeaturesIntegrationTests {
         try (var pool = Executors.newFixedThreadPool(3)) {
             var tasks = List.<Callable<Void>>of(
                 () -> { completeUseCase.complete(1L, 101L); return null; },
-                () -> { completeUseCase.complete(1L, 102L); return null; },
-                () -> { completeUseCase.complete(1L, 103L); return null; });
+                () -> { completeUseCase.complete(1L, 101L); return null; },
+                () -> { completeUseCase.complete(1L, 101L); return null; });
             for (var future : pool.invokeAll(tasks)) future.get(10, TimeUnit.SECONDS);
         }
+        completeUseCase.complete(1L, 102L);
+        completeUseCase.complete(1L, 103L);
         mvc.perform(get("/api/me/courses/10/progress").with(user(learner))).andExpect(jsonPath("$.completedLessons").value(3)).andExpect(jsonPath("$.status").value("COMPLETED"));
     }
     @Test void concurrentEnrollmentsCreateOnlyOneRow() throws Exception {
