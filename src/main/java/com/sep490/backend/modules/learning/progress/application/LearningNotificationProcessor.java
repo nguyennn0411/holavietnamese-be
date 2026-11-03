@@ -58,8 +58,8 @@ public class LearningNotificationProcessor {
 
         long userId = ContentStore.id(event, "userId");
 
-        notificationFor(event).ifPresent(message -> notifications.sendOnce(
-                userId, message, eventKey));
+        notificationFor(event, eventKey).ifPresent(candidate -> notifications.sendOnce(
+                userId, candidate.message(), candidate.eventKey()));
 
         // Evaluate achievement badges linked to learning events
         evaluateBadgesForEvent(eventType, userId);
@@ -90,7 +90,8 @@ public class LearningNotificationProcessor {
         }
     }
 
-    private Optional<NotificationMessage> notificationFor(Map<String, Object> event) {
+    private Optional<NotificationCandidate> notificationFor(
+            Map<String, Object> event, String eventKey) {
         String type = String.valueOf(event.get("eventType"));
         long userId = ContentStore.id(event, "userId");
         long entityId = ContentStore.id(event, "entityId");
@@ -100,16 +101,26 @@ public class LearningNotificationProcessor {
                     entityId,
                     "Đăng ký khóa học thành công",
                     title -> "Bạn đã đăng ký khóa học \"" + title + "\".",
-                    NotificationType.COURSE);
+                    NotificationType.COURSE).map(message -> candidate(message, eventKey));
             case "COURSE_COMPLETED" -> courseMessage(
                     entityId,
                     "Chúc mừng bạn đã hoàn thành khóa học!",
                     title -> "Bạn đã hoàn thành khóa học \"" + title + "\".",
-                    NotificationType.ACHIEVEMENT);
-            case "LESSON_COMPLETED" -> lessonMessage(userId, entityId);
-            case "QUIZ_PASSED" -> quizMessage(userId, entityId);
-            // The perfect-score event enriches QUIZ_PASSED and must not create a second message.
-            case "QUIZ_PERFECT_SCORE" -> Optional.empty();
+                    NotificationType.ACHIEVEMENT).map(message -> candidate(message, eventKey));
+            case "LESSON_COMPLETED" -> lessonMessage(userId, entityId)
+                    .map(message -> candidate(message, eventKey));
+            case "QUIZ_PASSED" -> {
+                boolean perfect = eventExists("QUIZ_PERFECT_SCORE", userId, entityId);
+                String notificationKey = perfect
+                        ? learningEventKey("QUIZ_PERFECT_SCORE", userId, entityId)
+                        : eventKey;
+                yield quizMessage(userId, entityId, perfect)
+                        .map(message -> candidate(message, notificationKey));
+            }
+            // Both events share the perfect-score key when the first passing attempt is perfect.
+            // A later perfect retry has a new key beside the already delivered QUIZ_PASSED key.
+            case "QUIZ_PERFECT_SCORE" -> quizMessage(userId, entityId, true)
+                    .map(message -> candidate(message, eventKey));
             default -> {
                 log.debug("Không có mẫu thông báo cho learning event {}", type);
                 yield Optional.empty();
@@ -150,7 +161,8 @@ public class LearningNotificationProcessor {
                 "/learn/" + courseId + "/lesson/" + lessonId));
     }
 
-    private Optional<NotificationMessage> quizMessage(long userId, long quizId) {
+    private Optional<NotificationMessage> quizMessage(
+            long userId, long quizId, boolean perfect) {
         var quizzes = db.rows(
                 "SELECT title,course_id,lesson_id FROM quizzes WHERE id=?",
                 quizId);
@@ -167,7 +179,6 @@ public class LearningNotificationProcessor {
             return Optional.empty();
         }
 
-        boolean perfect = eventExists("QUIZ_PERFECT_SCORE", userId, quizId);
         String message = perfect
                 ? "Bạn đã đạt điểm tuyệt đối ở bài kiểm tra \"" + quiz.get("title") + "\"."
                 : "Bạn đã vượt qua bài kiểm tra \"" + quiz.get("title") + "\".";
@@ -190,4 +201,14 @@ public class LearningNotificationProcessor {
     private Long nullableId(Object value) {
         return value instanceof Number number ? number.longValue() : null;
     }
+
+    private NotificationCandidate candidate(NotificationMessage message, String eventKey) {
+        return new NotificationCandidate(message, eventKey);
+    }
+
+    private String learningEventKey(String eventType, long userId, long entityId) {
+        return eventType + ":" + userId + ":" + entityId;
+    }
+
+    private record NotificationCandidate(NotificationMessage message, String eventKey) {}
 }

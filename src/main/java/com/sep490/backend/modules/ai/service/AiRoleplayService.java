@@ -15,6 +15,9 @@ import com.sep490.backend.modules.ai.entity.AiUsageLog;
 import com.sep490.backend.modules.auth.entity.User;
 import com.sep490.backend.common.exception.AppException;
 import com.sep490.backend.common.exception.ErrorCode;
+import com.sep490.backend.common.notification.NotificationMessage;
+import com.sep490.backend.common.notification.NotificationPort;
+import com.sep490.backend.common.notification.NotificationType;
 import com.sep490.backend.modules.ai.repository.AiMessageRepository;
 import com.sep490.backend.modules.ai.repository.AiScenarioRepository;
 import com.sep490.backend.modules.ai.repository.AiSessionRepository;
@@ -50,6 +53,7 @@ public class AiRoleplayService {
     private final ObjectMapper objectMapper;
     private final AchievementService achievementService;
     private final UserProgressService userProgressService;
+    private final NotificationPort notifications;
 
     /**
      * UC-105: Select Roleplay Scenario - List all active scenarios
@@ -322,6 +326,7 @@ public class AiRoleplayService {
             } catch (Exception e) {
                 log.warn("Could not award AI roleplay badges/XP: {}", e.getMessage());
             }
+            notifyRoleplayCompleted(session.getUser(), session.getId(), scenarioTitle, totalScore);
         }
 
         Map<String, Object> result = new LinkedHashMap<>();
@@ -356,8 +361,10 @@ public class AiRoleplayService {
             // Unauthenticated / guest
         }
 
-        int totalScore = (providedScore != null && providedScore > 0) ? providedScore : 85;
+        int totalScore = (providedScore != null && providedScore >= 0 && providedScore <= 100)
+                ? providedScore : 85;
 
+        AiSession completedSession = null;
         if (currentUser != null) {
             List<AiSession> userSessions = sessionRepository.findByUserIdOrderByCreatedAtDesc(currentUser.getId());
             AiSession activeSession = userSessions.stream()
@@ -385,6 +392,7 @@ public class AiRoleplayService {
                 activeSession.setFeedbackSummary("Hoàn thành kịch bản " + scenario.getTitle() + " với điểm số " + totalScore + "/100.");
             }
             sessionRepository.save(activeSession);
+            completedSession = activeSession;
         }
 
         // Update scenario stats
@@ -403,6 +411,8 @@ public class AiRoleplayService {
             } catch (Exception e) {
                 log.warn("Could not award AI roleplay badges/XP: {}", e.getMessage());
             }
+            notifyRoleplayCompleted(
+                    currentUser, completedSession.getId(), scenario.getTitle(), totalScore);
         }
 
         Map<String, Object> result = new LinkedHashMap<>();
@@ -414,6 +424,20 @@ public class AiRoleplayService {
         result.put("rating", totalScore >= 90 ? "Xuất sắc" : totalScore >= 80 ? "Rất tốt" : "Đạt yêu cầu");
         result.put("aiFeedback", "Bạn đã hoàn thành kịch bản \"" + scenario.getTitle() + "\"!");
         return result;
+    }
+
+    private void notifyRoleplayCompleted(
+            User user, String sessionId, String scenarioTitle, int totalScore) {
+        String eventKey = "AI_ROLEPLAY_COMPLETED:" + user.getId() + ":" + sessionId;
+        notifications.sendOnce(
+                user.getId(),
+                NotificationMessage.standard(
+                        "Hoàn thành luyện hội thoại",
+                        "Bạn đã hoàn thành kịch bản \"" + scenarioTitle
+                                + "\" với điểm " + totalScore + "/100.",
+                        NotificationType.SYSTEM,
+                        "/ai/roleplay/sessions/" + sessionId),
+                eventKey);
     }
 
     private String generateFallbackRoleplayTurn(AiScenario scenario, String userText, boolean isEnglish) {

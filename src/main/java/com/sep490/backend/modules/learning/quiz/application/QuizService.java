@@ -497,6 +497,7 @@ public class QuizService {
             activityId);
         progress.evaluate(user, id(activity, "lessonId"));
       }
+      progress.evaluateFinalAssessmentCompletion(user, id(a, "quizId"));
     }
     return attempt(user, attempt, false);
   }

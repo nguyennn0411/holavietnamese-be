@@ -464,6 +464,55 @@ class Member2LearningIntegrationTests {
   }
 
   @Test
+  void passingFinalAssessmentAfterAllLessonsCompletesCourseAndRecordsEvent() {
+    long finalQuiz =
+        quizzes.create(
+            new ContentRequests.Quiz(
+                "Final Assessment",
+                "Course final assessment",
+                "COURSE",
+                course,
+                null,
+                BigDecimal.valueOf(70),
+                10,
+                2,
+                false));
+    quizzes.addQuestion(finalQuiz, new ContentRequests.QuizQuestion(question, BigDecimal.TEN));
+    quizzes.status(finalQuiz, "PUBLISHED");
+    courses.setFinalAssessment(course, finalQuiz);
+
+    activities.interact(user, text, null, true);
+    long lessonQuizAttempt = start();
+    quizzes.save(user, lessonQuizAttempt, question, answer("a"));
+    quizzes.submit(user, lessonQuizAttempt);
+    long nextActivity = db.count("SELECT id FROM lesson_activities WHERE lesson_id=?", next);
+    activities.interact(user, nextActivity, null, true);
+
+    assertThat(progress.courseProgress(user, course).get("status"))
+        .isNotEqualTo("COMPLETED");
+    assertThat(
+            db.count(
+                "SELECT count(*) FROM learning_events WHERE user_id=? AND entity_id=?"
+                    + " AND event_type='COURSE_COMPLETED'",
+                user,
+                course))
+        .isZero();
+
+    long finalAttempt = ((Number) quizzes.start(user, finalQuiz).get("id")).longValue();
+    quizzes.save(user, finalAttempt, question, answer("a"));
+    quizzes.submit(user, finalAttempt);
+
+    assertThat(progress.courseProgress(user, course).get("status")).isEqualTo("COMPLETED");
+    assertThat(
+            db.count(
+                "SELECT count(*) FROM learning_events WHERE user_id=? AND entity_id=?"
+                    + " AND event_type='COURSE_COMPLETED'",
+                user,
+                course))
+        .isEqualTo(1);
+  }
+
+  @Test
   void adminPreviewDoesNotMutateProgress() throws Exception {
     var admin = new LearnerPrincipal(user, "admin@test", "", true, "ADMIN");
     long before = db.count("SELECT count(*) FROM quiz_attempts");

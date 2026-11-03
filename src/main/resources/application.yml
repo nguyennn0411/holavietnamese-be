@@ -96,6 +96,12 @@ app:
     cleanup-cron: "${NOTIFICATION_CLEANUP_CRON:0 0 3 * * *}"
     learning-event-poll-interval: ${NOTIFICATION_EVENT_POLL_INTERVAL:30s}
     learning-event-batch-size: ${NOTIFICATION_EVENT_BATCH_SIZE:50}
+    email-enabled: ${NOTIFICATION_EMAIL_ENABLED:true}
+    learning-reminder-enabled: ${LEARNING_REMINDER_ENABLED:true}
+    learning-reminder-cron: "${LEARNING_REMINDER_CRON:0 0 19 * * *}"
+    learning-reminder-zone: ${LEARNING_REMINDER_ZONE:Asia/Ho_Chi_Minh}
+    learning-reminder-inactive-hours: ${LEARNING_REMINDER_INACTIVE_HOURS:24}
+    learning-reminder-batch-size: ${LEARNING_REMINDER_BATCH_SIZE:200}
   destination:
     seed:
       enabled: ${APP_DESTINATION_SEED_ENABLED:true}

@@ -147,6 +147,36 @@ public class ActivityProgressService {
           p.get("id"));
       event(user, lesson, "LESSON_COMPLETED");
     }
+    boolean newCourse = completeCourseIfEligible(user, course, enrollment, now);
+    return summary(user, lesson, course, newly, newCourse);
+  }
+
+  /** Re-evaluate a course after its final assessment was passed. */
+  @Transactional
+  public boolean evaluateFinalAssessmentCompletion(long user, long quiz) {
+    var finalCourses =
+        db.rows("SELECT id FROM courses WHERE final_assessment_quiz_id=?", quiz);
+    boolean newlyCompleted = false;
+    Timestamp now = Timestamp.from(clock.instant());
+    for (var courseRow : finalCourses) {
+      long course = id(courseRow, "id");
+      var enrollmentRows =
+          db.rows(
+              "SELECT id FROM enrollments WHERE user_id=? AND course_id=? AND status NOT IN"
+                  + " ('CANCELLED','DROPPED') FOR UPDATE",
+              user,
+              course);
+      if (!enrollmentRows.isEmpty()) {
+        newlyCompleted |=
+            completeCourseIfEligible(
+                user, course, id(enrollmentRows.getFirst(), "id"), now);
+      }
+    }
+    return newlyCompleted;
+  }
+
+  private boolean completeCourseIfEligible(
+      long user, long course, long enrollment, Timestamp now) {
     long lessons =
         db.count("SELECT count(*) FROM lessons WHERE course_id=? AND published=true", course);
     long completed =
@@ -154,22 +184,30 @@ public class ActivityProgressService {
             "SELECT count(*) FROM lesson_progress p JOIN lessons l ON l.id=p.lesson_id WHERE"
                 + " p.enrollment_id=? AND p.status='COMPLETED' AND l.published=true",
             enrollment);
-    boolean newCourse = false;
-    boolean finalPassed = db.count(
-        "SELECT count(*) FROM courses c WHERE c.id=? AND (c.final_assessment_quiz_id IS NULL OR EXISTS"
-            + " (SELECT 1 FROM quiz_attempts a WHERE a.quiz_id=c.final_assessment_quiz_id AND a.user_id=? AND a.status='SUBMITTED' AND a.passed=true))",
-        course, user) == 1;
-    if (lessons > 0 && completed == lessons && finalPassed) {
-      int changed =
-          db.update(
-              "UPDATE enrollments SET status='COMPLETED',completed_at=COALESCE(completed_at,?)"
-                  + " WHERE id=? AND status<>'COMPLETED'",
-              now,
-              enrollment);
-      newCourse = changed > 0;
-      if (newCourse) event(user, course, "COURSE_COMPLETED");
+    boolean finalPassed =
+        db.count(
+                "SELECT count(*) FROM courses c WHERE c.id=? AND"
+                    + " (c.final_assessment_quiz_id IS NULL OR EXISTS"
+                    + " (SELECT 1 FROM quiz_attempts a WHERE"
+                    + " a.quiz_id=c.final_assessment_quiz_id AND a.user_id=?"
+                    + " AND a.status='SUBMITTED' AND a.passed=true))",
+                course,
+                user)
+            == 1;
+    if (lessons == 0 || completed != lessons || !finalPassed) {
+      return false;
     }
-    return summary(user, lesson, course, newly, newCourse);
+    int changed =
+        db.update(
+            "UPDATE enrollments SET status='COMPLETED',completed_at=COALESCE(completed_at,?)"
+                + " WHERE id=? AND status<>'COMPLETED'",
+            now,
+            enrollment);
+    if (changed > 0) {
+      event(user, course, "COURSE_COMPLETED");
+      return true;
+    }
+    return false;
   }
 
   private Map<String, Object> summary(

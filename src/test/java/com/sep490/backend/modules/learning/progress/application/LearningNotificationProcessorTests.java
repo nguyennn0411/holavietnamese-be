@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.sep490.backend.common.notification.NotificationMessage;
 import com.sep490.backend.common.notification.NotificationPort;
 import com.sep490.backend.common.notification.NotificationProperties;
+import com.sep490.backend.common.notification.NotificationType;
 import com.sep490.backend.modules.auth.repository.UserRepository;
 import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
 import java.sql.Timestamp;
@@ -101,6 +102,81 @@ class LearningNotificationProcessorTests {
 
         verify(notifications, never()).sendOnce(any(), any(), any());
         verify(db).update(contains("UPDATE learning_events SET delivered_at=?"), any(Timestamp.class), eq(eventKey));
+    }
+
+    @Test
+    void firstPassingAttemptWithPerfectScoreSharesOneNotificationKey() {
+        String passedKey = "QUIZ_PASSED:5:21";
+        String perfectKey = "QUIZ_PERFECT_SCORE:5:21";
+        when(db.rows(contains("FROM learning_events"), eq(passedKey)))
+                .thenReturn(List.of(event(passedKey, "QUIZ_PASSED", 5L, 21L)));
+        when(db.rows(contains("FROM learning_events"), eq(perfectKey)))
+                .thenReturn(List.of(event(perfectKey, "QUIZ_PERFECT_SCORE", 5L, 21L)));
+        when(db.rows(contains("FROM quizzes"), eq(21L)))
+                .thenReturn(List.of(Map.of(
+                        "title", "Kiểm tra cuối bài",
+                        "courseId", 8L,
+                        "lessonId", 13L)));
+        when(db.count(
+                contains("FROM learning_events WHERE event_type=? AND user_id=? AND entity_id=?"),
+                eq("COURSE_COMPLETED"), eq(5L), eq(8L)))
+                .thenReturn(0L);
+        when(db.count(
+                contains("FROM learning_events WHERE event_type=? AND user_id=? AND entity_id=?"),
+                eq("LESSON_COMPLETED"), eq(5L), eq(13L)))
+                .thenReturn(0L);
+        when(db.count(
+                contains("FROM learning_events WHERE event_type=? AND user_id=? AND entity_id=?"),
+                eq("QUIZ_PERFECT_SCORE"), eq(5L), eq(21L)))
+                .thenReturn(1L);
+
+        processor.process(passedKey);
+        processor.process(perfectKey);
+
+        ArgumentCaptor<NotificationMessage> messages =
+                ArgumentCaptor.forClass(NotificationMessage.class);
+        verify(notifications, org.mockito.Mockito.times(2))
+                .sendOnce(eq(5L), messages.capture(), eq(perfectKey));
+        assertThat(messages.getAllValues())
+                .allSatisfy(message -> {
+                    assertThat(message.title()).contains("tuyệt đối");
+                    assertThat(message.type()).isEqualTo(NotificationType.ACHIEVEMENT);
+                });
+    }
+
+    @Test
+    void perfectScoreOnRetryUsesASecondNotificationKey() {
+        String passedKey = "QUIZ_PASSED:6:22";
+        String perfectKey = "QUIZ_PERFECT_SCORE:6:22";
+        when(db.rows(contains("FROM learning_events"), eq(passedKey)))
+                .thenReturn(List.of(event(passedKey, "QUIZ_PASSED", 6L, 22L)));
+        when(db.rows(contains("FROM learning_events"), eq(perfectKey)))
+                .thenReturn(List.of(event(perfectKey, "QUIZ_PERFECT_SCORE", 6L, 22L)));
+        when(db.rows(contains("FROM quizzes"), eq(22L)))
+                .thenReturn(List.of(Map.of(
+                        "title", "Kiểm tra luyện tập",
+                        "courseId", 9L,
+                        "lessonId", 14L)));
+        when(db.count(
+                contains("FROM learning_events WHERE event_type=? AND user_id=? AND entity_id=?"),
+                eq("COURSE_COMPLETED"), eq(6L), eq(9L)))
+                .thenReturn(0L);
+        when(db.count(
+                contains("FROM learning_events WHERE event_type=? AND user_id=? AND entity_id=?"),
+                eq("LESSON_COMPLETED"), eq(6L), eq(14L)))
+                .thenReturn(0L);
+        when(db.count(
+                contains("FROM learning_events WHERE event_type=? AND user_id=? AND entity_id=?"),
+                eq("QUIZ_PERFECT_SCORE"), eq(6L), eq(22L)))
+                .thenReturn(0L);
+
+        processor.process(passedKey);
+        processor.process(perfectKey);
+
+        ArgumentCaptor<String> keys = ArgumentCaptor.forClass(String.class);
+        verify(notifications, org.mockito.Mockito.times(2))
+                .sendOnce(eq(6L), any(NotificationMessage.class), keys.capture());
+        assertThat(keys.getAllValues()).containsExactly(passedKey, perfectKey);
     }
 
     private static Map<String, Object> event(String eventKey, String type, long userId, long entityId) {

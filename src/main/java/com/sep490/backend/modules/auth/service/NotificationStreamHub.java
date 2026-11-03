@@ -1,5 +1,7 @@
 package com.sep490.backend.modules.auth.service;
 
+import com.sep490.backend.common.exception.AppException;
+import com.sep490.backend.common.exception.ErrorCode;
 import com.sep490.backend.common.notification.NotificationProperties;
 import com.sep490.backend.modules.auth.dto.response.NotificationResponse;
 import java.io.IOException;
@@ -10,10 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /** In-memory SSE fan-out for all open tabs of one user. */
@@ -32,8 +32,7 @@ public class NotificationStreamHub {
 
     public SseEmitter subscribe(Long userId) {
         if (!properties.isEnabled() || !properties.isRealtimeEnabled()) {
-            throw new ResponseStatusException(
-                    HttpStatus.SERVICE_UNAVAILABLE, "Kênh thông báo realtime đang tạm tắt");
+            throw new AppException(ErrorCode.NOTIFICATION_REALTIME_UNAVAILABLE);
         }
 
         SseEmitter emitter = new SseEmitter(properties.getStreamTimeout().toMillis());
@@ -42,9 +41,7 @@ public class NotificationStreamHub {
                     ? new CopyOnWriteArrayList<>()
                     : existing;
             if (emitters.size() >= Math.max(1, properties.getMaxConnectionsPerUser())) {
-                throw new ResponseStatusException(
-                        HttpStatus.TOO_MANY_REQUESTS,
-                        "Đã đạt số kết nối thông báo tối đa cho tài khoản này");
+                throw new AppException(ErrorCode.NOTIFICATION_CONNECTION_LIMIT_REACHED);
             }
             emitters.add(emitter);
             return emitters;

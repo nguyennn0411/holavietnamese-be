@@ -19,5 +19,12 @@ public class NotificationProperties {
     private int maxConnectionsPerUser = 5;
     private Duration streamTimeout = Duration.ofMinutes(30);
     private int retentionDays = 90;
+    private int cleanupBatchSize = 500;
     private int learningEventBatchSize = 50;
+    private boolean emailEnabled = true;
+    private boolean learningReminderEnabled = true;
+    private String learningReminderCron = "0 0 19 * * *";
+    private String learningReminderZone = "Asia/Ho_Chi_Minh";
+    private int learningReminderInactiveHours = 24;
+    private int learningReminderBatchSize = 200;
 }
