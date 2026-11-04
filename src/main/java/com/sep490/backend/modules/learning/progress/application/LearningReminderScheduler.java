@@ -52,7 +52,7 @@ public class LearningReminderScheduler {
                 LIMIT ?
                 """, Timestamp.from(inactiveSince), batchSize);
 
-        LocalDate reminderDate = LocalDate.now(ZoneId.of(properties.getLearningReminderZone()));
+        LocalDate reminderDate = LocalDate.ofInstant(clock.instant(), ZoneId.of(properties.getLearningReminderZone()));
         int sent = 0;
         for (Map<String, Object> candidate : candidates) {
             long userId = ContentStore.id(candidate, "userId");
