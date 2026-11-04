@@ -15,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/courses/workbook")
-@PreAuthorize("hasAnyRole('ADMIN','CONTENT_MANAGER')")
+@PreAuthorize("hasAnyRole('ADMIN','CONTENT')")
 public class CourseWorkbookController {
   private final CourseWorkbookService workbooks;
   private static final MediaType XLSX=MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -24,13 +24,13 @@ public class CourseWorkbookController {
   public ResponseEntity<byte[]> template() {return file("course-studio-template.xlsx",workbooks.template());}
 
   @PostMapping(value="/validate",consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize("hasRole('CONTENT_MANAGER')")
+  @PreAuthorize("hasRole('CONTENT')")
   public Map<String,Object> validate(@RequestParam MultipartFile file) throws IOException {
     return workbooks.validate(file.getBytes(),file.getOriginalFilename());
   }
 
   @PostMapping(value="/import",consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize("hasRole('CONTENT_MANAGER')")
+  @PreAuthorize("hasRole('CONTENT')")
   public Map<String,Object> importDraft(@RequestParam MultipartFile file,@AuthenticationPrincipal LearnerPrincipal actor) throws IOException {
     return workbooks.importDraft(file.getBytes(),file.getOriginalFilename(),actor.id());
   }

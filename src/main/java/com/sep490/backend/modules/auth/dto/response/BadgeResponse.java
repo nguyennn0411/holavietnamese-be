@@ -19,6 +19,8 @@ public class BadgeResponse {
     private String conditionType;
     private Integer conditionValue;
     private Integer xpReward;
+    private String status;
+    private Boolean active;
     private Boolean isUnlocked;
     private LocalDateTime unlockedAt;
     private Integer badgeLevel;

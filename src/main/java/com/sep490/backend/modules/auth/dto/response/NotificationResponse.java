@@ -17,4 +17,6 @@ public class NotificationResponse {
     private String linkUrl;
     private Boolean isRead;
     private LocalDateTime createdAt;
+    private String targetType;
+    private String targetId;
 }

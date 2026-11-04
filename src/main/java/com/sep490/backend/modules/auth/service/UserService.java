@@ -1,33 +1,32 @@
 package com.sep490.backend.modules.auth.service;
-import com.sep490.backend.common.media.CloudinarySignatureService;
 
+import com.sep490.backend.common.dto.CloudinaryUploadSignatureResponse;
+import com.sep490.backend.common.exception.AppException;
+import com.sep490.backend.common.exception.ErrorCode;
+import com.sep490.backend.common.media.CloudinarySignatureService;
+import com.sep490.backend.common.notification.NotificationMessage;
+import com.sep490.backend.common.notification.NotificationPort;
+import com.sep490.backend.common.notification.NotificationType;
 import com.sep490.backend.modules.auth.dto.request.AvatarUrlRequest;
 import com.sep490.backend.modules.auth.dto.request.ChangePasswordRequest;
 import com.sep490.backend.modules.auth.dto.request.UserRegisterRequest;
 import com.sep490.backend.modules.auth.dto.request.UserUpdateRequest;
-import com.sep490.backend.common.dto.CloudinaryUploadSignatureResponse;
 import com.sep490.backend.modules.auth.dto.response.UserResponse;
-import com.sep490.backend.modules.auth.entity.Role;
+import com.sep490.backend.modules.auth.entity.AccountRole;
 import com.sep490.backend.modules.auth.entity.User;
-import com.sep490.backend.common.exception.AppException;
-import com.sep490.backend.common.exception.ErrorCode;
-import com.sep490.backend.common.notification.NotificationMessage;
-import com.sep490.backend.common.notification.NotificationPort;
-import com.sep490.backend.common.notification.NotificationType;
 import com.sep490.backend.modules.auth.repository.RoleRepository;
 import com.sep490.backend.modules.auth.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,8 +45,8 @@ public class UserService {
     NotificationPort notifications;
 
     /**
-     * Đăng ký tài khoản mới cho học viên nước ngoài học tiếng Việt.
-     * Tự động đăng nhập và trả về JWT token luôn.
+     * Public registration has no role input: every newly created account is a
+     * LEARNER, regardless of anything submitted by a client.
      */
     @Transactional
     public UserResponse register(UserRegisterRequest request) {
@@ -58,60 +57,43 @@ public class UserService {
             throw new AppException(ErrorCode.EMAIL_EXISTED);
         }
 
-        Role learnerRole = roleRepository.findByName("LEARNER")
-                .orElseGet(() -> {
-                    Role role = new Role();
-                    role.setName("LEARNER");
-                    role.setDescription("Học viên học tiếng Việt");
-                    return roleRepository.save(role);
-                });
-
         User user = new User();
         user.setUsername(request.getUsername().trim());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail().trim().toLowerCase());
-        user.setFullName(request.getFullName() != null && !request.getFullName().isBlank() 
+        user.setFullName(request.getFullName() != null && !request.getFullName().isBlank()
                 ? request.getFullName().trim() : request.getUsername().trim());
         user.setPhoneNumber(request.getPhoneNumber());
-        user.setNativeLanguage(request.getNativeLanguage() != null && !request.getNativeLanguage().isBlank() 
+        user.setNativeLanguage(request.getNativeLanguage() != null && !request.getNativeLanguage().isBlank()
                 ? request.getNativeLanguage().trim() : "en");
         user.setLearningGoal(request.getLearningGoal());
         user.setTargetLevel(request.getTargetLevel() != null && !request.getTargetLevel().isBlank()
                 ? request.getTargetLevel().trim() : null);
         user.setStatus("ACTIVE");
         user.setEnabled(true);
-        user.setRole("LEARNER");
+        user.setRole(AccountRole.LEARNER.name());
         user.setEmailVerified(false);
-        user.setRoles(new HashSet<>(Set.of(learnerRole)));
 
         User savedUser = userRepository.save(user);
         String developmentOtp = authenticationService.sendRegistrationVerificationOtp(savedUser);
-        log.info("Học viên [{}] đăng ký tài khoản thành công", savedUser.getUsername());
+        log.info("Learner [{}] registered successfully", savedUser.getUsername());
 
         UserResponse response = toUserResponse(savedUser);
         response.setVerificationOtp(developmentOtp);
         return response;
     }
 
-    /**
-     * Lấy thông tin cá nhân của người dùng đang đăng nhập.
-     */
     public UserResponse getMyProfile() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        String username = authentication.getName();
-        User user = userRepository.findActiveByUsernameWithRoles(username)
+        User user = userRepository.findActiveByUsernameWithRoles(authentication.getName())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
         return toUserResponse(user);
     }
 
-    /**
-     * Cập nhật thông tin cá nhân học viên.
-     */
     @Transactional
     public UserResponse updateProfile(UserUpdateRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -126,7 +108,8 @@ public class UserService {
         }
         if (request.getAvatarUrl() != null) {
             if (!cloudinarySignatureService.isAllowedAvatarUrl(request.getAvatarUrl())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Avatar URL must be a Cloudinary image from the configured cloud.");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Avatar URL must be a Cloudinary image from the configured cloud.");
             }
             user.setAvatarUrl(request.getAvatarUrl());
         }
@@ -144,7 +127,7 @@ public class UserService {
         }
 
         User updatedUser = userRepository.save(user);
-        log.info("Người dùng [{}] cập nhật thông tin cá nhân thành công", username);
+        log.info("User [{}] updated profile", username);
         return toUserResponse(updatedUser);
     }
 
@@ -152,7 +135,6 @@ public class UserService {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findActiveByUsernameWithRoles(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
         return cloudinarySignatureService.createAvatarSignature(user.getId());
     }
 
@@ -163,19 +145,16 @@ public class UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         if (!cloudinarySignatureService.isAllowedAvatarUrl(request.getAvatarUrl())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Avatar URL must be a Cloudinary image from the configured cloud.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Avatar URL must be a Cloudinary image from the configured cloud.");
         }
-
         user.setAvatarUrl(request.getAvatarUrl());
 
         User updatedUser = userRepository.save(user);
-        log.info("Người dùng [{}] cập nhật ảnh đại diện thành công", username);
+        log.info("User [{}] updated avatar", username);
         return toUserResponse(updatedUser);
     }
 
-    /**
-     * Đổi mật khẩu tài khoản.
-     */
     @Transactional
     public void changePassword(ChangePasswordRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -185,7 +164,6 @@ public class UserService {
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
-
         if (request.getCurrentPassword().equals(request.getNewPassword())) {
             throw new AppException(ErrorCode.PASSWORD_SAME_AS_CURRENT);
         }
@@ -193,16 +171,13 @@ public class UserService {
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         notifications.send(user.getId(), NotificationMessage.mandatory(
-                "Mật khẩu đã được thay đổi",
-                "Mật khẩu tài khoản của bạn vừa được thay đổi. Nếu không phải bạn thực hiện, hãy liên hệ hỗ trợ ngay.",
+                "Password changed",
+                "Your account password was changed. Contact support immediately if this was not you.",
                 NotificationType.SECURITY,
                 "/settings"));
-        log.info("Người dùng [{}] đổi mật khẩu thành công", username);
+        log.info("User [{}] changed password", username);
     }
 
-    /**
-     * Lấy danh sách tất cả học viên (dành cho Admin).
-     */
     @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
@@ -212,11 +187,10 @@ public class UserService {
     }
 
     private UserResponse toUserResponse(User user) {
-        Set<String> roleNames = user.getRoles() == null || user.getRoles().isEmpty() ? Set.of(user.getRole()) :
-                user.getRoles().stream().map(Role::getName).collect(Collectors.toSet());
-        Set<String> permissions = user.getRoles() == null || user.getRoles().isEmpty() ? Set.of() :
-                user.getRoles().stream().filter(role -> role.getPermissions() != null)
-                        .flatMap(role -> role.getPermissions().stream()).collect(Collectors.toSet());
+        String role = AccountRole.normalizeStored(user.getRole());
+        Set<String> permissions = roleRepository.findByName(role)
+                .map(found -> found.getPermissions() == null ? Set.<String>of() : Set.copyOf(found.getPermissions()))
+                .orElseGet(Set::of);
 
         return UserResponse.builder()
                 .id(user.getId())
@@ -240,7 +214,7 @@ public class UserService {
                 .totalXp(user.getTotalXp())
                 .hearts(user.getHearts() != null ? user.getHearts() : 5)
                 .status(user.getStatus())
-                .roles(roleNames)
+                .role(role)
                 .permissions(permissions)
                 .createdAt(user.getCreatedAt())
                 .build();

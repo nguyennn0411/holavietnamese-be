@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserSettingsRequest {
+public class UserSettingsRequest extends RoleMutationProtectedRequest {
     /** Null means that the corresponding setting is not part of this partial update. */
     private Double audioSpeed;
     private Boolean pronunciationHintsEnabled;

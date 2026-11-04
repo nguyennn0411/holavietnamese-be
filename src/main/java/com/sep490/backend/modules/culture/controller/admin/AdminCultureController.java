@@ -20,7 +20,7 @@ import java.util.Map;
 @RequestMapping("/api/admin/culture")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'CONTENT_MANAGER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'CONTENT')")
 public class AdminCultureController {
 
     AdminCultureService adminCultureService;

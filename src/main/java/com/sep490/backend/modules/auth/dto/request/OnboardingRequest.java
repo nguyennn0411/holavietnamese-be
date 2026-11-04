@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class OnboardingRequest {
+public class OnboardingRequest extends RoleMutationProtectedRequest {
     @NotBlank(message = "Ngôn ngữ mẹ đẻ không được để trống")
     private String nativeLanguage;
 

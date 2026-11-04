@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserUpdateRequest {
+public class UserUpdateRequest extends RoleMutationProtectedRequest {
     String fullName;
     String phoneNumber;
     String avatarUrl;

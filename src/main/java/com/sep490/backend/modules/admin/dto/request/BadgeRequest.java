@@ -40,4 +40,6 @@ public class BadgeRequest {
 
     @Size(max = 20, message = "Status must be at most 20 characters")
     private String status;
+
+    private Boolean active;
 }

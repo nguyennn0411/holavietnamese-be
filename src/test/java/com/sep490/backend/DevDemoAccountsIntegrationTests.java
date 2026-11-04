@@ -33,7 +33,7 @@ class DevDemoAccountsIntegrationTests {
   void seededAccountsAuthenticateWithTheirOwnRoles() throws Exception {
     String manager = token("contentmanager", DEMO_PASSWORD);
     mvc.perform(get("/api/me/session").header("Authorization", manager))
-        .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("CONTENT_MANAGER"));
+        .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("CONTENT"));
     mvc.perform(get("/api/admin/courses").header("Authorization", manager))
         .andExpect(status().isOk());
     mvc.perform(get("/api/admin/users").header("Authorization", manager))
@@ -53,11 +53,11 @@ class DevDemoAccountsIntegrationTests {
         name + "@test.local", name, passwords.encode("Test-pass123"));
     mvc.perform(put("/api/admin/users/" + id + "/roles")
         .header("Authorization", token("admin", DEMO_PASSWORD))
-        .contentType(MediaType.APPLICATION_JSON).content("[\"CONTENT_MANAGER\"]"))
+        .contentType(MediaType.APPLICATION_JSON).content("[\"CONTENT\"]"))
         .andExpect(status().isOk());
     String manager = token(name, "Test-pass123");
     mvc.perform(get("/api/me/session").header("Authorization", manager))
-        .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("CONTENT_MANAGER"));
+        .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("CONTENT"));
     mvc.perform(get("/api/admin/courses").header("Authorization", manager))
         .andExpect(status().isOk());
   }

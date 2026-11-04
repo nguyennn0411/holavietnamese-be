@@ -303,7 +303,33 @@ public class NotificationService implements NotificationPort {
                 .linkUrl(notification.getLinkUrl())
                 .isRead(notification.getIsRead())
                 .createdAt(notification.getCreatedAt())
+                .targetType(resolveTargetType(notification))
+                .targetId(resolveTargetId(notification))
                 .build();
+    }
+
+    private String resolveTargetType(Notification notification) {
+        String linkUrl = notification.getLinkUrl();
+        if (linkUrl != null && !linkUrl.isBlank()) {
+            if (linkUrl.contains("badgeId=")) return "BADGE";
+            if (linkUrl.contains("/courses/")) return "COURSE";
+            if (linkUrl.contains("/lessons/")) return "LESSON";
+        }
+        if ("ACHIEVEMENT".equalsIgnoreCase(notification.getType())) return "BADGE";
+        return notification.getType();
+    }
+
+    private String resolveTargetId(Notification notification) {
+        String linkUrl = notification.getLinkUrl();
+        if (linkUrl != null && !linkUrl.isBlank()) {
+            java.util.regex.Matcher badgeMatcher = java.util.regex.Pattern.compile("[?&]badgeId=([^&#]+)").matcher(linkUrl);
+            if (badgeMatcher.find()) return badgeMatcher.group(1);
+            java.util.regex.Matcher courseMatcher = java.util.regex.Pattern.compile("/courses/([^/?&#]+)").matcher(linkUrl);
+            if (courseMatcher.find()) return courseMatcher.group(1);
+            java.util.regex.Matcher lessonMatcher = java.util.regex.Pattern.compile("/lessons/([^/?&#]+)").matcher(linkUrl);
+            if (lessonMatcher.find()) return lessonMatcher.group(1);
+        }
+        return null;
     }
 
     private NotificationType parseType(String type) {

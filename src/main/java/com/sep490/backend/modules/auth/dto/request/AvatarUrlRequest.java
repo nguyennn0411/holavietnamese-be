@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AvatarUrlRequest {
+public class AvatarUrlRequest extends RoleMutationProtectedRequest {
     @NotBlank(message = "Avatar URL is required")
     @Size(max = 500, message = "Avatar URL must be 500 characters or fewer")
     String avatarUrl;

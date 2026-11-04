@@ -154,8 +154,11 @@ public class UserProgressService {
     public void awardXp(User user, String eventType, int fallbackAmount, String description) {
         int rewardAmount = fallbackAmount;
         XpRule rule = xpRuleRepository.findByEventType(eventType).orElse(null);
-        if (rule != null && Boolean.TRUE.equals(rule.getIsActive())) {
-            rewardAmount = rule.getXpReward();
+        if (rule != null) {
+            if (!Boolean.TRUE.equals(rule.getIsActive())) {
+                return; // Rule is disabled by admin
+            }
+            rewardAmount = rule.getXpReward() != null ? rule.getXpReward() : fallbackAmount;
             if (rule.getDailyCap() != null && rule.getDailyCap() > 0) {
                 LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
                 int earnedToday = xpTransactionRepository.sumAmountByUserIdAndEventTypeSince(user.getId(), eventType, startOfDay);
@@ -325,7 +328,7 @@ public class UserProgressService {
                 .totalXp(user.getTotalXp())
                 .hearts(user.getHearts() != null ? user.getHearts() : 5)
                 .status(user.getStatus())
-                .roles(user.getRoles().stream().map(r -> r.getName()).collect(Collectors.toSet()))
+                .role(com.sep490.backend.modules.auth.entity.AccountRole.normalizeStored(user.getRole()))
                 .build();
     }
 }

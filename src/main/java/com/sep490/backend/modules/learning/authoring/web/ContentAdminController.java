@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN','CONTENT_MANAGER')")
+@PreAuthorize("hasAnyRole('ADMIN','CONTENT')")
 public class ContentAdminController {
   private final CourseContentService courses;
   private final ActivityService activities;
@@ -66,7 +66,7 @@ public class ContentAdminController {
   }
 
   @PostMapping("/courses/{id}/submit")
-  @PreAuthorize("hasRole('CONTENT_MANAGER')")
+  @PreAuthorize("hasRole('CONTENT')")
   public Object submit(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal u) {
     workflow.submit(id,u);
     return courses.detail(id,null,true);

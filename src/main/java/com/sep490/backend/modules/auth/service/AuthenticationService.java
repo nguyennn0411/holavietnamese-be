@@ -62,6 +62,13 @@ public class AuthenticationService {
     NotificationPort notifications;
 
     Set<String> invalidatedTokens = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    Map<String, Instant> userRoleChangedAt = new ConcurrentHashMap<>();
+
+    public void invalidateUserSessions(String username) {
+        if (username != null && !username.isBlank()) {
+            userRoleChangedAt.put(username.trim().toLowerCase(Locale.ROOT), Instant.now());
+        }
+    }
 
     @NonFinal
     @Value("${jwt.secretKey}")
@@ -95,7 +102,7 @@ public class AuthenticationService {
         String token = generateToken(user);
         log.info("User [{}] đã đăng nhập thành công", request.getUsername());
 
-        Set<String> roleNames = extractRoleNames(user);
+        String singleRole = normalizeSingleRole(user);
 
         return AuthenticationResponse.builder()
                 .token(token)
@@ -103,7 +110,7 @@ public class AuthenticationService {
                 .userId(user.getId())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
-                .roles(roleNames)
+                .role(singleRole)
                 .permissions(extractPermissions(user))
                 .build();
     }
@@ -165,7 +172,6 @@ public class AuthenticationService {
             newUser.setStatus("ACTIVE");
             newUser.setEnabled(true);
             newUser.setRole("LEARNER");
-            newUser.setRoles(new HashSet<>(Set.of(learnerRole)));
             return userRepository.save(newUser);
         });
 
@@ -184,7 +190,7 @@ public class AuthenticationService {
         String token = generateToken(user);
         log.info("Học viên đăng nhập Google thành công: [{}]", email);
 
-        Set<String> roleNames = extractRoleNames(user);
+        String singleRole = normalizeSingleRole(user);
 
         return AuthenticationResponse.builder()
                 .token(token)
@@ -192,7 +198,7 @@ public class AuthenticationService {
                 .userId(user.getId())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
-                .roles(roleNames)
+                .role(singleRole)
                 .permissions(extractPermissions(user))
                 .build();
     }
@@ -368,7 +374,7 @@ public class AuthenticationService {
         var token = generateToken(user);
         log.info("Làm mới token thành công cho user [{}]", username);
 
-        Set<String> roleNames = extractRoleNames(user);
+        String singleRole = normalizeSingleRole(user);
 
         return AuthenticationResponse.builder()
                 .token(token)
@@ -376,7 +382,7 @@ public class AuthenticationService {
                 .userId(user.getId())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
-                .roles(roleNames)
+                .role(singleRole)
                 .permissions(extractPermissions(user))
                 .build();
     }
@@ -425,6 +431,8 @@ public class AuthenticationService {
                 .claim("scope", buildScope(user))
                 .claim("userId", user.getId())
                 .claim("fullName", user.getFullName())
+                .claim("role", normalizeSingleRole(user))
+                .claim("iat_ms", System.currentTimeMillis())
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -464,32 +472,37 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
+        String subject = signedJWT.getJWTClaimsSet().getSubject();
+        Date issueTime = signedJWT.getJWTClaimsSet().getIssueTime();
+        if (subject != null && issueTime != null) {
+            Instant changedAt = userRoleChangedAt.get(subject.trim().toLowerCase(Locale.ROOT));
+            if (changedAt != null) {
+                Object iatMsClaim = signedJWT.getJWTClaimsSet().getClaim("iat_ms");
+                long tokenIatMs = iatMsClaim instanceof Number num ? num.longValue() : issueTime.getTime();
+                if (tokenIatMs < changedAt.toEpochMilli()) {
+                    throw new AppException(ErrorCode.UNAUTHENTICATED);
+                }
+            }
+        }
+
         return signedJWT;
     }
 
+    private String normalizeSingleRole(User user) {
+        return com.sep490.backend.modules.auth.entity.AccountRole.normalizeStored(user.getRole());
+    }
+
     private String[] buildScope(User user) {
-        Set<String> scopes = java.util.Collections.newSetFromMap(new ConcurrentHashMap<>());
-        if (!CollectionUtils.isEmpty(user.getRoles())) {
-            user.getRoles().forEach(role -> {
-                scopes.add("ROLE_" + role.getName());
-                if (role.getPermissions() != null) scopes.addAll(role.getPermissions());
-            });
-        } else { scopes.add("ROLE_" + user.getRole()); }
+        Set<String> scopes = new LinkedHashSet<>();
+        String singleRole = normalizeSingleRole(user);
+        scopes.add("ROLE_" + singleRole);
+        scopes.addAll(extractPermissions(user));
         return scopes.toArray(new String[0]);
     }
 
-    private Set<String> extractRoleNames(User user) {
-        if (user.getRoles() == null || user.getRoles().isEmpty()) return Set.of(user.getRole());
-        return user.getRoles().stream()
-                .map(Role::getName)
-                .collect(Collectors.toSet());
-    }
-
     private Set<String> extractPermissions(User user) {
-        if (user.getRoles() == null || user.getRoles().isEmpty()) return Set.of();
-        return user.getRoles().stream()
-                .filter(role -> role.getPermissions() != null)
-                .flatMap(role -> role.getPermissions().stream())
-                .collect(Collectors.toSet());
+        return roleRepository.findByName(normalizeSingleRole(user))
+                .map(role -> role.getPermissions() == null ? Set.<String>of() : Set.copyOf(role.getPermissions()))
+                .orElseGet(Set::of);
     }
 }

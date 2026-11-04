@@ -29,6 +29,4 @@ public class Role extends BaseEntity {
     @Column(name = "permission", length = 100, nullable = false)
     private Set<String> permissions = new LinkedHashSet<>();
 
-    @ManyToMany(mappedBy = "roles")
-    private Set<User> users = new LinkedHashSet<>();
 }
