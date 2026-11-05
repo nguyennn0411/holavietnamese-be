@@ -1,6 +1,7 @@
 package com.sep490.backend.modules.culture.controller.admin;
 
 import com.sep490.backend.common.dto.ApiResponse;
+import com.sep490.backend.common.security.LearnerPrincipal;
 import com.sep490.backend.modules.culture.dto.request.CultureArticleRequest;
 import com.sep490.backend.modules.culture.dto.request.CultureCategoryRequest;
 import com.sep490.backend.modules.culture.dto.response.CultureArticleResponse;
@@ -11,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,8 +48,11 @@ public class AdminCultureController {
     }
 
     @PostMapping("/articles")
-    public ApiResponse<CultureArticleResponse> createArticle(@Valid @RequestBody CultureArticleRequest request) {
-        CultureArticleResponse response = adminCultureService.saveArticle(request);
+    public ApiResponse<CultureArticleResponse> createArticle(
+            @Valid @RequestBody CultureArticleRequest request,
+            @AuthenticationPrincipal LearnerPrincipal principal
+    ) {
+        CultureArticleResponse response = adminCultureService.saveArticle(request, principal);
         return ApiResponse.<CultureArticleResponse>builder()
                 .result(response)
                 .message("Lưu bài viết văn hóa thành công")
@@ -57,10 +62,11 @@ public class AdminCultureController {
     @PutMapping("/articles/{id}")
     public ApiResponse<CultureArticleResponse> updateArticle(
             @PathVariable String id,
-            @Valid @RequestBody CultureArticleRequest request
+            @Valid @RequestBody CultureArticleRequest request,
+            @AuthenticationPrincipal LearnerPrincipal principal
     ) {
         request.setId(id);
-        CultureArticleResponse response = adminCultureService.saveArticle(request);
+        CultureArticleResponse response = adminCultureService.saveArticle(request, principal);
         return ApiResponse.<CultureArticleResponse>builder()
                 .result(response)
                 .message("Cập nhật bài viết văn hóa thành công")
@@ -70,10 +76,11 @@ public class AdminCultureController {
     @PatchMapping("/articles/{id}/status")
     public ApiResponse<CultureArticleResponse> updateStatus(
             @PathVariable String id,
-            @RequestBody Map<String, String> body
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal LearnerPrincipal principal
     ) {
         String status = body.getOrDefault("status", "PUBLISHED");
-        CultureArticleResponse response = adminCultureService.updateArticleStatus(id, status);
+        CultureArticleResponse response = adminCultureService.updateArticleStatus(id, status, principal);
         return ApiResponse.<CultureArticleResponse>builder()
                 .result(response)
                 .message("Cập nhật trạng thái bài viết thành công")

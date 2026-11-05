@@ -2,9 +2,8 @@ package com.sep490.backend.modules.culture.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sep490.backend.common.exception.AppException;
-import com.sep490.backend.common.exception.ErrorCode;
 import com.sep490.backend.common.exception.ContentException;
+import com.sep490.backend.common.security.LearnerPrincipal;
 import org.springframework.http.HttpStatus;
 import com.sep490.backend.modules.culture.dto.request.CultureArticleRequest;
 import com.sep490.backend.modules.culture.dto.request.CultureCategoryRequest;
@@ -87,6 +86,11 @@ public class AdminCultureService {
 
     @Transactional
     public CultureArticleResponse saveArticle(CultureArticleRequest request) {
+        return saveArticle(request, null);
+    }
+
+    @Transactional
+    public CultureArticleResponse saveArticle(CultureArticleRequest request, LearnerPrincipal principal) {
         String articleId = request.getId();
         if (articleId == null || articleId.trim().isEmpty() || "new".equalsIgnoreCase(articleId)) {
             articleId = "culture-" + UUID.randomUUID().toString().substring(0, 8);
@@ -136,7 +140,24 @@ public class AdminCultureService {
         article.setReadTimeVi(request.getReadTimeVi() != null ? request.getReadTimeVi() : "5 phút đọc");
         article.setReadTimeEn(request.getReadTimeEn() != null ? request.getReadTimeEn() : "5 min read");
         article.setCoverImage(request.getCoverImage());
-        article.setStatus(request.getStatus() != null ? request.getStatus() : "PUBLISHED");
+
+        boolean isAdmin = principal == null || "ADMIN".equals(principal.role());
+        String requestedStatus = request.getStatus() != null ? request.getStatus().trim().toUpperCase() : null;
+
+        if (!isAdmin) {
+            // Content manager can only set DRAFT or IN_REVIEW; cannot directly set PUBLISHED
+            if ("PUBLISHED".equals(requestedStatus)) {
+                article.setStatus("IN_REVIEW");
+            } else if (requestedStatus != null) {
+                article.setStatus(requestedStatus);
+            } else if (article.getStatus() == null) {
+                article.setStatus("DRAFT");
+            }
+        } else {
+            // Admin can set any status (defaults to PUBLISHED if not specified)
+            article.setStatus(requestedStatus != null ? requestedStatus : (article.getStatus() != null ? article.getStatus() : "PUBLISHED"));
+        }
+
         article.setIsFeatured(request.getIsFeatured() != null ? request.getIsFeatured() : false);
 
         if ("PUBLISHED".equals(article.getStatus()) && article.getPublishedAt() == null) {
@@ -165,11 +186,23 @@ public class AdminCultureService {
 
     @Transactional
     public CultureArticleResponse updateArticleStatus(String id, String status) {
+        return updateArticleStatus(id, status, null);
+    }
+
+    @Transactional
+    public CultureArticleResponse updateArticleStatus(String id, String status, LearnerPrincipal principal) {
         CultureArticle article = articleRepository.findById(id)
                 .orElseThrow(() -> new ContentException("NOT_FOUND", "Không tìm thấy bài viết: " + id, HttpStatus.NOT_FOUND));
 
-        article.setStatus(status != null ? status.toUpperCase() : "DRAFT");
-        if ("PUBLISHED".equalsIgnoreCase(status) && article.getPublishedAt() == null) {
+        String targetStatus = status != null ? status.trim().toUpperCase() : "DRAFT";
+        boolean isAdmin = principal == null || "ADMIN".equals(principal.role());
+
+        if ("PUBLISHED".equals(targetStatus) && !isAdmin) {
+            throw ContentException.forbidden("CULTURE_APPROVAL_REQUIRED", "Chỉ Quản trị viên (Admin) mới có quyền phê duyệt xuất bản bài viết văn hóa.");
+        }
+
+        article.setStatus(targetStatus);
+        if ("PUBLISHED".equalsIgnoreCase(targetStatus) && article.getPublishedAt() == null) {
             article.setPublishedAt(LocalDateTime.now());
         }
         CultureArticle saved = articleRepository.save(article);

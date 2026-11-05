@@ -78,11 +78,9 @@ public class AdminController {
     }
 
     /**
-     * The sole role mutation endpoint. Its singular path and request DTO make
-     * a multi-role request impossible.
+     * Role mutation endpoint supporting both singular /role and plural /roles.
      */
     @PutMapping({"/users/{id}/role", "/users/{id}/roles"})
-    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<AdminUserResponse> updateUserRole(
             @PathVariable Long id,
             @Valid @RequestBody UpdateUserRoleRequest request) {

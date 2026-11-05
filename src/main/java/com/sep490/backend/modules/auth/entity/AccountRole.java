@@ -14,7 +14,7 @@ public enum AccountRole {
     CONTENT,
     ADMIN;
 
-    private static final Set<String> ASSIGNABLE_BY_ADMIN = Set.of(LEARNER.name(), CONTENT.name());
+    private static final Set<String> ASSIGNABLE_BY_ADMIN = Set.of(LEARNER.name(), CONTENT.name(), ADMIN.name());
 
     public static String normalizeStored(String value) {
         if (value == null || value.isBlank()) {

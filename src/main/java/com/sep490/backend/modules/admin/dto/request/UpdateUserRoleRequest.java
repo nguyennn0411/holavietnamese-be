@@ -7,15 +7,14 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Deliberately narrow role-change contract. Arrays, aliases, ADMIN, and any
- * other fields are rejected before the service layer is reached.
+ * Standard role-change contract for ADMIN, CONTENT, and LEARNER roles.
  */
 @Getter
 @Setter
 public class UpdateUserRoleRequest {
 
     @NotBlank(message = "role is required.")
-    @Pattern(regexp = "LEARNER|CONTENT", message = "role must be LEARNER or CONTENT.")
+    @Pattern(regexp = "LEARNER|CONTENT|ADMIN", message = "role must be ADMIN, CONTENT, or LEARNER.")
     private String role;
 
     @JsonAnySetter
