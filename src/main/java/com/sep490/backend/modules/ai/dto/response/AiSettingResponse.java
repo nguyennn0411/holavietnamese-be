@@ -16,10 +16,14 @@ public class AiSettingResponse {
     private String activeModel;
     private List<Map<String, Object>> allowedModels;
     private String systemPromptVersion;
+    private String systemPrompt;
     private List<Map<String, Object>> promptVersionsHistory;
     private Map<String, Object> limits;
     private Map<String, Object> security;
     private List<String> enabledModes;
     private Boolean apiKeyConfigured;
     private String apiKeyMasked;
+    private List<String> contextOptions;
+    private Boolean moderationEnabled;
+    private String updatedAt;
 }

@@ -296,6 +296,11 @@ public class AiTutorService {
         }
 
         AiSetting settings = getOrInitSettings();
+        if (settings.getMaxTurnsPerSession() != null
+                && session.getTurnsCount() != null
+                && session.getTurnsCount() >= settings.getMaxTurnsPerSession()) {
+            throw new IllegalStateException("Phiên hội thoại đã đạt giới hạn tối đa " + settings.getMaxTurnsPerSession() + " lượt. Vui lòng tạo phiên hội thoại mới.");
+        }
         List<AiMessage> previousMessages = messageRepository.findBySessionIdOrderByCreatedAtAsc(session.getId());
 
         // 1. Save user message
@@ -320,6 +325,9 @@ public class AiTutorService {
         updateContextSummaryIfNeeded(session, previousMessages, userText);
 
         String systemPrompt = buildSystemPrompt(mode, learnerLevel, nativeLang, learningGoal, intent, session.getContextSummary());
+        if (settings.getSystemPrompt() != null && !settings.getSystemPrompt().isBlank()) {
+            systemPrompt = systemPrompt + "\n\n# QUY TẮC HỆ THỐNG BỔ SUNG TỪ QUẢN TRỊ VIÊN\n" + settings.getSystemPrompt().trim();
+        }
         List<Map<String, Object>> multiTurnContents = buildMultiTurnContents(previousMessages, userText, nativeLang);
 
         // 3. Invoke Gemini with official systemInstruction & native multi-turn conversation memory
@@ -558,6 +566,14 @@ public class AiTutorService {
         statusMap.put("dailySessionsRemaining", remaining);
         statusMap.put("dailySessionsCap", dailyCap);
         statusMap.put("maxTurnsPerSession", settings.getMaxTurnsPerSession() != null ? settings.getMaxTurnsPerSession() : 25);
+        statusMap.put("maxTokensPerResponse", settings.getMaxTokensPerResponse() != null ? settings.getMaxTokensPerResponse() : 1024);
+        statusMap.put("rateLimitPerMinute", settings.getRateLimitPerMinute() != null ? settings.getRateLimitPerMinute() : 30);
+        statusMap.put("systemPromptVersion", settings.getSystemPromptVersion() != null ? settings.getSystemPromptVersion() : "v2.2.0-stable");
+        statusMap.put("moderationEnabled", settings.getModerationEnabled() != null ? settings.getModerationEnabled() : true);
+        List<String> enabledModes = (settings.getEnabledModes() != null && !settings.getEnabledModes().isBlank())
+                ? Arrays.stream(settings.getEnabledModes().split(",")).map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toList())
+                : List.of("tutor", "grammar", "translation", "conversation", "culture_guide", "travel", "regional");
+        statusMap.put("enabledModes", enabledModes);
         return statusMap;
     }
 
