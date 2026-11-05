@@ -30,7 +30,11 @@ public class QuizController {
   }
 
   private void questionEdit(long id, LearnerPrincipal user) {
-    if (!workflow.isAdmin(user)) questions.assertCanEdit(id, user.id());
+    if (workflow.isAdmin(user)) {
+      if (questions.isCreatedByContentManager(id))
+        throw ContentException.forbidden(
+            "CONTENT_REVIEW_ONLY", "Administrators review Content Manager questions without editing them.");
+    } else questions.assertCanEdit(id, user.id());
     questions.assertNotInReviewedCourse(id);
   }
 

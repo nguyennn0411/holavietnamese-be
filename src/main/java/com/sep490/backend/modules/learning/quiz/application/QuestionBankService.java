@@ -93,6 +93,11 @@ public class QuestionBankService {
       throw ContentException.forbidden("QUESTION_NOT_OWNED", "You can only edit questions created by you.");
   }
 
+  public boolean isCreatedByContentManager(long id) {
+    return db.count("SELECT count(*) FROM questions q JOIN users u ON u.id=q.created_by"
+        + " WHERE q.id=? AND u.role='CONTENT'", id) > 0;
+  }
+
   public void assertNotInReviewedCourse(long id) {
     if (db.count("SELECT count(*) FROM quiz_questions qq JOIN quizzes q ON q.id=qq.quiz_id"
         + " JOIN courses c ON c.id=q.course_id JOIN users u ON u.id=c.created_by"

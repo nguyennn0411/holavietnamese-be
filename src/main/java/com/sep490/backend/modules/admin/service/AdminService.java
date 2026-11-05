@@ -1,4 +1,5 @@
 package com.sep490.backend.modules.admin.service;
+import com.sep490.backend.common.audit.AuditLogPort;
 
 import com.sep490.backend.common.dto.PageResponse;
 import com.sep490.backend.common.exception.AppException;
@@ -15,7 +16,6 @@ import com.sep490.backend.modules.admin.dto.response.AuditLogResponse;
 import com.sep490.backend.modules.admin.dto.response.RoleResponse;
 import com.sep490.backend.modules.admin.dto.response.SystemSettingResponse;
 import com.sep490.backend.modules.admin.dto.response.XpRuleResponse;
-import com.sep490.backend.modules.admin.entity.AuditLog;
 import com.sep490.backend.modules.admin.entity.SystemSetting;
 import com.sep490.backend.modules.admin.repository.AuditLogRepository;
 import com.sep490.backend.modules.admin.repository.SystemSettingRepository;
@@ -65,6 +65,7 @@ public class AdminService {
     private final LessonRepository lessonRepository;
     private final XpTransactionRepository xpTransactionRepository;
     private final AuditLogRepository auditLogRepository;
+    private final AuditLogPort auditLogPort;
     private final SystemSettingRepository systemSettingRepository;
     private final XpRuleRepository xpRuleRepository;
     private final BadgeRepository badgeRepository;
@@ -397,20 +398,13 @@ public class AdminService {
                         .details(log.getDetails())
                         .ipAddress(log.getIpAddress())
                         .createdAt(log.getCreatedAt())
+                        .status("SUCCESS")
                         .build())
                 .collect(Collectors.toList());
     }
 
     public void logAdminAction(String action, String target, String details) {
-        String admin = SecurityContextHolder.getContext().getAuthentication() != null
-                ? SecurityContextHolder.getContext().getAuthentication().getName()
-                : "system";
-        AuditLog auditLog = new AuditLog();
-        auditLog.setAdminUsername(admin);
-        auditLog.setAction(action);
-        auditLog.setTarget(target);
-        auditLog.setDetails(details);
-        auditLogRepository.save(auditLog);
+        auditLogPort.record(action, target, details, null);
     }
 
     private User findUser(Long id) {

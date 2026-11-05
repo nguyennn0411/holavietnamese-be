@@ -30,6 +30,7 @@ public class ContentAdminController {
   }
 
   @PostMapping("/courses")
+  @PreAuthorize("hasRole('CONTENT')")
   public Object create(
       @Valid @RequestBody ContentRequests.Course r, @AuthenticationPrincipal LearnerPrincipal u) {
     return courses.detail(courses.create(r, u.id()), null, true);

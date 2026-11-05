@@ -17,4 +17,5 @@ public class AuditLogResponse {
     private String details;
     private String ipAddress;
     private LocalDateTime createdAt;
+    private String status;
 }
