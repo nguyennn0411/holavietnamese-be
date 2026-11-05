@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/learning-path")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('LEARNER')")
+@PreAuthorize("hasAnyRole('LEARNER', 'ADMIN', 'CONTENT')")
 public class LearningPathController {
   private final LearningPathService paths;
 

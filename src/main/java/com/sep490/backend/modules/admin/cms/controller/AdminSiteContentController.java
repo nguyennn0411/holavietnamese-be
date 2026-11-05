@@ -28,7 +28,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/site-content")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'CONTENT')")
 @RequiredArgsConstructor
 public class AdminSiteContentController {
 

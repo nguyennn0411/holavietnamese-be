@@ -46,7 +46,7 @@ public class SecurityConfig {
                     ContentPermissions.EXPLORE_WRITE, ContentPermissions.EXPLORE_LINK_WRITE,
                     ContentPermissions.EXPLORE_REVIEW, ContentPermissions.EXPLORE_PUBLISH)
             .requestMatchers("/api/admin/culture/**").hasAnyRole("ADMIN", "CONTENT")
-            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+            .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "CONTENT")
             .anyRequest().authenticated())
             // JWT clients send an explicit Authorization header; legacy session clients keep CSRF.
             .csrf(c -> c.ignoringRequestMatchers("/api/auth/**", "/api/users/register",

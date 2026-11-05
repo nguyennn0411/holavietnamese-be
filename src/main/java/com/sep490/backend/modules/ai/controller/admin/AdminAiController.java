@@ -22,7 +22,7 @@ import java.util.Map;
 @RequestMapping("/api/admin/ai")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'CONTENT')")
 public class AdminAiController {
 
     AdminAiService adminAiService;
