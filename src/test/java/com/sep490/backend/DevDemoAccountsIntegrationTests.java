@@ -51,9 +51,9 @@ class DevDemoAccountsIntegrationTests {
     String name = "new-manager-" + UUID.randomUUID();
     long id = db.insert("INSERT INTO users(email,username,password_hash,enabled,status,role) VALUES(?,?,?,true,'ACTIVE','LEARNER')",
         name + "@test.local", name, passwords.encode("Test-pass123"));
-    mvc.perform(put("/api/admin/users/" + id + "/roles")
+    mvc.perform(put("/api/admin/users/" + id + "/role")
         .header("Authorization", token("admin", DEMO_PASSWORD))
-        .contentType(MediaType.APPLICATION_JSON).content("[\"CONTENT\"]"))
+        .contentType(MediaType.APPLICATION_JSON).content("{\"role\":\"CONTENT\"}"))
         .andExpect(status().isOk());
     String manager = token(name, "Test-pass123");
     mvc.perform(get("/api/me/session").header("Authorization", manager))

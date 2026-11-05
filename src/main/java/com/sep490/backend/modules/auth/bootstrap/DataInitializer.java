@@ -49,13 +49,14 @@ public class DataInitializer implements CommandLineRunner {
                     Set.of("USER_READ", "USER_WRITE", "ROLE_WRITE", "SETTING_WRITE", "ACHIEVEMENT_WRITE", "XP_RULE_WRITE", "AUDIT_READ"));
             initRole("LEARNER", "Vietnamese learner",
                     Set.of("PROFILE_READ", "PROFILE_WRITE", "LEARNING_READ"));
-            initRole("CONTENT", "Learning-content manager",
+            Role contentRole = initRole("CONTENT", "Learning-content manager",
                     Set.of("COURSE_READ", "COURSE_WRITE", "COURSE_SUBMIT",
                             "VOCABULARY_READ", "VOCABULARY_WRITE", "VOCABULARY_IMPORT",
                             "EXPLORE_READ", "EXPLORE_WRITE", "EXPLORE_LINK_WRITE"));
 
             // ADMIN accounts are intentionally never provisioned by application code.
-            if (!userRepository.existsByUsername("contentmanager")) {
+            var existingManager = userRepository.findByUsername("contentmanager");
+            if (existingManager.isEmpty()) {
                 User manager = new User();
                 manager.setUsername("contentmanager");
                 manager.setPasswordHash(passwordEncoder.encode(demoPassword));
@@ -64,9 +65,16 @@ public class DataInitializer implements CommandLineRunner {
                 manager.setStatus("ACTIVE");
                 manager.setEnabled(true);
                 manager.setEmailVerified(true);
-                manager.setRole("CONTENT");
+                manager.setRole(contentRole.getName());
                 userRepository.save(manager);
                 log.info("Created the dev contentmanager account.");
+            } else {
+                User manager = existingManager.get();
+                if (!contentRole.getName().equals(manager.getRole())) {
+                    manager.setRole(contentRole.getName());
+                    userRepository.save(manager);
+                    log.info("Mapped the existing dev contentmanager account to the CONTENT role.");
+                }
             }
         } catch (Exception e) {
             log.warn("Unable to seed development roles/content account: {}", e.getMessage());
