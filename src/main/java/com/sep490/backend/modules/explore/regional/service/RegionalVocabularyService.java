@@ -117,8 +117,10 @@ public class RegionalVocabularyService {
         if (repository.existsByVocabularyIdAndRegionAndWordIgnoreCaseAndIdNot(master.getId(), input.region(), word, row.getId() == null ? -1L : row.getId()))
             throw new LearningException(LearningException.Kind.CONFLICT, "Biến thể này đã tồn tại cho từ chuẩn và vùng đã chọn.");
         row.setVocabulary(master); row.setRegion(input.region()); row.setWord(word); row.setMeaning(input.meaning().strip());
+        row.setMeaningEn(optional(input.meaningEn()));
         row.setPronunciation(optional(input.pronunciation())); row.setAudioUrl(optional(input.audioUrl()));
-        row.setExampleSentence(optional(input.exampleSentence())); row.setUsageNote(optional(input.usageNote()));
+        row.setExampleSentence(optional(input.exampleSentence())); row.setExampleSentenceEn(optional(input.exampleSentenceEn()));
+        row.setUsageNote(optional(input.usageNote())); row.setUsageNoteEn(optional(input.usageNoteEn()));
         if (input.status() != null) row.setStatus(input.status());
         return RegionalVocabularyMapper.toResponse(repository.saveAndFlush(row));
     }

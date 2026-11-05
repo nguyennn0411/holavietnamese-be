@@ -10,5 +10,7 @@ public record DestinationExploreContentResponse(
         List<Scenario> scenarios
 ) {
     public record Word(Long id, String word, String pronunciation, String status) {}
-    public record Scenario(String id, String title, String level, String overview, String thumbnail, String status) {}
+    public record Scenario(String id, String title, String titleVi, String titleEn, String level,
+                           String overview, String overviewVi, String overviewEn,
+                           String thumbnail, String status) {}
 }

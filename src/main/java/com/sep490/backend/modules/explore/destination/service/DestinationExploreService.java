@@ -47,7 +47,10 @@ public class DestinationExploreService {
         var available = scenarios.findAllById(scenarioIds).stream().collect(java.util.stream.Collectors.toMap(AiScenario::getId,s -> s));
         var scenarioRows = scenarioIds.stream().map(available::get).filter(Objects::nonNull)
                 .filter(s -> management || "ACTIVE".equals(s.getStatus()))
-                .map(s -> new DestinationExploreContentResponse.Scenario(s.getId(),s.getTitle(),s.getLevel(),s.getOverview(),s.getThumbnail(),s.getStatus())).toList();
+                .map(s -> new DestinationExploreContentResponse.Scenario(
+                        s.getId(), s.getTitle(), s.getTitleVi() != null ? s.getTitleVi() : s.getTitle(), s.getTitleEn(),
+                        s.getLevel(), s.getOverview(), s.getOverviewVi() != null ? s.getOverviewVi() : s.getOverview(),
+                        s.getOverviewEn(), s.getThumbnail(), s.getStatus())).toList();
         return new DestinationExploreContentResponse(vocabulary,
                 regional.forDestination(vocabulary.stream().map(DestinationExploreContentResponse.Word::id).toList(),destination.getRegion(),!management),
                 references(id,"CULTURE"),scenarioRows);

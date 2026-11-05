@@ -23,6 +23,12 @@ public class AiScenario {
     @Column(nullable = false)
     private String title;
 
+    @Column(name = "title_vi")
+    private String titleVi;
+
+    @Column(name = "title_en")
+    private String titleEn;
+
     @Column(length = 20, nullable = false)
     @Builder.Default
     private String level = "A1";
@@ -51,6 +57,12 @@ public class AiScenario {
 
     @Column(columnDefinition = "TEXT")
     private String overview;
+
+    @Column(name = "overview_vi", columnDefinition = "TEXT")
+    private String overviewVi;
+
+    @Column(name = "overview_en", columnDefinition = "TEXT")
+    private String overviewEn;
 
     @Column(name = "ai_role_name", nullable = false, length = 100)
     private String aiRoleName;

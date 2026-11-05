@@ -39,6 +39,10 @@ JOIN (
 ) permissions
 WHERE role_row.name = 'CONTENT';
 
+-- The legacy constraint does not allow CONTENT, so remove it before converting
+-- historical role values. A strict three-role constraint is restored below.
+ALTER TABLE users DROP CONSTRAINT ck_users_role;
+
 -- Convert all historical assignment sources into users.role. ADMIN wins over
 -- every other legacy role, then CONTENT/CONTENT_MANAGER, then LEARNER.
 UPDATE users
@@ -75,6 +79,5 @@ WHERE r.name NOT IN ('LEARNER', 'CONTENT', 'ADMIN');
 DELETE FROM roles
 WHERE name NOT IN ('LEARNER', 'CONTENT', 'ADMIN');
 
-ALTER TABLE users DROP CONSTRAINT ck_users_role;
 ALTER TABLE users ADD CONSTRAINT ck_users_role
     CHECK (role IN ('LEARNER', 'CONTENT', 'ADMIN'));

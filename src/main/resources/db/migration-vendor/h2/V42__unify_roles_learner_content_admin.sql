@@ -49,6 +49,10 @@ WHERE role_row.name = 'CONTENT'
         AND existing_permission.permission = permissions.permission
   );
 
+-- The legacy constraint does not allow CONTENT, so remove it before converting
+-- historical role values. A strict three-role constraint is restored below.
+ALTER TABLE users DROP CONSTRAINT IF EXISTS ck_users_role;
+
 UPDATE users
 SET role = CASE
     WHEN UPPER(COALESCE(role, '')) = 'ADMIN'
@@ -82,6 +86,5 @@ WHERE role_id IN (
 DELETE FROM roles
 WHERE name NOT IN ('LEARNER', 'CONTENT', 'ADMIN');
 
-ALTER TABLE users DROP CONSTRAINT IF EXISTS ck_users_role;
 ALTER TABLE users ADD CONSTRAINT ck_users_role
     CHECK (role IN ('LEARNER', 'CONTENT', 'ADMIN'));

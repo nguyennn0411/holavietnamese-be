@@ -6,7 +6,8 @@ import java.time.Instant;
 import java.util.List;
 
 public record RegionalVocabularyResponse(Long id, Long vocabularyId, String masterWord,
-        VietnamRegion region, String word, String meaning, String pronunciation, String audioUrl,
-        String exampleSentence, String usageNote, VocabularyStatus status, Instant createdAt, Instant updatedAt) {
+        VietnamRegion region, String word, String meaning, String meaningEn, String pronunciation, String audioUrl,
+        String exampleSentence, String exampleSentenceEn, String usageNote, String usageNoteEn,
+        VocabularyStatus status, Instant createdAt, Instant updatedAt) {
     public record Comparison(Long vocabularyId, String word, List<RegionalVocabularyResponse> variants) {}
 }

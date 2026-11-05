@@ -7,7 +7,8 @@ public final class RegionalVocabularyMapper {
     private RegionalVocabularyMapper() {}
     public static RegionalVocabularyResponse toResponse(RegionalVocabularyJpaEntity e) {
         return new RegionalVocabularyResponse(e.getId(), e.getVocabulary().getId(), e.getVocabulary().getWord(),
-                e.getRegion(), e.getWord(), e.getMeaning(), e.getPronunciation(), e.getAudioUrl(),
-                e.getExampleSentence(), e.getUsageNote(), e.getStatus(), e.getCreatedAt(), e.getUpdatedAt());
+                e.getRegion(), e.getWord(), e.getMeaning(), e.getMeaningEn(), e.getPronunciation(), e.getAudioUrl(),
+                e.getExampleSentence(), e.getExampleSentenceEn(), e.getUsageNote(), e.getUsageNoteEn(),
+                e.getStatus(), e.getCreatedAt(), e.getUpdatedAt());
     }
 }

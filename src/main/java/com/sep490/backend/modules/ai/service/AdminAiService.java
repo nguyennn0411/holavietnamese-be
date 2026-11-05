@@ -257,6 +257,8 @@ public class AdminAiService {
         AiScenario sc = scenarioRepository.findById(id).orElseGet(() -> AiScenario.builder().id(id).build());
 
         sc.setTitle(req.getTitle());
+        sc.setTitleVi(req.getTitleVi() != null ? req.getTitleVi() : req.getTitle());
+        sc.setTitleEn(req.getTitleEn());
         sc.setLevel(req.getLevel());
         sc.setTopic(req.getTopic());
         sc.setDestination(req.getDestination());
@@ -265,6 +267,8 @@ public class AdminAiService {
         sc.setThumbnail(req.getThumbnail());
         sc.setCoverImage(req.getCoverImage());
         sc.setOverview(req.getOverview());
+        sc.setOverviewVi(req.getOverviewVi() != null ? req.getOverviewVi() : req.getOverview());
+        sc.setOverviewEn(req.getOverviewEn());
 
         sc.setAiRoleName(req.getAiRoleName());
         sc.setAiRoleTitle(req.getAiRoleTitle());

@@ -17,6 +17,8 @@ public class AiScenarioRequest {
 
     @NotBlank(message = "Title is required")
     private String title;
+    private String titleVi;
+    private String titleEn;
 
     private String level;
     private String topic;
@@ -26,6 +28,8 @@ public class AiScenarioRequest {
     private String thumbnail;
     private String coverImage;
     private String overview;
+    private String overviewVi;
+    private String overviewEn;
 
     // AI Role
     private String aiRoleName;

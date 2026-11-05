@@ -15,6 +15,8 @@ import java.util.Map;
 public class AiScenarioResponse {
     private String id;
     private String title;
+    private String titleVi;
+    private String titleEn;
     private String level;
     private String levelLabel;
     private String topic;
@@ -25,6 +27,8 @@ public class AiScenarioResponse {
     private String thumbnail;
     private String coverImage;
     private String overview;
+    private String overviewVi;
+    private String overviewEn;
 
     // AI Role
     private Map<String, Object> aiRole;
