@@ -353,8 +353,40 @@ public class QuizService {
     }
     a.put("questions", answers);
     var q = db.one("SELECT * FROM quizzes WHERE id=?", a.get("quizId"));
-    a.put("lessonId", q.get("lessonId"));
-    a.put("courseId", q.get("courseId"));
+    Object lessonIdObj = q.get("lessonId");
+    if (lessonIdObj == null) {
+      var act = db.rows("SELECT lesson_id FROM lesson_activities WHERE quiz_id=? LIMIT 1", a.get("quizId"));
+      if (!act.isEmpty()) {
+        lessonIdObj = act.getFirst().get("lessonId");
+      }
+    }
+    a.put("lessonId", lessonIdObj);
+    Object courseIdObj = q.get("courseId");
+    if (courseIdObj == null && lessonIdObj != null) {
+      var lRow = db.one("SELECT course_id FROM lessons WHERE id=?", lessonIdObj);
+      if (lRow != null) {
+        courseIdObj = lRow.get("courseId");
+      }
+    }
+    a.put("courseId", courseIdObj);
+
+    if (lessonIdObj != null && courseIdObj != null) {
+      long currentLessonId = id(a, "lessonId");
+      var ordered = db.rows(
+          "SELECT id FROM lessons WHERE course_id=? AND published=true ORDER BY lesson_order, id",
+          courseIdObj);
+      for (int i = 0; i < ordered.size(); i++) {
+        if (id(ordered.get(i), "id") == currentLessonId) {
+          if (i + 1 < ordered.size()) {
+            a.put("nextLessonId", ordered.get(i + 1).get("id"));
+          }
+          if (i > 0) {
+            a.put("previousLessonId", ordered.get(i - 1).get("id"));
+          }
+          break;
+        }
+      }
+    }
     a.put(
         "canRetry",
         "PUBLISHED".equals(q.get("status"))
@@ -496,6 +528,23 @@ public class QuizService {
             user,
             activityId);
         progress.evaluate(user, id(activity, "lessonId"));
+        long currentLessonId = id(activity, "lessonId");
+        var lRow = db.one("SELECT course_id FROM lessons WHERE id=?", currentLessonId);
+        if (lRow != null && lRow.get("courseId") != null) {
+          long courseId = id(lRow, "courseId");
+          var ordered = db.rows(
+              "SELECT id FROM lessons WHERE course_id=? AND published=true ORDER BY lesson_order, id",
+              courseId);
+          for (int i = 0; i < ordered.size(); i++) {
+            if (id(ordered.get(i), "id") == currentLessonId && i + 1 < ordered.size()) {
+              long nextId = id(ordered.get(i + 1), "id");
+              db.update(
+                  "UPDATE enrollments SET last_accessed_lesson_id=?, last_accessed_at=CURRENT_TIMESTAMP WHERE user_id=? AND course_id=?",
+                  nextId, user, courseId);
+              break;
+            }
+          }
+        }
       }
       progress.evaluateFinalAssessmentCompletion(user, id(a, "quizId"));
     }

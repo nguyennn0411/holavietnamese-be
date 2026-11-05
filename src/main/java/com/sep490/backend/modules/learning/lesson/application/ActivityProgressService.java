@@ -146,6 +146,18 @@ public class ActivityProgressService {
           now,
           p.get("id"));
       event(user, lesson, "LESSON_COMPLETED");
+      var ordered = db.rows(
+          "SELECT id FROM lessons WHERE course_id=? AND published=true ORDER BY lesson_order, id",
+          course);
+      for (int i = 0; i < ordered.size(); i++) {
+        if (id(ordered.get(i), "id") == lesson && i + 1 < ordered.size()) {
+          long nextId = id(ordered.get(i + 1), "id");
+          db.update(
+              "UPDATE enrollments SET last_accessed_lesson_id=?, last_accessed_at=? WHERE id=?",
+              nextId, now, enrollment);
+          break;
+        }
+      }
     }
     boolean newCourse = completeCourseIfEligible(user, course, enrollment, now);
     return summary(user, lesson, course, newly, newCourse);

@@ -20,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class LearningPathService {
-  private static final List<String> LEVELS = List.of("A0", "A1", "A2", "B1", "B2", "C1");
-  private static final Pattern RANGE = Pattern.compile("(?i)\\b(A0|A1|A2|B1|B2|C1)\\s*[-–/]\\s*(A0|A1|A2|B1|B2|C1)\\b");
+  private static final List<String> LEVELS = List.of("A0", "A1", "A2", "B1", "B2", "C1", "C2");
+  private static final Pattern RANGE = Pattern.compile("(?i)\\b(A0|A1|A2|B1|B2|C1|C2)\\s*[-–/]\\s*(A0|A1|A2|B1|B2|C1|C2)\\b");
   private static final Map<String,List<String>> GOAL_KEYWORDS = Map.of(
       "travel", List.of("travel", "tourism", "transport", "traffic", "direction", "accommodation", "shopping", "food", "drink", "weather", "du lich", "giao thong", "phuong tien", "hoi duong", "cho o", "mua sam", "do an", "thuc uong", "thoi tiet"),
       "connection", List.of("family", "friend", "greeting", "introduction", "conversation", "daily life", "home", "gia dinh", "ban be", "chao hoi", "gioi thieu", "hoi thoai", "cuoc song", "nha o"),
