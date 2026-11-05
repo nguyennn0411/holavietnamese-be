@@ -20,6 +20,7 @@ public class AiSettingUpdateRequest {
     private String activeModel;
 
     private String systemPromptVersion;
+    private String systemPrompt;
 
     @NotNull
     @Min(1)
@@ -46,5 +47,7 @@ public class AiSettingUpdateRequest {
     private Integer costAlertThresholdPercent;
 
     private String enabledModes;
+    private String contextOptions;
+    private Boolean moderationEnabled;
     private String apiKey;
 }

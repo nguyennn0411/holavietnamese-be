@@ -12,5 +12,7 @@ ALTER TABLE notifications
 ALTER TABLE notifications
     MODIFY COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
-CREATE INDEX idx_notification_cleanup
-    ON notifications(is_read, created_at, id);
+SET @sql = IF((SELECT COUNT(*) FROM information_schema.STATISTICS
+               WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'notifications' AND INDEX_NAME = 'idx_notification_cleanup') = 0,
+              'CREATE INDEX idx_notification_cleanup ON notifications(is_read, created_at, id)', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

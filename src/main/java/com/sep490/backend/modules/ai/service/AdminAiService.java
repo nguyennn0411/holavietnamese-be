@@ -52,6 +52,7 @@ public class AdminAiService {
                     .id(1L)
                     .activeModel("openrouter/free")
                     .systemPromptVersion("v2.2.0-stable")
+                    .systemPrompt("Phản hồi phải dựa trên lịch sử hội thoại thực tế của người học. Không sinh điểm số phát âm ảo gây hiểu lầm cho người học.")
                     .maxTurnsPerSession(25)
                     .maxTokensPerResponse(1024)
                     .rateLimitPerMinute(30)
@@ -61,6 +62,8 @@ public class AdminAiService {
                     .costAlertThresholdPercent(80)
                     .apiKeyConfigured(aiProviderService.isApiKeyAvailable("openrouter/free"))
                     .enabledModes("tutor,grammar,translation,conversation,culture_guide,travel,regional")
+                    .contextOptions("learner_level,course,destination,vocabulary")
+                    .moderationEnabled(true)
                     .build();
             return settingRepository.save(def);
         });
@@ -72,15 +75,38 @@ public class AdminAiService {
                 Map.of("id", "claude-3-5-sonnet", "name", "Claude 3.5 Sonnet (Chính xác văn bản)", "provider", "Anthropic", "costPer1kTokens", 0.006, "isDefault", false)
         );
 
-        List<Map<String, Object>> promptHistory = List.of(
-                Map.of("version", "v2.2.0-stable", "releasedAt", "2026-03-20", "author", "AI Team Leader", "note", "Thêm quy tắc: Tuyệt đối không sinh điểm phát âm giả."),
-                Map.of("version", "v2.1.0", "releasedAt", "2026-02-15", "author", "Senior Engineer", "note", "Cải tiến phân loại từ vựng Bắc - Trung - Nam."),
-                Map.of("version", "v2.0.0", "releasedAt", "2026-01-10", "author", "AI Architect", "note", "Ra mắt 7 chế độ AI Tutor.")
-        );
+        List<Map<String, Object>> promptHistory = new ArrayList<>();
+        String currentVersion = setting.getSystemPromptVersion() != null ? setting.getSystemPromptVersion() : "v2.2.0-stable";
+        String updatedDate = setting.getUpdatedAt() != null
+                ? setting.getUpdatedAt().toLocalDate().toString()
+                : (setting.getCreatedAt() != null ? setting.getCreatedAt().toLocalDate().toString() : "2026-03-20");
+        String currentNote = (setting.getSystemPrompt() != null && !setting.getSystemPrompt().isBlank())
+                ? setting.getSystemPrompt()
+                : "Phản hồi phải dựa trên lịch sử hội thoại thực tế của người học; không sinh điểm số phát âm ảo.";
+        promptHistory.add(Map.of(
+                "version", currentVersion,
+                "releasedAt", updatedDate,
+                "author", "System Admin",
+                "note", currentNote
+        ));
+        if (!"v2.1.0".equals(currentVersion)) {
+            promptHistory.add(Map.of("version", "v2.1.0", "releasedAt", "2026-02-15", "author", "Senior Engineer", "note", "Cải tiến phân loại từ vựng Bắc - Trung - Nam."));
+        }
+        if (!"v2.0.0".equals(currentVersion)) {
+            promptHistory.add(Map.of("version", "v2.0.0", "releasedAt", "2026-01-10", "author", "AI Architect", "note", "Ra mắt 7 chế độ AI Tutor."));
+        }
 
-        List<String> enabledModes = Arrays.stream(setting.getEnabledModes().split(","))
-                .map(String::trim)
-                .collect(Collectors.toList());
+        List<String> enabledModes = (setting.getEnabledModes() != null && !setting.getEnabledModes().isBlank())
+                ? Arrays.stream(setting.getEnabledModes().split(",")).map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toList())
+                : List.of("tutor", "grammar", "translation", "conversation", "culture_guide", "travel", "regional");
+        List<String> contextOptions = (setting.getContextOptions() != null && !setting.getContextOptions().isBlank())
+                ? Arrays.stream(setting.getContextOptions().split(",")).map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toList())
+                : List.of("learner_level", "course", "destination", "vocabulary");
+
+        BigDecimal loggedCost = usageLogRepository.sumCostSince(LocalDateTime.now().minusDays(30));
+        BigDecimal currentSpend = loggedCost != null
+                ? loggedCost
+                : (setting.getCurrentMonthSpendUsd() != null ? setting.getCurrentMonthSpendUsd() : BigDecimal.ZERO);
 
         Map<String, Object> limits = Map.of(
                 "maxTurnsPerSession", setting.getMaxTurnsPerSession(),
@@ -88,13 +114,13 @@ public class AdminAiService {
                 "rateLimitPerMinute", setting.getRateLimitPerMinute(),
                 "dailySessionsPerUser", setting.getDailySessionsPerUser(),
                 "monthlyBudgetCapUsd", setting.getMonthlyBudgetCapUsd(),
-                "currentMonthSpendUsd", (usageLogRepository.sumCostSince(LocalDateTime.now().minusDays(30)) != null ? usageLogRepository.sumCostSince(LocalDateTime.now().minusDays(30)) : (setting.getCurrentMonthSpendUsd() != null ? setting.getCurrentMonthSpendUsd() : BigDecimal.ZERO)),
+                "currentMonthSpendUsd", currentSpend,
                 "costAlertThresholdPercent", setting.getCostAlertThresholdPercent()
         );
 
         Map<String, Object> security = Map.of(
                 "apiKeyLocation", "Secure Backend Environment (application.yml / ENV)",
-                "backendProxyUrl", "/api/ai/completions",
+                "backendProxyUrl", "/api/ai/sessions/{id}/messages",
                 "clientExposedKeys", false,
                 "historyPrivacyStrict", true
         );
@@ -113,12 +139,16 @@ public class AdminAiService {
                 .activeModel(setting.getActiveModel())
                 .allowedModels(allowedModels)
                 .systemPromptVersion(setting.getSystemPromptVersion())
+                .systemPrompt(setting.getSystemPrompt() != null ? setting.getSystemPrompt() : "")
                 .promptVersionsHistory(promptHistory)
                 .limits(limits)
                 .security(security)
                 .enabledModes(enabledModes)
+                .contextOptions(contextOptions)
+                .moderationEnabled(setting.getModerationEnabled() != null ? setting.getModerationEnabled() : true)
                 .apiKeyConfigured(aiProviderService.isApiKeyAvailable(setting.getActiveModel()))
                 .apiKeyMasked(maskedKey)
+                .updatedAt(setting.getUpdatedAt() != null ? setting.getUpdatedAt().toString() : null)
                 .build();
     }
 
@@ -131,7 +161,16 @@ public class AdminAiService {
 
         setting.setActiveModel(request.getActiveModel());
         if (request.getSystemPromptVersion() != null) {
-            setting.setSystemPromptVersion(request.getSystemPromptVersion());
+            setting.setSystemPromptVersion(request.getSystemPromptVersion().trim());
+        }
+        if (request.getSystemPrompt() != null) {
+            setting.setSystemPrompt(request.getSystemPrompt().trim());
+        }
+        if (request.getContextOptions() != null) {
+            setting.setContextOptions(request.getContextOptions().trim());
+        }
+        if (request.getModerationEnabled() != null) {
+            setting.setModerationEnabled(request.getModerationEnabled());
         }
         setting.setMaxTurnsPerSession(request.getMaxTurnsPerSession());
         setting.setMaxTokensPerResponse(request.getMaxTokensPerResponse());
@@ -191,22 +230,6 @@ public class AdminAiService {
                         "percent", percent
                 ));
             }
-        } else {
-            // Default breakdown display matching Report 3 metrics
-            modeBreakdown = List.of(
-                    Map.of("mode", "Tutor", "name", "Gia sư toàn diện", "calls", 5240, "tokens", 3650000, "cost", 12.8, "percent", 28),
-                    Map.of("mode", "Grammar", "name", "Ngữ pháp & Sửa câu", "calls", 3910, "tokens", 2840000, "cost", 9.9, "percent", 21),
-                    Map.of("mode", "Conversation", "name", "Luyện hội thoại", "calls", 3200, "tokens", 2210000, "cost", 7.7, "percent", 17),
-                    Map.of("mode", "Roleplay", "name", "Kịch bản Roleplay", "calls", 2450, "tokens", 1890000, "cost", 6.6, "percent", 14),
-                    Map.of("mode", "Translation", "name", "Dịch thuật", "calls", 1850, "tokens", 1020000, "cost", 3.6, "percent", 10),
-                    Map.of("mode", "Regional", "name", "Tiếng Việt 3 miền", "calls", 1100, "tokens", 540000, "cost", 1.9, "percent", 6),
-                    Map.of("mode", "Culture Guide", "name", "Chỉ dẫn văn hóa", "calls", 700, "tokens", 300800, "cost", 1.1, "percent", 4)
-            );
-        }
-
-        // Do not expose demo values when there are no persisted usage logs.
-        if (totalCalls == 0) {
-            modeBreakdown = new ArrayList<>();
         }
 
         // Recent logs
@@ -295,6 +318,7 @@ public class AdminAiService {
 
     @Transactional
     public void deleteScenario(String id) {
+        sessionRepository.clearScenarioReference(id);
         scenarioRepository.deleteById(id);
     }
 

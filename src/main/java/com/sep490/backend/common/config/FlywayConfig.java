@@ -9,9 +9,8 @@ public class FlywayConfig {
 
     @Bean
     public FlywayMigrationStrategy flywayMigrationStrategy() {
-        return flyway -> {
-            flyway.repair();
-            flyway.migrate();
-        };
+        // Never repair schema history automatically. Repair is an explicit
+        // operational decision because it can conceal a migration mismatch.
+        return flyway -> flyway.migrate();
     }
 }
