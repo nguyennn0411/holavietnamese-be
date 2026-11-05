@@ -33,7 +33,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'CONTENT')")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AdminController {
@@ -67,6 +67,7 @@ public class AdminController {
     }
 
     @PatchMapping("/users/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<AdminUserResponse> toggleUserStatus(
             @PathVariable Long id,
             @RequestParam String status) {
@@ -81,6 +82,7 @@ public class AdminController {
      * a multi-role request impossible.
      */
     @PutMapping({"/users/{id}/role", "/users/{id}/roles"})
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<AdminUserResponse> updateUserRole(
             @PathVariable Long id,
             @Valid @RequestBody UpdateUserRoleRequest request) {
