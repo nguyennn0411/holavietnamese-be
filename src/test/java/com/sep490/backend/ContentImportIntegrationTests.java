@@ -60,6 +60,11 @@ class ContentImportIntegrationTests {
         return mvc.perform(post("/api/admin/imports/"+id+"/confirm").with(user(actor)).with(csrf()).contentType("application/json")
                 .content("{\"module\":\"USER\",\"word\":\"tampered\",\"valid\":true}"));
     }
+    private ResultActions updatePreview(String id,JsonNode rows,LearnerPrincipal actor) throws Exception {
+        var body=json.createObjectNode(); body.set("rows",rows);
+        return mvc.perform(put("/api/admin/imports/"+id+"/preview").with(user(actor)).with(csrf())
+                .contentType("application/json").content(json.writeValueAsBytes(body)));
+    }
     private long count() { return jdbc.queryForObject("SELECT COUNT(*) FROM vocabularies WHERE word=?",Long.class,"Từ import "+admin.id()); }
     @Test void previewIsReadOnlyForContentConfirmIsServerOwnedAndIdempotentWithPersistentHistory() throws Exception {
         var result = data(preview(workbook(w -> {}),"vocabulary.xlsx",admin).andExpect(status().isOk()).andExpect(jsonPath("$.result.canConfirm").value(true)));
@@ -93,7 +98,7 @@ class ContentImportIntegrationTests {
         var preview = data(preview(workbook(w -> {}),"new.xlsx",admin));
         jdbc.update("INSERT INTO vocabularies(word,part_of_speech,cefr_level,status) VALUES(?,'noun','A1','DRAFT')","Từ import "+admin.id());
         confirm(preview.path("id").asText(),admin).andExpect(status().isOk())
-                .andExpect(jsonPath("$.result.status").value("IMPORTED"))
+                .andExpect(jsonPath("$.result.status").value("SKIPPED"))
                 .andExpect(jsonPath("$.result.importedRows").value(0))
                 .andExpect(jsonPath("$.result.summary.duplicateWords.length()").value(1));
         assertThat(count()).isEqualTo(1);
@@ -119,7 +124,7 @@ class ContentImportIntegrationTests {
                 .andExpect(jsonPath("$.result.summary.duplicateWords.length()").value(1))
                 .andExpect(jsonPath("$.result.summary.newRegionalVariants.length()").value(2)));
         confirm(preview.path("id").asText(),admin)
-                .andExpect(jsonPath("$.result.status").value("IMPORTED"))
+                .andExpect(jsonPath("$.result.status").value("IMPORTED_WITH_SKIPS"))
                 .andExpect(jsonPath("$.result.importedRows").value(3))
                 .andExpect(jsonPath("$.result.summary.createdWords[0].word").value(fresh))
                 .andExpect(jsonPath("$.result.summary.duplicateWords[0].word").value(duplicate))
@@ -131,7 +136,28 @@ class ContentImportIntegrationTests {
                 .andExpect(jsonPath("$.result.summary.duplicateWords.length()").value(2))
                 .andExpect(jsonPath("$.result.summary.duplicateRegionalVariants.length()").value(2)));
         confirm(repeated.path("id").asText(),admin)
+                .andExpect(jsonPath("$.result.status").value("SKIPPED"))
                 .andExpect(jsonPath("$.result.importedRows").value(0));
+    }
+    @Test void editedPreviewIsPersistedRevalidatedAndUsedByConfirm() throws Exception {
+        var preview=data(preview(workbook(w -> {}),"editable.xlsx",admin));
+        var rows=(com.fasterxml.jackson.databind.node.ArrayNode)preview.path("rows").deepCopy();
+        var values=(com.fasterxml.jackson.databind.node.ObjectNode)rows.get(0).path("values");
+        values.put("word","");
+        var invalid=data(updatePreview(preview.path("id").asText(),rows,admin)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.result.status").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.result.canConfirm").value(false)));
+        assertThat(invalid.path("errors").findValuesAsText("column")).contains("word");
+
+        String edited="Từ đã sửa "+admin.id();
+        values.put("word",edited);
+        updatePreview(preview.path("id").asText(),rows,other).andExpect(status().isForbidden());
+        updatePreview(preview.path("id").asText(),rows,admin).andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.status").value("READY"))
+                .andExpect(jsonPath("$.result.summary.newWords[0].word").value(edited));
+        confirm(preview.path("id").asText(),admin).andExpect(jsonPath("$.result.status").value("IMPORTED"));
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM vocabularies WHERE word=?",Integer.class,edited)).isEqualTo(1);
+        assertThat(count()).isZero();
     }
     @Test void regionalColumnsAreFullyValidatedBeforeConfirm() throws Exception {
         var invalid=data(preview(workbook(book -> {

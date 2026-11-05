@@ -67,7 +67,7 @@ public class VocabularyExcelImportService {
                 jdbc.queryForObject("SELECT module FROM content_import_locks WHERE module=? FOR UPDATE",String.class,handler(module).lockModule());
                 var job = jobs.lockById(id).orElseThrow(() -> LearningException.notFound("Import"));
                 if (!job.getActorId().equals(owner)) throw new LearningException(LearningException.Kind.FORBIDDEN,"Chỉ người đã preview mới được xác nhận lần import này.");
-                if ("IMPORTED".equals(job.getStatus())) return response(job,true);
+                if (completedSuccessfully(job.getStatus())) return response(job,true);
                 if (!"READY".equals(job.getStatus())) throw new LearningException(LearningException.Kind.CONFLICT,"Hãy sửa file và tạo preview mới trước khi xác nhận.");
                 var handler = handler(module); var rows = rows(job);
                 var errors = handler.validate(rows);
@@ -80,19 +80,37 @@ public class VocabularyExcelImportService {
                 try { result=handler.write(rows); em.flush(); }
                 catch (RuntimeException failure) { throw new ImportWriteFailed(failure); }
                 job.setImportedRows(result.importedRows()); job.setSummary(encode(result.summary()));
-                job.setStatus("IMPORTED"); job.setCompletedAt(clock.instant());
+                int skipped = summarySize(result.summary(),"duplicateWords") + summarySize(result.summary(),"duplicateRegionalVariants");
+                job.setStatus(result.importedRows() == 0 ? "SKIPPED" : skipped > 0 ? "IMPORTED_WITH_SKIPS" : "IMPORTED");
+                job.setCompletedAt(clock.instant());
                 return response(jobs.saveAndFlush(job),true);
             });
         } catch (ImportWriteFailed failure) {
             // Business writes rolled back. Record a failure in a separate transaction, without leaking SQL.
             return new TransactionTemplate(transactions).execute(tx -> {
                 var job = jobs.lockById(id).orElseThrow(() -> LearningException.notFound("Import"));
-                if ("IMPORTED".equals(job.getStatus())) return response(job,true);
+                if (completedSuccessfully(job.getStatus())) return response(job,true);
                 job.setStatus("FAILED"); job.setImportedRows(0); job.setCompletedAt(clock.instant());
                 setErrors(job,List.of(new Error(handler(module).type().sheet(),0,"database","Không ghi được dữ liệu. Toàn bộ lần import đã được hoàn tác; hãy tạo preview mới.")));
                 return response(jobs.saveAndFlush(job),true);
             });
         }
+    }
+    @Transactional public VocabularyImportResponse updatePreview(String id,List<Row> requestedRows,LearnerPrincipal actor) {
+        long owner=actorId(actor);
+        var job=jobs.lockById(id).orElseThrow(() -> LearningException.notFound("Import"));
+        if(!job.getActorId().equals(owner))
+            throw new LearningException(LearningException.Kind.FORBIDDEN,"Chỉ người đã preview mới được chỉnh sửa lần import này.");
+        if(!Set.of("READY","VALIDATION_FAILED").contains(job.getStatus()))
+            throw new LearningException(LearningException.Kind.CONFLICT,"Lần import đã hoàn tất, không thể chỉnh sửa dữ liệu xem trước.");
+        var handler=handler(job.getModule());
+        var rows=sanitizeRows(requestedRows,handler.type());
+        var errors=handler.validate(rows);
+        var summary=errors.isEmpty()?handler.previewSummary(rows):Map.<String,Object>of();
+        job.setPayload(encode(rows)); job.setSummary(encode(summary)); job.setTotalRows(rows.size());
+        job.setImportedRows(0); job.setCompletedAt(null); setErrors(job,errors);
+        job.setStatus(errors.isEmpty()?"READY":"VALIDATION_FAILED");
+        return response(jobs.saveAndFlush(job),true);
     }
     @Transactional(readOnly = true) public Page<VocabularyImportResponse> history(int page, int size) {
         return jobs.findAll(PageRequest.of(Math.max(0,page),Math.max(1,Math.min(size,100)),Sort.by(Sort.Order.desc("createdAt"),Sort.Order.desc("id"))))
@@ -114,12 +132,14 @@ public class VocabularyExcelImportService {
         job.setValidRows(job.getTotalRows()-job.getErrorRows());
     }
     private VocabularyImportResponse response(VocabularyImportJobJpaEntity job,boolean includeData) {
-        boolean done = "IMPORTED".equals(job.getStatus());
-        return new VocabularyImportResponse(job.getId(),job.getModule(),job.getFilename(),job.getActorId(),job.getActorName(),job.getStatus(),
+        var summary=summary(job);
+        String status=resolvedStatus(job.getStatus(),job.getImportedRows(),summary);
+        boolean done = completedSuccessfully(status);
+        return new VocabularyImportResponse(job.getId(),job.getModule(),job.getFilename(),job.getActorId(),job.getActorName(),status,
                 job.getTotalRows(),job.getValidRows(),job.getErrorRows(),job.getImportedRows(),
                 "FAILED".equals(job.getStatus()) ? job.getTotalRows() : job.getErrorRows(),
                 "READY".equals(job.getStatus()) && handlers.stream().anyMatch(h -> h.type().id().equals(job.getModule())),done,job.getCreatedAt(),job.getCompletedAt(),
-                includeData ? rows(job) : List.of(),includeData ? decode(job.getDiagnostics(),new TypeReference<List<Error>>() {}) : List.of(),summary(job));
+                includeData ? rows(job) : List.of(),includeData ? decode(job.getDiagnostics(),new TypeReference<List<Error>>() {}) : List.of(),summary);
     }
     private Map<String,Object> summary(VocabularyImportJobJpaEntity job) {
         var data=new LinkedHashMap<String,Object>();
@@ -127,6 +147,36 @@ public class VocabularyExcelImportService {
         return data;
     }
     private List<Row> rows(VocabularyImportJobJpaEntity job) { return decode(job.getPayload(),new TypeReference<List<Row>>() {}); }
+    private List<Row> sanitizeRows(List<Row> requestedRows,Type type) {
+        if(requestedRows==null || requestedRows.isEmpty() || requestedRows.size()>20000)
+            throw new LearningException(LearningException.Kind.INVALID,"Bản xem trước phải có từ 1 đến 20.000 dòng dữ liệu.");
+        var result=new ArrayList<Row>(requestedRows.size()); var numbers=new HashSet<Integer>();
+        for(var row:requestedRows) {
+            if(row==null || row.rowNumber()<2 || row.rowNumber()>20001 || !numbers.add(row.rowNumber()))
+                throw new LearningException(LearningException.Kind.INVALID,"Số dòng nguồn trong bản xem trước không hợp lệ hoặc bị trùng.");
+            var values=new LinkedHashMap<String,String>();
+            for(String column:type.columns()) {
+                String value=row.values()==null?"":Objects.toString(row.values().get(column),"").strip();
+                if(value.length()>10000)
+                    throw new LearningException(LearningException.Kind.INVALID,"Mỗi ô trong bản xem trước tối đa 10.000 ký tự.");
+                values.put(column,value);
+            }
+            result.add(new Row(row.rowNumber(),values));
+        }
+        return List.copyOf(result);
+    }
+    private static int summarySize(Map<String,Object> summary,String key) {
+        Object value=summary.get(key); return value instanceof Collection<?> items?items.size():0;
+    }
+    private static boolean completedSuccessfully(String status) {
+        return Set.of("IMPORTED","IMPORTED_WITH_SKIPS","SKIPPED").contains(status);
+    }
+    private static String resolvedStatus(String storedStatus,int importedRows,Map<String,Object> summary) {
+        if(!"IMPORTED".equals(storedStatus)) return storedStatus;
+        int skipped=summarySize(summary,"duplicateWords")+summarySize(summary,"duplicateRegionalVariants");
+        if(skipped==0) return storedStatus;
+        return importedRows==0?"SKIPPED":"IMPORTED_WITH_SKIPS";
+    }
     private String encode(Object value) { try { return json.writeValueAsString(value); } catch (Exception e) { throw new IllegalStateException("Cannot serialize import data",e); } }
     private <T> T decode(String value,TypeReference<T> type) { try { return json.readValue(value,type); } catch (Exception e) { throw new IllegalStateException("Cannot read stored import data",e); } }
     private static long actorId(LearnerPrincipal actor) {

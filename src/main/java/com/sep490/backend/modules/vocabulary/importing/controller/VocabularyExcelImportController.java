@@ -4,7 +4,9 @@ import com.sep490.backend.common.security.LearnerPrincipal;
 import com.sep490.backend.common.security.ContentPermissions;
 import com.sep490.backend.common.dto.ApiResponse;
 import com.sep490.backend.modules.vocabulary.importing.dto.VocabularyImportResponse;
+import com.sep490.backend.modules.vocabulary.importing.dto.VocabularyImportPreviewUpdateRequest;
 import com.sep490.backend.modules.vocabulary.importing.service.VocabularyExcelImportService;
+import jakarta.validation.Valid;
 import java.io.*;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,11 @@ public class VocabularyExcelImportController {
     }
     @PostMapping("/{id}/confirm") public ApiResponse<VocabularyImportResponse> confirm(@PathVariable String id,@AuthenticationPrincipal LearnerPrincipal actor) {
         return ApiResponse.success(service.confirm(id,actor));
+    }
+    @PutMapping("/{id}/preview") public ApiResponse<VocabularyImportResponse> updatePreview(@PathVariable String id,
+            @Valid @RequestBody VocabularyImportPreviewUpdateRequest input,
+            @AuthenticationPrincipal LearnerPrincipal actor) {
+        return ApiResponse.success(service.updatePreview(id,input.rows(),actor));
     }
     @GetMapping public ApiResponse<Page<VocabularyImportResponse>> history(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "20") int size) {
         return ApiResponse.success(service.history(page,size));
