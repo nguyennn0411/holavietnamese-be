@@ -21,7 +21,7 @@ class RegionalVocabularyIntegrationTests {
     @Autowired JdbcTemplate jdbc;
     @Autowired ObjectMapper json;
     private final LearnerPrincipal admin = new LearnerPrincipal(830001L,"regional-manager@example.test","",true,
-            "CONTENT_MANAGER",Set.of("CONTENT_MANAGER"),Set.of("VOCABULARY_PUBLISH"));
+            "CONTENT",Set.of("CONTENT"),Set.of("VOCABULARY_READ","VOCABULARY_WRITE","VOCABULARY_PUBLISH"));
     private final LearnerPrincipal learner = new LearnerPrincipal(830002L,"regional-learner@example.test","",true);
     private long master;
     @BeforeEach void fixture() {
@@ -83,5 +83,16 @@ class RegionalVocabularyIntegrationTests {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.vocabulary[0].id").value(master))
                 .andExpect(jsonPath("$.result.regionalVariants.length()").value(1))
                 .andExpect(jsonPath("$.result.regionalVariants[0].region").value("SOUTH"));
+    }
+    @Test void adminListUsesBoundedServerSidePagination() throws Exception {
+        for(int index=0;index<25;index++) create(data("Biến thể "+index,"SOUTH","DRAFT"),admin).andExpect(status().isCreated());
+        mvc.perform(get("/api/admin/regional-language").param("page","1").param("size","10").with(user(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.content.length()").value(10))
+                .andExpect(jsonPath("$.result.number").value(1))
+                .andExpect(jsonPath("$.result.totalElements").value(25))
+                .andExpect(jsonPath("$.result.totalPages").value(3));
+        mvc.perform(get("/api/admin/regional-language").param("page","0").param("size","500").with(user(admin)))
+                .andExpect(jsonPath("$.result.size").value(100));
     }
 }

@@ -14,7 +14,10 @@ import jakarta.persistence.criteria.Predicate;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +28,20 @@ public class RegionalVocabularyService {
 
     public List<RegionalVocabularyResponse> search(String keyword, VietnamRegion region, Long vocabularyId,
             VocabularyStatus status, boolean publishedOnly) {
-        return repository.findAll((root, query, cb) -> {
+        return repository.findAll(specification(keyword, region, vocabularyId, status, publishedOnly),
+                Sort.by("vocabulary.word", "vocabulary.id", "region", "word", "id")).stream()
+                .map(RegionalVocabularyMapper::toResponse).toList();
+    }
+    public Page<RegionalVocabularyResponse> searchPage(String keyword, VietnamRegion region, Long vocabularyId,
+            VocabularyStatus status, int page, int size) {
+        var pageable = PageRequest.of(Math.max(0, page), Math.max(1, Math.min(size, 100)),
+                Sort.by("vocabulary.word", "vocabulary.id", "region", "word", "id"));
+        return repository.findAll(specification(keyword, region, vocabularyId, status, false), pageable)
+                .map(RegionalVocabularyMapper::toResponse);
+    }
+    private Specification<RegionalVocabularyJpaEntity> specification(String keyword, VietnamRegion region,
+            Long vocabularyId, VocabularyStatus status, boolean publishedOnly) {
+        return (root, query, cb) -> {
             var predicates = new ArrayList<Predicate>();
             var master = root.join("vocabulary");
             if (publishedOnly) {
@@ -41,8 +57,7 @@ public class RegionalVocabularyService {
                         cb.gt(cb.locate(cb.lower(master.get("word")), text), 0)));
             }
             return cb.and(predicates.toArray(Predicate[]::new));
-        }, Sort.by("vocabulary.word", "vocabulary.id", "region", "word", "id")).stream()
-                .map(RegionalVocabularyMapper::toResponse).toList();
+        };
     }
     public RegionalVocabularyResponse get(long id) { return RegionalVocabularyMapper.toResponse(find(id)); }
     public List<RegionalVocabularyResponse.Comparison> comparisons(String keyword, VietnamRegion region) {
@@ -114,7 +129,12 @@ public class RegionalVocabularyService {
     private RegionalVocabularyResponse save(RegionalVocabularyJpaEntity row, RegionalVocabularyRequest input) {
         var master = vocabulary.findById(input.vocabularyId()).orElseThrow(() -> LearningException.notFound("Master vocabulary"));
         var word = input.word().strip();
-        if (repository.existsByVocabularyIdAndRegionAndWordIgnoreCaseAndIdNot(master.getId(), input.region(), word, row.getId() == null ? -1L : row.getId()))
+        long excludedId = row.getId() == null ? -1L : row.getId();
+        String normalizedWord = com.sep490.backend.modules.vocabulary.service.VocabularyText.normalize(word);
+        if (repository.findByVocabularyIdAndRegion(master.getId(), input.region()).stream()
+                .anyMatch(existing -> existing.getId() != excludedId
+                        && com.sep490.backend.modules.vocabulary.service.VocabularyText.normalize(existing.getWord())
+                                .equalsIgnoreCase(normalizedWord)))
             throw new LearningException(LearningException.Kind.CONFLICT, "Biến thể này đã tồn tại cho từ chuẩn và vùng đã chọn.");
         row.setVocabulary(master); row.setRegion(input.region()); row.setWord(word); row.setMeaning(input.meaning().strip());
         row.setMeaningEn(optional(input.meaningEn()));

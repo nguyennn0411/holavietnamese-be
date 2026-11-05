@@ -39,7 +39,7 @@ public class VocabularyExcelImportService {
     }
     @Transactional public VocabularyImportResponse preview(String module, java.io.InputStream input, String filename, LearnerPrincipal actor) {
         long owner = actorId(actor); var handler = handler(module);
-        List<Row> rows; List<Error> inputErrors; Map<String,Object> summary=Map.of();
+        List<Row> rows; List<Error> inputErrors;
         {
             try {
                 byte[] bytes=input.readNBytes(VocabularyExcelReader.MAX_BYTES+1);
@@ -48,6 +48,7 @@ public class VocabularyExcelImportService {
         }
         var errors = new ArrayList<>(inputErrors);
         errors.addAll(handler.validate(rows));
+        Map<String,Object> summary=errors.isEmpty()?handler.previewSummary(rows):Map.of();
         var user = users.findById(owner).orElseThrow(() -> LearningException.notFound("User"));
         var job = new VocabularyImportJobJpaEntity();
         job.setId(UUID.randomUUID().toString()); job.setModule(module); job.setFilename(safeFilename(filename));
@@ -75,9 +76,11 @@ public class VocabularyExcelImportService {
                     setErrors(job,errors); job.setStatus("VALIDATION_FAILED"); job.setCompletedAt(clock.instant());
                     return response(jobs.saveAndFlush(job),true);
                 }
-                try { handler.write(rows); em.flush(); }
+                VocabularyImportHandlerContract.WriteResult result;
+                try { result=handler.write(rows); em.flush(); }
                 catch (RuntimeException failure) { throw new ImportWriteFailed(failure); }
-                job.setImportedRows(handler.importCount(rows)); job.setStatus("IMPORTED"); job.setCompletedAt(clock.instant());
+                job.setImportedRows(result.importedRows()); job.setSummary(encode(result.summary()));
+                job.setStatus("IMPORTED"); job.setCompletedAt(clock.instant());
                 return response(jobs.saveAndFlush(job),true);
             });
         } catch (ImportWriteFailed failure) {

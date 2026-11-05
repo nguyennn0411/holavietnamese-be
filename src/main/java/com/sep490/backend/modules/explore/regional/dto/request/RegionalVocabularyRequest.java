@@ -16,4 +16,10 @@ public record RegionalVocabularyRequest(
         @Size(max = 2000) String exampleSentenceEn,
         @Size(max = 2000) String usageNote,
         @Size(max = 2000) String usageNoteEn,
-        VocabularyStatus status) {}
+        VocabularyStatus status) {
+    @AssertTrue(message = "Bản dịch ví dụ cần có câu ví dụ tiếng Việt.")
+    public boolean isExampleTranslationValid() {
+        return (exampleSentenceEn == null || exampleSentenceEn.isBlank())
+                || (exampleSentence != null && !exampleSentence.isBlank());
+    }
+}

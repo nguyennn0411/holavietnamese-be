@@ -31,8 +31,8 @@ class ContentImportIntegrationTests {
     @MockitoSpyBean VocabularyWordService words;
     LearnerPrincipal admin,other,learner;
     @BeforeEach void fixture() {
-        admin = principal("CONTENT_MANAGER",Set.of("VOCABULARY_PUBLISH"));
-        other = principal("CONTENT_MANAGER",Set.of("VOCABULARY_PUBLISH"));
+        admin = principal("CONTENT",Set.of("VOCABULARY_IMPORT","VOCABULARY_WRITE"));
+        other = principal("CONTENT",Set.of("VOCABULARY_IMPORT","VOCABULARY_WRITE"));
         learner = principal("LEARNER",Set.of());
     }
     private LearnerPrincipal principal(String role, Set<String> permissions) {
@@ -89,12 +89,61 @@ class ContentImportIntegrationTests {
                 .andExpect(jsonPath("$.result.canConfirm").value(false));
         assertThat(count()).isZero();
     }
-    @Test void confirmRevalidatesDatabaseChangesSincePreview() throws Exception {
+    @Test void confirmRevalidatesDatabaseChangesSincePreviewAndSkipsNewDuplicate() throws Exception {
         var preview = data(preview(workbook(w -> {}),"new.xlsx",admin));
         jdbc.update("INSERT INTO vocabularies(word,part_of_speech,cefr_level,status) VALUES(?,'noun','A1','DRAFT')","Từ import "+admin.id());
         confirm(preview.path("id").asText(),admin).andExpect(status().isOk())
-                .andExpect(jsonPath("$.result.status").value("VALIDATION_FAILED")).andExpect(jsonPath("$.result.success").value(false));
+                .andExpect(jsonPath("$.result.status").value("IMPORTED"))
+                .andExpect(jsonPath("$.result.importedRows").value(0))
+                .andExpect(jsonPath("$.result.summary.duplicateWords.length()").value(1));
         assertThat(count()).isEqualTo(1);
+    }
+    @Test void previewListsDuplicatesAndConfirmSkipsThemWhileCreatingNewWordsAndRegionalVariants() throws Exception {
+        String duplicate="Từ đã có "+admin.id(), fresh="Từ mới "+admin.id();
+        jdbc.update("INSERT INTO vocabularies(word,part_of_speech,status) VALUES(?,'noun','DRAFT')",duplicate);
+        byte[] upload;
+        try(var book=new XSSFWorkbook();var out=new ByteArrayOutputStream()) {
+            var sheet=book.createSheet("VOCABULARY");
+            var headers=List.of("word","part_of_speech","definition_vi","region","regional_word","regional_meaning","regional_example_vi","regional_example_en");
+            var header=sheet.createRow(0); for(int i=0;i<headers.size();i++) header.createCell(i).setCellValue(headers.get(i));
+            var values=List.of(
+                    List.of(duplicate,"noun","Nghĩa cũ","SOUTH","Biến thể Nam "+admin.id(),"Nghĩa miền Nam","Câu ví dụ Nam","Southern example"),
+                    List.of(fresh,"verb","Nghĩa mới","NORTH","Biến thể Bắc "+admin.id(),"Nghĩa miền Bắc","Câu ví dụ Bắc","Northern example"));
+            for(int rowIndex=0;rowIndex<values.size();rowIndex++) { var row=sheet.createRow(rowIndex+1);
+                for(int column=0;column<headers.size();column++) row.createCell(column).setCellValue(values.get(rowIndex).get(column)); }
+            book.write(out); upload=out.toByteArray();
+        }
+        var preview=data(preview(upload,"regional.xlsx",admin)
+                .andExpect(jsonPath("$.result.canConfirm").value(true))
+                .andExpect(jsonPath("$.result.summary.newWords.length()").value(1))
+                .andExpect(jsonPath("$.result.summary.duplicateWords.length()").value(1))
+                .andExpect(jsonPath("$.result.summary.newRegionalVariants.length()").value(2)));
+        confirm(preview.path("id").asText(),admin)
+                .andExpect(jsonPath("$.result.status").value("IMPORTED"))
+                .andExpect(jsonPath("$.result.importedRows").value(3))
+                .andExpect(jsonPath("$.result.summary.createdWords[0].word").value(fresh))
+                .andExpect(jsonPath("$.result.summary.duplicateWords[0].word").value(duplicate))
+                .andExpect(jsonPath("$.result.summary.createdRegionalVariants.length()").value(2));
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM vocabularies WHERE word IN (?,?)",Integer.class,duplicate,fresh)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM regional_vocabularies r JOIN vocabularies v ON v.id=r.vocabulary_id WHERE v.word IN (?,?)",Integer.class,duplicate,fresh)).isEqualTo(2);
+
+        var repeated=data(preview(upload,"regional-again.xlsx",admin)
+                .andExpect(jsonPath("$.result.summary.duplicateWords.length()").value(2))
+                .andExpect(jsonPath("$.result.summary.duplicateRegionalVariants.length()").value(2)));
+        confirm(repeated.path("id").asText(),admin)
+                .andExpect(jsonPath("$.result.importedRows").value(0));
+    }
+    @Test void regionalColumnsAreFullyValidatedBeforeConfirm() throws Exception {
+        var invalid=data(preview(workbook(book -> {
+            var sheet=book.getSheet("VOCABULARY"); var header=sheet.getRow(0); var row=sheet.getRow(1);
+            int start=header.getLastCellNum();
+            var columns=List.of("region","regional_word","regional_meaning","regional_example_en");
+            var values=List.of("WEST","","","English without Vietnamese example");
+            for(int i=0;i<columns.size();i++) { header.createCell(start+i).setCellValue(columns.get(i)); row.createCell(start+i).setCellValue(values.get(i)); }
+        }),"invalid-regional.xlsx",admin).andExpect(jsonPath("$.result.canConfirm").value(false)));
+        assertThat(invalid.path("errors").findValuesAsText("column"))
+                .contains("region","regional_word","regional_meaning","regional_example_vi");
+        confirm(invalid.path("id").asText(),admin).andExpect(status().isConflict());
     }
     @Test void routesRequireContentPermissionAndTemplateHasTheActualHeaderContract() throws Exception {
         preview(workbook(w -> {}),"valid.xlsx",learner).andExpect(status().isForbidden());
@@ -103,7 +152,11 @@ class ContentImportIntegrationTests {
         mvc.perform(get("/api/admin/imports")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/admin/imports/types").with(user(admin))).andExpect(jsonPath("$.result.length()").value(1)).andExpect(jsonPath("$.result[0].id").value("VOCABULARY"));
         var file = mvc.perform(get("/api/admin/imports/template").param("module","VOCABULARY").with(user(admin))).andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
-        try (var book = new XSSFWorkbook(new ByteArrayInputStream(file))) { assertThat(book.getSheet("VOCABULARY").getRow(0).getCell(0).getStringCellValue()).isEqualTo("word"); }
+        try (var book = new XSSFWorkbook(new ByteArrayInputStream(file))) {
+            var header=book.getSheet("VOCABULARY").getRow(0);
+            assertThat(header.getCell(0).getStringCellValue()).isEqualTo("word");
+            assertThat(header.getCell(header.getLastCellNum()-1).getStringCellValue()).isEqualTo("regional_usage_note_en");
+        }
         mvc.perform(get("/api/admin/imports/template").param("module","USER").with(user(admin))).andExpect(status().isBadRequest());
     }
     @Test void excelPreservesMultipleBilingualMeaningsExamplesAndOptionalFields() throws Exception {

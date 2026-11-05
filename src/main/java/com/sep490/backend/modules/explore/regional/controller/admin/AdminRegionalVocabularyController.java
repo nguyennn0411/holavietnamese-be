@@ -9,7 +9,7 @@ import com.sep490.backend.modules.explore.entity.enums.VietnamRegion;
 import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus;
 import com.sep490.backend.modules.explore.regional.service.RegionalVocabularyService;
 import jakarta.validation.Valid;
-import java.util.List;
+import org.springframework.data.domain.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,10 +19,11 @@ import org.springframework.web.bind.annotation.*;
 public class AdminRegionalVocabularyController {
     private final RegionalVocabularyService service;
     @PreAuthorize(ContentPermissions.VOCABULARY_READ_ACCESS)
-    @GetMapping public ApiResponse<List<RegionalVocabularyResponse>> list(@RequestParam(required = false) String keyword,
+    @GetMapping public ApiResponse<Page<RegionalVocabularyResponse>> list(@RequestParam(required = false) String keyword,
             @RequestParam(required = false) VietnamRegion region, @RequestParam(required = false) Long vocabularyId,
-            @RequestParam(required = false) VocabularyStatus status) {
-        return ApiResponse.success(service.search(keyword, region, vocabularyId, status, false));
+            @RequestParam(required = false) VocabularyStatus status,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.success(service.searchPage(keyword, region, vocabularyId, status, page, size));
     }
     @PreAuthorize(ContentPermissions.VOCABULARY_READ_ACCESS)
     @GetMapping("/{id}") public ApiResponse<RegionalVocabularyResponse> get(@PathVariable long id) { return ApiResponse.success(service.get(id)); }
