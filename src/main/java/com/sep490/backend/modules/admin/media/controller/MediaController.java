@@ -15,7 +15,7 @@ public class MediaController {
     private final CloudinarySignatureService cloudinarySignatureService;
 
     @PostMapping("/courses/cover/signature")
-    @PreAuthorize("hasAnyRole('ADMIN','CONTENT_MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN','CONTENT')")
     public ApiResponse<CloudinaryUploadSignatureResponse> createCourseCoverUploadSignature() {
         return ApiResponse.<CloudinaryUploadSignatureResponse>builder()
                 .code(1000)
@@ -24,7 +24,7 @@ public class MediaController {
     }
 
     @PostMapping("/lessons/signature")
-    @PreAuthorize("hasAnyRole('ADMIN','CONTENT_MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN','CONTENT')")
     public ApiResponse<CloudinaryUploadSignatureResponse> createLessonMediaUploadSignature(
             @RequestParam String type) {
         return ApiResponse.<CloudinaryUploadSignatureResponse>builder()
@@ -34,7 +34,7 @@ public class MediaController {
     }
 
     @PostMapping("/questions/signature")
-    @PreAuthorize("hasAnyRole('ADMIN','CONTENT_MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN','CONTENT')")
     public ApiResponse<CloudinaryUploadSignatureResponse> createQuestionMediaUploadSignature(
             @RequestParam String type) {
         return ApiResponse.<CloudinaryUploadSignatureResponse>builder()

@@ -17,13 +17,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Locale;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -31,17 +31,43 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class NotificationService implements NotificationPort {
 
     private static final String DEFAULT_TYPE = NotificationType.SYSTEM.name();
+    private static final int MAX_MESSAGE_LENGTH = 5_000;
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final NotificationStreamHub streamHub;
     private final NotificationProperties properties;
     private final Clock clock;
+    private final EmailService emailService;
+
+    @Autowired
+    public NotificationService(
+            NotificationRepository notificationRepository,
+            UserRepository userRepository,
+            NotificationStreamHub streamHub,
+            NotificationProperties properties,
+            Clock clock,
+            EmailService emailService) {
+        this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
+        this.streamHub = streamHub;
+        this.properties = properties;
+        this.clock = clock;
+        this.emailService = emailService;
+    }
+
+    NotificationService(
+            NotificationRepository notificationRepository,
+            UserRepository userRepository,
+            NotificationStreamHub streamHub,
+            NotificationProperties properties,
+            Clock clock) {
+        this(notificationRepository, userRepository, streamHub, properties, clock, null);
+    }
 
     @Transactional(readOnly = true)
     public List<NotificationResponse> getUserNotifications() {
@@ -149,7 +175,10 @@ public class NotificationService implements NotificationPort {
             return false;
         }
 
-        User user = userRepository.findById(userId).orElse(null);
+        String normalizedEventKey = normalizeEventKey(eventKey);
+        User user = normalizedEventKey == null
+                ? userRepository.findById(userId).orElse(null)
+                : userRepository.findByIdForUpdate(userId).orElse(null);
         if (user == null) {
             log.debug("Bỏ qua thông báo vì user {} không còn tồn tại", userId);
             return false;
@@ -158,7 +187,6 @@ public class NotificationService implements NotificationPort {
             return false;
         }
 
-        String normalizedEventKey = normalizeEventKey(eventKey);
         if (normalizedEventKey != null
                 && notificationRepository.findByUserIdAndEventKey(userId, normalizedEventKey).isPresent()) {
             return false;
@@ -215,7 +243,7 @@ public class NotificationService implements NotificationPort {
         Notification notification = new Notification();
         notification.setUser(user);
         notification.setTitle(requireLength(message.title(), 200, "title"));
-        notification.setMessage(message.message());
+        notification.setMessage(requireLength(message.message(), MAX_MESSAGE_LENGTH, "message"));
         notification.setType(message.type().name());
         notification.setLinkUrl(requireLength(message.linkUrl(), 500, "linkUrl"));
         notification.setEventKey(requireLength(eventKey, 200, "eventKey"));
@@ -225,6 +253,10 @@ public class NotificationService implements NotificationPort {
         Notification saved = notificationRepository.save(notification);
         NotificationResponse response = mapToResponse(saved);
         afterCommit(() -> streamHub.push(user.getId(), response));
+        if (properties.isEmailEnabled() && emailService != null) {
+            afterCommit(() -> emailService.sendNotification(
+                    user.getEmail(), user.getFullName(), message));
+        }
         return response;
     }
 
@@ -271,7 +303,33 @@ public class NotificationService implements NotificationPort {
                 .linkUrl(notification.getLinkUrl())
                 .isRead(notification.getIsRead())
                 .createdAt(notification.getCreatedAt())
+                .targetType(resolveTargetType(notification))
+                .targetId(resolveTargetId(notification))
                 .build();
+    }
+
+    private String resolveTargetType(Notification notification) {
+        String linkUrl = notification.getLinkUrl();
+        if (linkUrl != null && !linkUrl.isBlank()) {
+            if (linkUrl.contains("badgeId=")) return "BADGE";
+            if (linkUrl.contains("/courses/")) return "COURSE";
+            if (linkUrl.contains("/lessons/")) return "LESSON";
+        }
+        if ("ACHIEVEMENT".equalsIgnoreCase(notification.getType())) return "BADGE";
+        return notification.getType();
+    }
+
+    private String resolveTargetId(Notification notification) {
+        String linkUrl = notification.getLinkUrl();
+        if (linkUrl != null && !linkUrl.isBlank()) {
+            java.util.regex.Matcher badgeMatcher = java.util.regex.Pattern.compile("[?&]badgeId=([^&#]+)").matcher(linkUrl);
+            if (badgeMatcher.find()) return badgeMatcher.group(1);
+            java.util.regex.Matcher courseMatcher = java.util.regex.Pattern.compile("/courses/([^/?&#]+)").matcher(linkUrl);
+            if (courseMatcher.find()) return courseMatcher.group(1);
+            java.util.regex.Matcher lessonMatcher = java.util.regex.Pattern.compile("/lessons/([^/?&#]+)").matcher(linkUrl);
+            if (lessonMatcher.find()) return lessonMatcher.group(1);
+        }
+        return null;
     }
 
     private NotificationType parseType(String type) {

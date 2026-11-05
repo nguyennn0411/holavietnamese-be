@@ -9,9 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.time.LocalDateTime;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
@@ -36,5 +37,14 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Query("DELETE FROM Notification n WHERE n.id = :id AND n.user.id = :userId")
     int deleteByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 
-    long deleteByIsReadTrueAndCreatedAtBefore(LocalDateTime cutoff);
+    @Query("""
+            SELECT n.id FROM Notification n
+            WHERE n.isRead = true AND n.createdAt < :cutoff
+            ORDER BY n.createdAt, n.id
+            """)
+    List<Long> findExpiredReadIds(@Param("cutoff") LocalDateTime cutoff, Pageable pageable);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM Notification n WHERE n.id IN :ids")
+    int deleteAllByIdInBatch(@Param("ids") Collection<Long> ids);
 }

@@ -38,6 +38,12 @@ public enum ErrorCode {
     // === Gamification (4xxx) ===
     INSUFFICIENT_XP(4001, "Bạn không đủ điểm XP để thực hiện thao tác này", HttpStatus.BAD_REQUEST),
     STREAK_FREEZE_MAX_REACHED(4002, "Bạn đã đạt số lượng Đóng Băng Chuỗi tối đa (tối đa 2)", HttpStatus.BAD_REQUEST),
+
+    // === Notification (5xxx) ===
+    NOTIFICATION_NOT_FOUND(5001, "Thông báo không tồn tại hoặc không thuộc về bạn", HttpStatus.NOT_FOUND),
+    NOTIFICATION_REALTIME_UNAVAILABLE(5002, "Kênh thông báo realtime đang tạm tắt", HttpStatus.SERVICE_UNAVAILABLE),
+    NOTIFICATION_CONNECTION_LIMIT_REACHED(5003, "Đã đạt số kết nối thông báo tối đa cho tài khoản này", HttpStatus.TOO_MANY_REQUESTS),
+    INVALID_NOTIFICATION_REQUEST(5004, "Dữ liệu yêu cầu thông báo không hợp lệ", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

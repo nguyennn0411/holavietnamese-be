@@ -8,7 +8,6 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Getter
@@ -42,6 +41,25 @@ public class User extends BaseEntity {
     @ColumnDefault("'LEARNER'")
     @Column(name = "role", nullable = false, length = 20)
     private String role = "LEARNER";
+
+    public String getRole() {
+        return AccountRole.normalizeStored(this.role);
+    }
+
+    /**
+     * User role assignments must always use the fixed account-role catalogue.
+     * Hibernate uses field access, so this guard applies to all application
+     * writes without interfering with loading legacy rows before Flyway runs.
+     */
+    public void setRole(String role) {
+        this.role = AccountRole.requireDefined(role);
+    }
+
+    public void setRoles(Set<Role> roles) {
+        if (roles != null && !roles.isEmpty()) {
+            this.setRole(roles.iterator().next().getName());
+        }
+    }
 
     @Column(name = "email", length = 254, unique = true, nullable = false)
     private String email;
@@ -128,11 +146,4 @@ public class User extends BaseEntity {
     @Column(name = "status", length = 20)
     private String status = "ACTIVE";
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "users_roles",
-            joinColumns = @JoinColumn(name = "users_id"),
-            inverseJoinColumns = @JoinColumn(name = "roles_id")
-    )
-    private Set<Role> roles = new LinkedHashSet<>();
 }

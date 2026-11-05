@@ -99,7 +99,7 @@ class NotificationServiceTests {
     @Test
     void duplicateOutboxEventIsNotStoredAgain() {
         User user = user(9L);
-        when(userRepository.findById(9L)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdForUpdate(9L)).thenReturn(Optional.of(user));
         when(notificationRepository.findByUserIdAndEventKey(9L, "COURSE_COMPLETED:9:3"))
                 .thenReturn(Optional.of(new Notification()));
 
@@ -108,6 +108,21 @@ class NotificationServiceTests {
                 "COURSE_COMPLETED:9:3");
 
         assertThat(sent).isFalse();
+        verify(userRepository).findByIdForUpdate(9L);
+        verify(notificationRepository, never()).save(any());
+    }
+
+    @Test
+    void messageLongerThanStorageContractIsRejectedBeforeSave() {
+        User user = user(11L);
+        when(userRepository.findById(11L)).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> service.send(11L, NotificationMessage.standard(
+                "Thông báo", "x".repeat(5_001), NotificationType.SYSTEM, null)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("message")
+                .hasMessageContaining("5000");
+
         verify(notificationRepository, never()).save(any());
     }
 

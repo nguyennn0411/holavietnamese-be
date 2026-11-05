@@ -56,7 +56,7 @@ public class CourseReviewService {
   }
 
   private boolean isManagerCourse(Map<String,Object> course) {
-    return course.get("submittedBy") != null || "CONTENT_MANAGER".equals(course.get("authorRole"));
+    return course.get("submittedBy") != null || "CONTENT".equals(course.get("authorRole"));
   }
 
   public long courseForModule(long moduleId) {
@@ -74,7 +74,7 @@ public class CourseReviewService {
   @Transactional
   public void submit(long courseId, LearnerPrincipal actor) {
     assertCanEdit(courseId,actor);
-    if(isAdmin(actor)) throw ContentException.forbidden("CONTENT_MANAGER_REQUIRED","Only a content manager can submit a course for review.");
+    if(isAdmin(actor)) throw ContentException.forbidden("CONTENT_REQUIRED","Only a content account can submit a course for review.");
     var issues = readiness(courseId);
     if (!issues.isEmpty()) throw ContentException.invalid(String.join(" ", issues));
     db.update("UPDATE courses SET status='REVIEW',submitted_by=?,submitted_at=CURRENT_TIMESTAMP,"

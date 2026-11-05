@@ -4,8 +4,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Set;
-
 @Getter
 @Setter
 @Builder
@@ -24,6 +22,6 @@ public class AdminUserResponse {
     private Boolean onboardingCompleted;
     private Integer streakCount;
     private Integer totalXp;
-    private Set<String> roles;
+    private String role;
     private String createdAt;
 }

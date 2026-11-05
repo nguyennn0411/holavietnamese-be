@@ -17,14 +17,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.server.ResponseStatusException;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
@@ -32,6 +39,7 @@ import java.util.List;
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -92,7 +100,7 @@ public class NotificationController {
      */
     @PutMapping("/{id}/read")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<Void> markAsRead(@PathVariable Long id) {
+    public ApiResponse<Void> markAsRead(@PathVariable @Positive Long id) {
         notificationService.markAsRead(id);
         return ApiResponse.<Void>builder()
                 .code(1000)
@@ -120,7 +128,7 @@ public class NotificationController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<Void> deleteNotification(@PathVariable Long id) {
+    public ApiResponse<Void> deleteNotification(@PathVariable @Positive Long id) {
         notificationService.deleteNotification(id);
         return ApiResponse.<Void>builder()
                 .code(1000)
@@ -158,8 +166,10 @@ public class NotificationController {
     @PostMapping("/test")
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<NotificationResponse> sendTestNotification(
-            @RequestParam(defaultValue = "Chào mừng bạn đến với Hola Vietnamese!") String title,
-            @RequestParam(defaultValue = "Hãy duy trì chuỗi học tập hàng ngày để tích lũy thêm XP nhé!") String message) {
+            @RequestParam(defaultValue = "Chào mừng bạn đến với Hola Vietnamese!")
+            @NotBlank @Size(max = 200) String title,
+            @RequestParam(defaultValue = "Hãy duy trì chuỗi học tập hàng ngày để tích lũy thêm XP nhé!")
+            @NotBlank @Size(max = 5000) String message) {
 
         if (!notificationProperties.isTestEndpointEnabled()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
@@ -175,6 +185,13 @@ public class NotificationController {
                 .message("Đã gửi thông báo test thành công")
                 .result(response)
                 .build();
+    }
+
+    @ExceptionHandler({ConstraintViolationException.class, HandlerMethodValidationException.class})
+    public ResponseEntity<ApiResponse<Void>> handleInvalidNotificationRequest(Exception exception) {
+        ErrorCode errorCode = ErrorCode.INVALID_NOTIFICATION_REQUEST;
+        return ResponseEntity.status(errorCode.getStatusCode())
+                .body(ApiResponse.error(errorCode.getCode(), errorCode.getMessage()));
     }
 
     /**

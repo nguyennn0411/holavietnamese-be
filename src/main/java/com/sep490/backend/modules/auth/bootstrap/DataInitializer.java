@@ -16,6 +16,13 @@ import org.springframework.stereotype.Component;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Development-only role metadata and content-account bootstrap.
+ *
+ * <p>Deliberately does not create an ADMIN account. Administrators are
+ * provisioned directly in the database, outside the application API and
+ * bootstrap code.</p>
+ */
 @Component
 @org.springframework.core.annotation.Order(0)
 @org.springframework.context.annotation.Profile("dev-demo")
@@ -38,33 +45,16 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         try {
-            Role adminRole = initRole("ADMIN", "Quản trị viên hệ thống",
+            initRole("ADMIN", "System administrator",
                     Set.of("USER_READ", "USER_WRITE", "ROLE_WRITE", "SETTING_WRITE", "ACHIEVEMENT_WRITE", "XP_RULE_WRITE", "AUDIT_READ"));
-            initRole("LEARNER", "Học viên học tiếng Việt",
+            initRole("LEARNER", "Vietnamese learner",
                     Set.of("PROFILE_READ", "PROFILE_WRITE", "LEARNING_READ"));
-            initRole("TEACHER", "Giáo viên giảng dạy tiếng Việt",
-                    Set.of("COURSE_READ", "LESSON_WRITE", "QUIZ_WRITE"));
-            Role contentManagerRole = initRole("CONTENT_MANAGER", "Quản lý nội dung khóa học",
-                    Set.of("COURSE_READ", "COURSE_WRITE", "COURSE_SUBMIT"));
+            initRole("CONTENT", "Learning-content manager",
+                    Set.of("COURSE_READ", "COURSE_WRITE", "COURSE_SUBMIT",
+                            "VOCABULARY_READ", "VOCABULARY_WRITE", "VOCABULARY_IMPORT",
+                            "EXPLORE_READ", "EXPLORE_WRITE", "EXPLORE_LINK_WRITE"));
 
-            // Tạo tài khoản admin mặc định nếu chưa tồn tại
-            if (!userRepository.existsByUsername("admin")) {
-                User admin = new User();
-                admin.setUsername("admin");
-                admin.setRole("ADMIN");
-                admin.setPasswordHash(passwordEncoder.encode(demoPassword));
-                admin.setEmail("admin@holavietnamese.com");
-                admin.setFullName("System Administrator");
-                admin.setStatus("ACTIVE");
-                admin.setEnabled(true);
-                admin.setEmailVerified(true);
-                admin.setRole("ADMIN");
-                admin.setRoles(new HashSet<>(Set.of(adminRole)));
-                userRepository.save(admin);
-                log.info("Created demo admin account from APP_DEMO_PASSWORD");
-            }
-
-
+            // ADMIN accounts are intentionally never provisioned by application code.
             if (!userRepository.existsByUsername("contentmanager")) {
                 User manager = new User();
                 manager.setUsername("contentmanager");
@@ -74,14 +64,12 @@ public class DataInitializer implements CommandLineRunner {
                 manager.setStatus("ACTIVE");
                 manager.setEnabled(true);
                 manager.setEmailVerified(true);
-                manager.setRole("CONTENT_MANAGER");
-                manager.setRoles(new HashSet<>(Set.of(contentManagerRole)));
+                manager.setRole("CONTENT");
                 userRepository.save(manager);
-                log.info(">>> Khởi tạo tài khoản content manager mẫu");
+                log.info("Created the dev contentmanager account.");
             }
-
         } catch (Exception e) {
-            log.warn("Không thể seed dữ liệu khởi tạo (Database có thể chưa sẵn sàng): {}", e.getMessage());
+            log.warn("Unable to seed development roles/content account: {}", e.getMessage());
         }
     }
 

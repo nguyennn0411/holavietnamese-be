@@ -19,7 +19,7 @@ public class BasicVietnameseWorkbookSeedRunner implements CommandLineRunner {
 
   @Override
   public void run(String... args) {
-    var authors = db.rows("SELECT id FROM users WHERE role IN ('ADMIN', 'CONTENT_MANAGER') ORDER BY id LIMIT 1");
+    var authors = db.rows("SELECT id FROM users WHERE role IN ('ADMIN', 'CONTENT') ORDER BY id LIMIT 1");
     long authorId;
     if (!authors.isEmpty()) {
       authorId = ContentStore.id(authors.getFirst(), "id");

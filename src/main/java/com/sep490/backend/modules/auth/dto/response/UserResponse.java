@@ -35,7 +35,7 @@ public class UserResponse {
     Integer totalXp;
     Integer hearts;
     String status;
-    Set<String> roles;
+    String role;
     Set<String> permissions;
     String token;
     String verificationOtp;

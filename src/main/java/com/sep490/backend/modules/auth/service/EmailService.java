@@ -1,5 +1,6 @@
 package com.sep490.backend.modules.auth.service;
 
+import com.sep490.backend.common.notification.NotificationMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,6 +75,39 @@ public class EmailService {
             return true;
         } catch (MailException e) {
             log.error("Could not send registration verification OTP to [{}]: {}", to, e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean sendNotification(String to, String recipientName, NotificationMessage notification) {
+        if (!isConfigured()) {
+            log.debug("Mail is not configured; notification email to [{}] was not sent", to);
+            return false;
+        }
+        if (to == null || to.isBlank()) {
+            return false;
+        }
+
+        String greeting = recipientName == null || recipientName.isBlank()
+                ? "Hello,"
+                : "Hello " + recipientName.trim() + ",";
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(mailUsername);
+        message.setTo(to.trim());
+        message.setSubject("Hola Vietnamese: " + notification.title());
+        message.setText("""
+                %s
+
+                %s
+
+                Open Hola Vietnamese to continue learning.
+                """.formatted(greeting, notification.message()));
+
+        try {
+            mailSender.send(message);
+            return true;
+        } catch (MailException e) {
+            log.warn("Could not send notification email to [{}]: {}", to, e.getMessage());
             return false;
         }
     }

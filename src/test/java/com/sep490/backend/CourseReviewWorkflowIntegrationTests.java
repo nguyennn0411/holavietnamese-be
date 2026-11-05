@@ -39,9 +39,9 @@ class CourseReviewWorkflowIntegrationTests {
 
   @BeforeEach
   void setup() {
-    managerId=user("manager","CONTENT_MANAGER"); otherManagerId=user("other-manager","CONTENT_MANAGER"); adminId=user("review-admin","ADMIN");
-    manager=new LearnerPrincipal(managerId,"manager@test","",true,"CONTENT_MANAGER");
-    otherManager=new LearnerPrincipal(otherManagerId,"other@test","",true,"CONTENT_MANAGER");
+    managerId=user("manager","CONTENT"); otherManagerId=user("other-manager","CONTENT"); adminId=user("review-admin","ADMIN");
+    manager=new LearnerPrincipal(managerId,"manager@test","",true,"CONTENT");
+    otherManager=new LearnerPrincipal(otherManagerId,"other@test","",true,"CONTENT");
     admin=new LearnerPrincipal(adminId,"admin@test","",true,"ADMIN");
     learner=new LearnerPrincipal(user("learner","LEARNER"),"learner@test","",true,"LEARNER");
   }
@@ -102,6 +102,29 @@ class CourseReviewWorkflowIntegrationTests {
   }
 
   @Test
+  void contentManagerAuthorsCourseContentWhileAdminRemainsReviewOnly() throws Exception {
+    mvc.perform(post("/api/admin/courses").with(actor(admin)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content(courseJson("admin-must-not-author")))
+        .andExpect(status().isForbidden());
+
+    String questionBody = "{\"questionType\":\"MULTIPLE_CHOICE\",\"promptEn\":\"Choose hello\","
+        + "\"difficulty\":\"EASY\",\"status\":\"PUBLISHED\","
+        + "\"options\":[{\"id\":\"a\",\"text\":\"Hello\"},{\"id\":\"b\",\"text\":\"Goodbye\"}],"
+        + "\"correctAnswerJson\":{\"optionIds\":[\"a\"]}}";
+    long question = json.readTree(mvc.perform(post("/api/admin/questions")
+        .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+        .content(questionBody)).andExpect(status().isOk()).andReturn()
+        .getResponse().getContentAsString()).path("id").asLong();
+
+    mvc.perform(put("/api/admin/questions/" + question).with(actor(admin)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content(questionBody))
+        .andExpect(status().isForbidden());
+    mvc.perform(put("/api/admin/questions/" + question).with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content(questionBody))
+        .andExpect(status().isOk());
+  }
+
+  @Test
   void managerCanSeePublishedCatalogCoursesWithoutEditingThem() throws Exception {
     long ownDraft=courses.create(request("own-draft"),managerId);
     long published=courses.create(request("published-catalog"),adminId);
@@ -136,6 +159,38 @@ class CourseReviewWorkflowIntegrationTests {
     mvc.perform(delete("/api/admin/courses/"+course).with(actor(manager)).with(csrf()))
         .andExpect(status().isOk());
     assertThat(db.one("SELECT status FROM courses WHERE id=?",course)).containsEntry("status","ARCHIVED");
+  }
+
+  @Test
+  void successfulCourseChangesRecordActorActionAndTime() throws Exception {
+    long course = createCourse(manager, "audited-course");
+
+    assertThat(db.one(
+        "SELECT admin_username,action,target,created_at FROM audit_logs"
+            + " WHERE action='CREATE_COURSE' ORDER BY id DESC LIMIT 1"))
+        .containsEntry("adminUsername", "manager@test")
+        .containsEntry("action", "CREATE_COURSE")
+        .containsEntry("target", "/api/admin/courses")
+        .containsKey("createdAt");
+
+    mvc.perform(put("/api/admin/courses/" + course).with(actor(manager)).with(csrf())
+            .contentType(MediaType.APPLICATION_JSON).content(courseJson("audited-course")))
+        .andExpect(status().isOk());
+
+    assertThat(db.one(
+        "SELECT admin_username,action,target,created_at FROM audit_logs"
+            + " WHERE action='UPDATE_COURSE' ORDER BY id DESC LIMIT 1"))
+        .containsEntry("adminUsername", "manager@test")
+        .containsEntry("action", "UPDATE_COURSE")
+        .containsEntry("target", "/api/admin/courses/" + course)
+        .containsKey("createdAt");
+
+    mvc.perform(get("/api/admin/audit-logs").with(actor(admin)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.result[0].adminUsername").value("manager@test"))
+        .andExpect(jsonPath("$.result[0].action").value("UPDATE_COURSE"))
+        .andExpect(jsonPath("$.result[0].createdAt").isNotEmpty())
+        .andExpect(jsonPath("$.result[0].status").value("SUCCESS"));
   }
 
   private long createCourse(LearnerPrincipal actor,String slug) throws Exception {

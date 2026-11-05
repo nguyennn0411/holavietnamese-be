@@ -126,32 +126,46 @@ public class LearningPathService {
     var courseIds = requestedCourseIds == null ? List.<Long>of() : requestedCourseIds.stream()
         .filter(Objects::nonNull).distinct().limit(12).toList();
     if (courseIds.isEmpty()) throw new IllegalArgumentException("Lộ trình phải có ít nhất một khóa học");
-    courseIds.forEach(courseId -> {
-      if (course(courseId) == null) throw ContentException.missing("COURSE_NOT_PUBLISHED");
-    });
+    var selectedCourses = courseIds.stream().map(courseId -> {
+      var selected = course(courseId);
+      if (selected == null) throw ContentException.missing("COURSE_NOT_PUBLISHED");
+      return selected;
+    }).toList();
     courseIds.forEach(courseId -> enrollments.enroll(user, courseId));
     ensureRow(user);
     var current = db.one("SELECT active_course_id,preference_version FROM learning_path_preferences WHERE user_id=? FOR UPDATE", user);
     Long active = nullableId(current.get("activeCourseId"));
+    long currentVersion = current.get("preferenceVersion") instanceof Number number
+        ? number.longValue() : 0;
     var storedPath = db.rows("SELECT course_id FROM learning_path_courses WHERE user_id=? ORDER BY position", user)
         .stream().map(row -> ((Number) row.get("courseId")).longValue()).toList();
-    if (!storedPath.equals(courseIds)) {
+    boolean pathChanged = !storedPath.equals(courseIds);
+    if (pathChanged) {
       db.update("DELETE FROM learning_path_courses WHERE user_id=?", user);
       for (int index=0; index<courseIds.size(); index++)
         db.update("INSERT INTO learning_path_courses(user_id,course_id,position) VALUES(?,?,?)",
             user, courseIds.get(index), index + 1);
     }
     long firstCourseId = courseIds.getFirst();
-    if (!Objects.equals(active, firstCourseId) || !storedPath.equals(courseIds))
+    boolean pathStateChanged = !Objects.equals(active, firstCourseId) || pathChanged;
+    if (pathStateChanged)
       db.update("UPDATE learning_path_preferences SET active_course_id=?,"
           + " preference_version=preference_version+1,updated_at=CURRENT_TIMESTAMP WHERE user_id=?",
           firstCourseId, user);
 
-    notifications.send(user, NotificationMessage.standard(
+    String courseTitles = selectedCourses.stream()
+        .map(item -> Objects.toString(item.get("title"), ""))
+        .filter(title -> !title.isBlank())
+        .collect(java.util.stream.Collectors.joining(", "));
+    long appliedVersion = currentVersion + (pathStateChanged ? 1 : 0);
+    notifications.sendOnce(user, NotificationMessage.standard(
         "Đã áp dụng lộ trình học tập",
-        "Lộ trình học mới đã được thiết lập. Hãy bắt đầu bài học đầu tiên ngay!",
+        "Lộ trình gồm " + courseIds.size() + " khóa học đã được thiết lập"
+            + (courseTitles.isBlank() ? "." : ": " + courseTitles + ".")
+            + " Hãy bắt đầu khóa học đầu tiên ngay!",
         NotificationType.COURSE,
-        "/learning-path"));
+        "/learning-path"),
+        "LEARNING_PATH_APPLIED:" + user + ":" + appliedVersion);
 
     return me(user);
   }

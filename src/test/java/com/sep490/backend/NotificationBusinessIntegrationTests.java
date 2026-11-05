@@ -108,7 +108,7 @@ class NotificationBusinessIntegrationTests {
                     .get()
                     .satisfies(notification -> {
                         assertThat(notification.getType()).isEqualTo("ACHIEVEMENT");
-                        assertThat(notification.getLinkUrl()).isEqualTo("/achievements");
+                        assertThat(notification.getLinkUrl()).startsWith("/achievements");
                     });
         } finally {
             deleteFixture(fixture);

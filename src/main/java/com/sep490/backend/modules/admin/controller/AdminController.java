@@ -1,28 +1,35 @@
 package com.sep490.backend.modules.admin.controller;
 
-import com.sep490.backend.modules.admin.dto.request.BadgeRequest;
-import com.sep490.backend.modules.admin.dto.request.RoleRequest;
-import com.sep490.backend.modules.admin.dto.request.SystemSettingRequest;
-import com.sep490.backend.modules.admin.dto.request.XpRuleRequest;
 import com.sep490.backend.common.dto.ApiResponse;
 import com.sep490.backend.common.dto.PageResponse;
+import com.sep490.backend.modules.admin.dto.request.BadgeRequest;
+import com.sep490.backend.modules.admin.dto.request.SystemSettingRequest;
+import com.sep490.backend.modules.admin.dto.request.UpdateUserRoleRequest;
+import com.sep490.backend.modules.admin.dto.request.XpRuleRequest;
 import com.sep490.backend.modules.admin.dto.response.AdminDashboardStatsResponse;
 import com.sep490.backend.modules.admin.dto.response.AdminUserResponse;
 import com.sep490.backend.modules.admin.dto.response.AuditLogResponse;
 import com.sep490.backend.modules.admin.dto.response.RoleResponse;
 import com.sep490.backend.modules.admin.dto.response.SystemSettingResponse;
 import com.sep490.backend.modules.admin.dto.response.XpRuleResponse;
-import com.sep490.backend.modules.auth.dto.response.BadgeResponse;
 import com.sep490.backend.modules.admin.service.AdminService;
+import com.sep490.backend.modules.auth.dto.response.BadgeResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -53,7 +60,7 @@ public class AdminController {
     }
 
     @GetMapping("/users/{id}")
-    public ApiResponse<AdminUserResponse> getUserById(@PathVariable("id") Long id) {
+    public ApiResponse<AdminUserResponse> getUserById(@PathVariable Long id) {
         return ApiResponse.<AdminUserResponse>builder()
                 .result(adminService.getUserById(id))
                 .build();
@@ -61,54 +68,33 @@ public class AdminController {
 
     @PatchMapping("/users/{id}/status")
     public ApiResponse<AdminUserResponse> toggleUserStatus(
-            @PathVariable("id") Long id,
-            @RequestParam("status") String status) {
+            @PathVariable Long id,
+            @RequestParam String status) {
         return ApiResponse.<AdminUserResponse>builder()
                 .result(adminService.toggleUserStatus(id, status))
                 .message("User status updated")
                 .build();
     }
 
-    @PutMapping("/users/{id}/roles")
-    public ApiResponse<AdminUserResponse> updateUserRoles(
-            @PathVariable("id") Long id,
-            @RequestBody Set<String> roles) {
+    /**
+     * The sole role mutation endpoint. Its singular path and request DTO make
+     * a multi-role request impossible.
+     */
+    @PutMapping("/users/{id}/role")
+    public ApiResponse<AdminUserResponse> updateUserRole(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateUserRoleRequest request) {
         return ApiResponse.<AdminUserResponse>builder()
-                .result(adminService.updateUserRoles(id, roles))
-                .message("User roles updated")
+                .result(adminService.updateUserRole(id, request.getRole()))
+                .message("User role updated")
                 .build();
     }
 
+    /** Fixed system role metadata; mutations are intentionally not exposed. */
     @GetMapping("/roles")
     public ApiResponse<List<RoleResponse>> getRoles() {
         return ApiResponse.<List<RoleResponse>>builder()
                 .result(adminService.getRoles())
-                .build();
-    }
-
-    @PostMapping("/roles")
-    public ApiResponse<RoleResponse> createRole(@Valid @RequestBody RoleRequest request) {
-        return ApiResponse.<RoleResponse>builder()
-                .result(adminService.createRole(request))
-                .message("Role created")
-                .build();
-    }
-
-    @PutMapping("/roles/{id}")
-    public ApiResponse<RoleResponse> updateRole(
-            @PathVariable("id") Integer id,
-            @Valid @RequestBody RoleRequest request) {
-        return ApiResponse.<RoleResponse>builder()
-                .result(adminService.updateRole(id, request))
-                .message("Role updated")
-                .build();
-    }
-
-    @DeleteMapping("/roles/{id}")
-    public ApiResponse<Void> deleteRole(@PathVariable("id") Integer id) {
-        adminService.deleteRole(id);
-        return ApiResponse.<Void>builder()
-                .message("Role deleted")
                 .build();
     }
 
@@ -128,7 +114,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/settings/{id}")
-    public ApiResponse<Void> deleteSetting(@PathVariable("id") Long id) {
+    public ApiResponse<Void> deleteSetting(@PathVariable Long id) {
         adminService.deleteSetting(id);
         return ApiResponse.<Void>builder()
                 .message("Setting deleted")
@@ -142,7 +128,7 @@ public class AdminController {
                 .build();
     }
 
-    @PostMapping("/achievements")
+    @org.springframework.web.bind.annotation.PostMapping("/achievements")
     public ApiResponse<BadgeResponse> createBadge(@Valid @RequestBody BadgeRequest request) {
         return ApiResponse.<BadgeResponse>builder()
                 .result(adminService.createAchievement(request))
@@ -151,9 +137,7 @@ public class AdminController {
     }
 
     @PutMapping("/achievements/{id}")
-    public ApiResponse<BadgeResponse> updateBadge(
-            @PathVariable("id") Long id,
-            @Valid @RequestBody BadgeRequest request) {
+    public ApiResponse<BadgeResponse> updateBadge(@PathVariable Long id, @Valid @RequestBody BadgeRequest request) {
         return ApiResponse.<BadgeResponse>builder()
                 .result(adminService.updateAchievement(id, request))
                 .message("Achievement updated")
@@ -161,7 +145,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/achievements/{id}")
-    public ApiResponse<Void> deleteBadge(@PathVariable("id") Long id) {
+    public ApiResponse<Void> deleteBadge(@PathVariable Long id) {
         adminService.deleteAchievement(id);
         return ApiResponse.<Void>builder()
                 .message("Achievement deleted")
@@ -175,7 +159,7 @@ public class AdminController {
                 .build();
     }
 
-    @PostMapping("/xp-rules")
+    @org.springframework.web.bind.annotation.PostMapping("/xp-rules")
     public ApiResponse<XpRuleResponse> createXpRule(@Valid @RequestBody XpRuleRequest request) {
         return ApiResponse.<XpRuleResponse>builder()
                 .result(adminService.createXpRule(request))
@@ -184,9 +168,7 @@ public class AdminController {
     }
 
     @PutMapping("/xp-rules/{id}")
-    public ApiResponse<XpRuleResponse> updateXpRule(
-            @PathVariable("id") Long id,
-            @Valid @RequestBody XpRuleRequest request) {
+    public ApiResponse<XpRuleResponse> updateXpRule(@PathVariable Long id, @Valid @RequestBody XpRuleRequest request) {
         return ApiResponse.<XpRuleResponse>builder()
                 .result(adminService.updateXpRule(id, request))
                 .message("XP rule updated")
@@ -194,7 +176,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/xp-rules/{id}")
-    public ApiResponse<Void> deleteXpRule(@PathVariable("id") Long id) {
+    public ApiResponse<Void> deleteXpRule(@PathVariable Long id) {
         adminService.deleteXpRule(id);
         return ApiResponse.<Void>builder()
                 .message("XP rule deleted")

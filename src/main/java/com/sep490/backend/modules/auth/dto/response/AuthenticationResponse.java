@@ -16,6 +16,6 @@ public class AuthenticationResponse {
     Long userId;
     String username;
     String fullName;
-    Set<String> roles;
+    String role;
     Set<String> permissions;
 }
