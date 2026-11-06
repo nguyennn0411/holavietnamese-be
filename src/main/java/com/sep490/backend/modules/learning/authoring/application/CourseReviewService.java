@@ -56,7 +56,8 @@ public class CourseReviewService {
   }
 
   private boolean isManagerCourse(Map<String,Object> course) {
-    return course.get("submittedBy") != null || "CONTENT".equals(course.get("authorRole"));
+    return course.get("submittedBy") != null || "CONTENT".equals(course.get("authorRole"))
+        || "CONTENT_MANAGER".equals(course.get("authorRole"));
   }
 
   public long courseForModule(long moduleId) {
@@ -117,6 +118,58 @@ public class CourseReviewService {
           NotificationType.CONTENT_REVIEW,
           "/admin/courses/" + courseId));
     }
+  }
+
+  @Transactional
+  public void requestEdit(long courseId, String reason, LearnerPrincipal actor) {
+    if (isAdmin(actor))
+      throw ContentException.forbidden("CONTENT_REQUIRED", "Only a content account can request course editing.");
+    var course = db.one("SELECT id,title,status,created_by FROM courses WHERE id=? FOR UPDATE", courseId);
+    if (actor == null || course.get("createdBy") == null
+        || ContentStore.id(course, "createdBy") != actor.id())
+      throw ContentException.forbidden("COURSE_NOT_OWNED", "You can only request editing for courses created by you.");
+    if (!"PUBLISHED".equals(course.get("status")))
+      throw ContentException.conflict("COURSE_NOT_PUBLISHED", "Only published courses require an edit request.");
+    if (db.count("SELECT count(*) FROM course_edit_requests WHERE course_id=? AND status='PENDING'", courseId) > 0)
+      throw ContentException.conflict("EDIT_REQUEST_PENDING", "An edit request is already waiting for review.");
+    db.insert("INSERT INTO course_edit_requests(course_id,requested_by,reason) VALUES(?,?,?)",
+        courseId, actor.id(), reason.trim());
+    notifications.sendToRole("ADMIN", NotificationMessage.mandatory(
+        "Yêu cầu chỉnh sửa khóa học đã xuất bản",
+        "Content Manager yêu cầu mở chỉnh sửa khóa học \"" + course.get("title") + "\". Lý do: " + reason.trim(),
+        NotificationType.CONTENT_REVIEW,
+        "/content/courses/" + courseId + "?step=publish"));
+  }
+
+  @Transactional
+  public void reviewEditRequest(long courseId, String decision, String note, LearnerPrincipal actor) {
+    if (!isAdmin(actor))
+      throw ContentException.forbidden("ADMIN_REQUIRED", "Only an administrator can review course edit requests.");
+    var course = db.one("SELECT id,title,status FROM courses WHERE id=? FOR UPDATE", courseId);
+    var request = db.one("SELECT id,requested_by,reason FROM course_edit_requests"
+        + " WHERE course_id=? AND status='PENDING' ORDER BY id DESC LIMIT 1 FOR UPDATE", courseId);
+    if (!"PUBLISHED".equals(course.get("status")))
+      throw ContentException.conflict("COURSE_NOT_PUBLISHED", "The course is no longer published.");
+    if ("REJECT".equals(decision) && (note == null || note.isBlank()))
+      throw ContentException.invalid("A rejection reason is required.");
+    if (!"APPROVE".equals(decision) && !"REJECT".equals(decision))
+      throw ContentException.invalid("Decision must be APPROVE or REJECT.");
+
+    boolean approved = "APPROVE".equals(decision);
+    db.update("UPDATE course_edit_requests SET status=?,reviewed_by=?,review_note=?,"
+            + " reviewed_at=CURRENT_TIMESTAMP WHERE id=?",
+        approved ? "APPROVED" : "REJECTED", actor.id(), note == null ? null : note.trim(),
+        ContentStore.id(request, "id"));
+    if (approved) courses.status(courseId, "DRAFT");
+
+    String detail = approved
+        ? "Yêu cầu chỉnh sửa khóa học \"" + course.get("title") + "\" đã được duyệt. Bạn có thể bắt đầu chỉnh sửa và gửi kiểm duyệt lại khi hoàn tất."
+        : "Yêu cầu chỉnh sửa khóa học \"" + course.get("title") + "\" đã bị từ chối. Phản hồi: " + note.trim();
+    notifications.send(ContentStore.id(request, "requestedBy"), NotificationMessage.mandatory(
+        approved ? "Đã mở quyền chỉnh sửa khóa học" : "Yêu cầu chỉnh sửa bị từ chối",
+        detail,
+        NotificationType.CONTENT_REVIEW,
+        "/content/courses/" + courseId));
   }
 
   public List<String> readiness(long courseId) {

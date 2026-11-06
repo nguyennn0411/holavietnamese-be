@@ -162,6 +162,46 @@ class CourseReviewWorkflowIntegrationTests {
   }
 
   @Test
+  void publishedCourseRequiresAdminApprovalBeforeManagerCanEditAgain() throws Exception {
+    long course=courses.create(request("published-edit-flow"),managerId);
+    long module=courses.addModule(course,new ContentRequests.Module("Module","Description"));
+    long lesson=courses.addLesson(module,new ContentRequests.Lesson("L3","lesson-three","Lesson three","Description","NORMAL",10,List.of()));
+    finishCourse(course,lesson);
+    workflow.submit(course,manager);
+    workflow.review(course,"APPROVE","Ready to publish.",admin);
+
+    mvc.perform(put("/api/admin/courses/"+course).with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content(courseJson("published-edit-flow")))
+        .andExpect(status().isConflict());
+    mvc.perform(post("/api/admin/courses/"+course+"/edit-request").with(actor(otherManager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"Update lesson content\"}"))
+        .andExpect(status().isForbidden());
+
+    mvc.perform(post("/api/admin/courses/"+course+"/edit-request").with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"Update lesson content and final quiz\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("PUBLISHED"))
+        .andExpect(jsonPath("$.editRequestStatus").value("PENDING"));
+    mvc.perform(get("/api/courses/"+course)).andExpect(status().isOk());
+    mvc.perform(post("/api/admin/courses/"+course+"/edit-request").with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"Duplicate request\"}"))
+        .andExpect(status().isConflict());
+    mvc.perform(post("/api/admin/courses/"+course+"/edit-request/review").with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content("{\"decision\":\"APPROVE\"}"))
+        .andExpect(status().isForbidden());
+
+    mvc.perform(post("/api/admin/courses/"+course+"/edit-request/review").with(actor(admin)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content("{\"decision\":\"APPROVE\",\"note\":\"Approved for revision.\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("DRAFT"))
+        .andExpect(jsonPath("$.editRequestStatus").value("APPROVED"));
+    mvc.perform(get("/api/courses/"+course)).andExpect(status().isNotFound());
+    mvc.perform(put("/api/admin/courses/"+course).with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content(courseJson("published-edit-flow")))
+        .andExpect(status().isOk());
+  }
+
+  @Test
   void successfulCourseChangesRecordActorActionAndTime() throws Exception {
     long course = createCourse(manager, "audited-course");
 

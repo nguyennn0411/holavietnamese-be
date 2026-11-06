@@ -74,6 +74,9 @@ public final class ContentRequests {
       @NotBlank @Pattern(regexp = "APPROVE|REJECT") String decision,
       @Size(max = 2000) String note) {}
 
+  public record CourseEditRequest(
+      @NotBlank @Size(max = 2000) String reason) {}
+
   public record Reorder(@NotNull List<@NotNull Long> ids) {}
 
   public record Example(

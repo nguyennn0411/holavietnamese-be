@@ -50,6 +50,8 @@ public class CourseAuditInterceptor implements HandlerInterceptor {
         if ("PATCH".equals(method) && path.matches("/api/admin/courses/\\d+/status")) return "CHANGE_COURSE_STATUS";
         if ("POST".equals(method) && path.matches("/api/admin/courses/\\d+/submit")) return "SUBMIT_COURSE";
         if ("POST".equals(method) && path.matches("/api/admin/courses/\\d+/review")) return "REVIEW_COURSE";
+        if ("POST".equals(method) && path.matches("/api/admin/courses/\\d+/edit-request")) return "REQUEST_COURSE_EDIT";
+        if ("POST".equals(method) && path.matches("/api/admin/courses/\\d+/edit-request/review")) return "REVIEW_COURSE_EDIT_REQUEST";
         if ("PATCH".equals(method) && path.matches("/api/admin/courses/\\d+/final-assessment")) return "SET_COURSE_FINAL_ASSESSMENT";
         if ("DELETE".equals(method) && path.matches("/api/admin/courses/\\d+")) return "DELETE_OR_ARCHIVE_COURSE";
         if ("POST".equals(method) && "/api/admin/courses/import".equals(path)) return "IMPORT_COURSE";

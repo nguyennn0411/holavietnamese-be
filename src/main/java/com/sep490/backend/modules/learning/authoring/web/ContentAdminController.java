@@ -90,6 +90,24 @@ public class ContentAdminController {
     return courses.detail(id,null,true);
   }
 
+  @PostMapping("/courses/{id}/edit-request")
+  @PreAuthorize("hasRole('CONTENT')")
+  public Object requestEdit(@PathVariable long id,
+      @Valid @RequestBody ContentRequests.CourseEditRequest r,
+      @AuthenticationPrincipal LearnerPrincipal u) {
+    workflow.requestEdit(id, r.reason(), u);
+    return courses.detail(id, null, true);
+  }
+
+  @PostMapping("/courses/{id}/edit-request/review")
+  @PreAuthorize("hasRole('ADMIN')")
+  public Object reviewEditRequest(@PathVariable long id,
+      @Valid @RequestBody ContentRequests.CourseReview r,
+      @AuthenticationPrincipal LearnerPrincipal u) {
+    workflow.reviewEditRequest(id, r.decision(), r.note(), u);
+    return courses.detail(id, null, true);
+  }
+
   @PostMapping("/courses/{id}/modules")
   public Object module(@PathVariable long id, @Valid @RequestBody ContentRequests.Module r,
       @AuthenticationPrincipal LearnerPrincipal u) {

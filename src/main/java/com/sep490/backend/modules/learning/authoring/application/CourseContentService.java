@@ -35,11 +35,14 @@ public class CourseContentService {
             + (includeDraftContent ? "" : " AND m.status='PUBLISHED'")
             + ") AS module_count, (SELECT count(*) FROM lessons l WHERE l.course_id=c.id"
             + (includeDraftContent ? "" : " AND l.published=true")
-            + ") AS lesson_count",
+            + ") AS lesson_count,"
+            + " (SELECT er.status FROM course_edit_requests er WHERE er.course_id=c.id ORDER BY er.id DESC LIMIT 1) AS edit_request_status,"
+            + " (SELECT er.requested_at FROM course_edit_requests er WHERE er.course_id=c.id ORDER BY er.id DESC LIMIT 1) AS edit_requested_at",
         "FROM courses c",
         admin ? "1=1" : author == null ? "c.status='PUBLISHED'" : "((c.created_by=" + author + " AND c.status<>'ARCHIVED') OR c.status='PUBLISHED')",
         "c.title,c.title_vi,c.description,c.description_vi",
-        Map.of("level", "c.level", "status", "c.status"),
+        Map.of("level", "c.level", "status", "c.status", "editRequestStatus",
+            "(SELECT er.status FROM course_edit_requests er WHERE er.course_id=c.id ORDER BY er.id DESC LIMIT 1)"),
         Map.of("id", "c.id", "title", "c.title", "updatedAt", "c.updated_at"),
         p);
   }
@@ -82,6 +85,24 @@ public class CourseContentService {
         "totalLessons",
         db.count("SELECT count(*) FROM lessons WHERE course_id=? AND published=true", courseId));
     c.put("moduleCount", modules.size());
+    var editRequests = db.rows(
+        "SELECT er.id,er.status,er.reason,er.requested_at,er.review_note,er.reviewed_at,"
+            + " requester.email AS requested_by_email,reviewer.email AS reviewed_by_email"
+            + " FROM course_edit_requests er JOIN users requester ON requester.id=er.requested_by"
+            + " LEFT JOIN users reviewer ON reviewer.id=er.reviewed_by"
+            + " WHERE er.course_id=? ORDER BY er.id DESC LIMIT 1",
+        courseId);
+    if (!editRequests.isEmpty()) {
+      var editRequest = editRequests.getFirst();
+      c.put("editRequestId", editRequest.get("id"));
+      c.put("editRequestStatus", editRequest.get("status"));
+      c.put("editRequestReason", editRequest.get("reason"));
+      c.put("editRequestedAt", editRequest.get("requestedAt"));
+      c.put("editRequestReviewNote", editRequest.get("reviewNote"));
+      c.put("editRequestReviewedAt", editRequest.get("reviewedAt"));
+      c.put("editRequestedByEmail", editRequest.get("requestedByEmail"));
+      c.put("editRequestReviewedByEmail", editRequest.get("reviewedByEmail"));
+    }
     if (user != null) {
       var es =
           db.rows(
