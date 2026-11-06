@@ -44,7 +44,7 @@ class LearnerFeaturesIntegrationTests {
             if (!url.startsWith("jdbc:h2:mem:hola-tests") && !url.matches("jdbc:mysql://[^/]+/hola_features_test(\\?.*)?") && !isolatedSqlServer)
                 throw new IllegalStateException("Integration tests require the isolated hola_features_test database.");
         }
-        for (String table : List.of("exercise_options", "exercises", "sentence_drills", "dialogue_lines", "dialogues", "course_vocabulary", "lesson_blocks", "vocabulary_entries", "lesson_progress", "enrollments", "lessons", "course_units", "courses", "users_roles", "users"))
+        for (String table : List.of("exercise_options", "exercises", "sentence_drills", "dialogue_lines", "dialogues", "course_vocabulary", "lesson_blocks", "vocabulary_entries", "lesson_progress", "enrollments", "lessons", "course_units", "courses", "users"))
             jdbc.update("delete from " + table);
         fixtureInsert("users", "insert into users(id,username,email,password_hash) values(1,?,?,?)", "learner@example.test", "learner@example.test", passwords.encode("Test-password-123"));
         fixtureInsert("users", "insert into users(id,username,email,password_hash) values(2,?,?,?)", "other@example.test", "other@example.test", passwords.encode("Other-password-123"));
