@@ -32,10 +32,10 @@ class VocabularyBulkReviewIntegrationTests {
 
     @BeforeEach
     void fixture() {
-        insert("chờ duyệt một", "PENDING_REVIEW");
-        insert("chờ duyệt hai", "PENDING_REVIEW");
-        insert("bản nháp giữ nguyên", "DRAFT");
-        insert("đã xuất bản giữ nguyên", "PUBLISHED");
+        insert("bulk-review-chờ duyệt một", "PENDING_REVIEW");
+        insert("bulk-review-chờ duyệt hai", "PENDING_REVIEW");
+        insert("bulk-review-bản nháp giữ nguyên", "DRAFT");
+        insert("bulk-review-đã xuất bản giữ nguyên", "PUBLISHED");
     }
 
     @Test
@@ -62,6 +62,9 @@ class VocabularyBulkReviewIntegrationTests {
     }
 
     private int count(String status) {
-        return jdbc.queryForObject("SELECT COUNT(*) FROM vocabularies WHERE status=?", Integer.class, status);
+        return jdbc.queryForObject(
+                "SELECT COUNT(*) FROM vocabularies WHERE status=? AND word LIKE 'bulk-review-%'",
+                Integer.class,
+                status);
     }
 }
