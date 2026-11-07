@@ -28,6 +28,8 @@ public final class ContentPermissions {
             "hasRole('CONTENT') or hasAuthority('EXPLORE_WRITE')";
     public static final String EXPLORE_LINK_ACCESS =
             "hasRole('CONTENT') or hasAuthority('EXPLORE_LINK_WRITE')";
+    public static final String EXPLORE_MANAGEMENT_ACCESS =
+            "(" + EXPLORE_WRITE_ACCESS + ") and (" + EXPLORE_LINK_ACCESS + ")";
     public static final String EXPLORE_REVIEW_ACCESS =
             "hasRole('ADMIN') or hasAnyAuthority('EXPLORE_REVIEW','EXPLORE_PUBLISH')";
 

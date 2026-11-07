@@ -217,6 +217,15 @@ public class VocabularyWordService {
                         ? VocabularyStatus.PUBLISHED : VocabularyStatus.DRAFT);
     }
 
+    @Transactional
+    public int approveAllPending() {
+        return words.approveAllPending(
+                VocabularyStatus.PENDING_REVIEW,
+                VocabularyStatus.PUBLISHED,
+                Instant.now()
+        );
+    }
+
     // 6. Xử lý thay đổi trạng thái và kiểm tra trạng thái hợp lệ
     private VocabularyWordResponse changeStatus(VocabularyWord current, VocabularyStatus status) {
         var now = Instant.now();

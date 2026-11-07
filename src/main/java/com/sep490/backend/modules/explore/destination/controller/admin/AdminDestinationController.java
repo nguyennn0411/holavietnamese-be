@@ -1,13 +1,16 @@
 package com.sep490.backend.modules.explore.destination.controller.admin;
 
 import com.sep490.backend.modules.explore.destination.dto.request.DestinationRequest;
+import com.sep490.backend.modules.explore.destination.dto.request.DestinationManagementRequest;
 import com.sep490.backend.common.dto.request.ContentReviewRequest;
 import com.sep490.backend.common.security.ContentPermissions;
 import com.sep490.backend.common.dto.ApiResponse;
 import com.sep490.backend.modules.explore.destination.dto.response.DestinationResponse;
+import com.sep490.backend.modules.explore.destination.dto.response.DestinationManagementResponse;
 import com.sep490.backend.modules.explore.destination.entity.enums.DestinationStatus;
 import com.sep490.backend.modules.explore.entity.enums.VietnamRegion;
 import com.sep490.backend.modules.explore.destination.service.DestinationService;
+import com.sep490.backend.modules.explore.destination.service.DestinationManagementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +25,7 @@ import java.util.List;
 public class AdminDestinationController {
 
     private final DestinationService service;
+    private final DestinationManagementService managementService;
 
     @GetMapping
     @PreAuthorize(ContentPermissions.EXPLORE_READ_ACCESS)
@@ -66,6 +70,18 @@ public class AdminDestinationController {
         return ApiResponse.<DestinationResponse>builder()
                 .result(service.updateDraft(id, request))
                 .message("Destination updated successfully.")
+                .build();
+    }
+
+    @PutMapping("/{id}/management")
+    @PreAuthorize(ContentPermissions.EXPLORE_MANAGEMENT_ACCESS)
+    public ApiResponse<DestinationManagementResponse> updateManagement(
+            @PathVariable long id,
+            @Valid @RequestBody DestinationManagementRequest request
+    ) {
+        return ApiResponse.<DestinationManagementResponse>builder()
+                .result(managementService.updateDraft(id, request))
+                .message("Destination and Explore links updated successfully.")
                 .build();
     }
 

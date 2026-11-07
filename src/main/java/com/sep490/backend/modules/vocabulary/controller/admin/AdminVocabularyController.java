@@ -116,4 +116,16 @@ public class AdminVocabularyController {
                 .message(request.decision() == ContentReviewRequest.Decision.APPROVE
                         ? "Vocabulary approved and published." : "Vocabulary returned to draft.").build();
     }
+
+    @PostMapping("/review/approve-all")
+    @PreAuthorize(ContentPermissions.VOCABULARY_REVIEW_ACCESS)
+    public ApiResponse<Integer> approveAllPending() {
+        int approved = service.approveAllPending();
+        return ApiResponse.<Integer>builder()
+                .result(approved)
+                .message(approved == 0
+                        ? "No vocabulary entries are awaiting review."
+                        : approved + " vocabulary entries approved and published.")
+                .build();
+    }
 }

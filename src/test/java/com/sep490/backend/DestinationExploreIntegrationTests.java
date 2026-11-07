@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.*;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -28,7 +29,7 @@ class DestinationExploreIntegrationTests {
     @Autowired jakarta.persistence.EntityManager em;
     @Autowired org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping mappings;
     LearnerPrincipal learner, admin;
-    @BeforeEach void fixture() { learner=principal("LEARNER"); admin=principal("CONTENT_MANAGER"); }
+    @BeforeEach void fixture() { learner=principal("LEARNER"); admin=principal("CONTENT"); }
     LearnerPrincipal principal(String role) {
         String email=UUID.randomUUID()+"@explore.test";
         db.update("INSERT INTO users(username,email,password_hash) VALUES(?,?,'test')",email,email);
@@ -130,6 +131,31 @@ class DestinationExploreIntegrationTests {
         mvc.perform(get("/api/admin/destinations/"+id+"/explore-content").with(user(admin)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.vocabulary[0].id").value(word))
                 .andExpect(jsonPath("$.result.cultureIds[0]").value(cultureId));
+    }
+    @Test @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void managementEndpointSavesDestinationAndLinksAtomically() throws Exception {
+        long id=destination(DestinationStatus.DRAFT), first=word("PUBLISHED"), second=word("PUBLISHED");
+        String cultureId=culture("PUBLISHED");
+        save(id,List.of(first),List.of(cultureId),List.of(),admin).andExpect(status().isOk());
+        var destination=Map.of(
+                "nameVi","Huế mới","nameEn","New Hue","slug","hue-new-"+UUID.randomUUID(),
+                "region","CENTRAL","shortDescriptionVi","Mô tả","status","DRAFT");
+        var valid=json.writeValueAsString(Map.of("destination",destination,"exploreContent",Map.of(
+                "vocabularyIds",List.of(second),"cultureIds",List.of(cultureId),"scenarioIds",List.of())));
+        mvc.perform(put("/api/admin/destinations/"+id+"/management").with(user(admin)).with(csrf())
+                .contentType("application/json").content(valid))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.result.destination.nameVi").value("Huế mới"))
+                .andExpect(jsonPath("$.result.exploreContent.vocabulary[0].id").value(second));
+
+        var invalidDestination=new LinkedHashMap<>(destination); invalidDestination.put("nameVi","Không được lưu");
+        var invalid=json.writeValueAsString(Map.of("destination",invalidDestination,"exploreContent",Map.of(
+                "vocabularyIds",List.of(first),"cultureIds",List.of("missing-culture"),"scenarioIds",List.of())));
+        mvc.perform(put("/api/admin/destinations/"+id+"/management").with(user(admin)).with(csrf())
+                .contentType("application/json").content(invalid)).andExpect(status().isNotFound());
+        mvc.perform(get("/api/admin/destinations/"+id).with(user(admin)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.result.nameVi").value("Huế mới"));
+        mvc.perform(get("/api/admin/destinations/"+id+"/explore-content").with(user(admin)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.result.vocabulary[0].id").value(second));
     }
     @Test void draftArchivedAndAnonymousAccessRemainProtected() throws Exception {
         for (var state:List.of(DestinationStatus.DRAFT,DestinationStatus.ARCHIVED)) {

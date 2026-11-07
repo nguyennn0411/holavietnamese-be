@@ -1,8 +1,13 @@
 package com.sep490.backend.modules.vocabulary.repository.jpa;
 
 import com.sep490.backend.modules.vocabulary.entity.VocabularyWordJpaEntity;
+import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus;
+import java.time.Instant;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface VocabularyWordJpaRepository
         extends JpaRepository<VocabularyWordJpaEntity, Long>,
@@ -16,4 +21,18 @@ public interface VocabularyWordJpaRepository
                         && com.sep490.backend.modules.vocabulary.service.VocabularyText.normalize(candidate.getWord()).equalsIgnoreCase(normalized));
     }
     java.util.List<VocabularyWordJpaEntity> findByWordIgnoreCaseAndStatusOrderByPartOfSpeechAscIdAsc(String word,com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus status);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            update VocabularyWordJpaEntity word
+               set word.status = :published,
+                   word.publishedAt = :publishedAt,
+                   word.updatedAt = :publishedAt
+             where word.status = :pending
+            """)
+    int approveAllPending(
+            @Param("pending") VocabularyStatus pending,
+            @Param("published") VocabularyStatus published,
+            @Param("publishedAt") Instant publishedAt
+    );
 }
