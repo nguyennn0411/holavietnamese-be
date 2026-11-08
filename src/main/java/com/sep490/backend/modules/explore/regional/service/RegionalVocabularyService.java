@@ -11,6 +11,7 @@ import com.sep490.backend.modules.explore.regional.mapper.RegionalVocabularyMapp
 import com.sep490.backend.modules.explore.regional.repository.jpa.RegionalVocabularyJpaRepository;
 import com.sep490.backend.modules.vocabulary.repository.jpa.VocabularyWordJpaRepository;
 import jakarta.persistence.criteria.Predicate;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -125,6 +126,14 @@ public class RegionalVocabularyService {
             throw new LearningException(LearningException.Kind.CONFLICT,"Chỉ nội dung PENDING_REVIEW mới có thể được duyệt.");
         row.setStatus(decision==ContentReviewRequest.Decision.APPROVE?VocabularyStatus.PUBLISHED:VocabularyStatus.DRAFT);
         return RegionalVocabularyMapper.toResponse(repository.saveAndFlush(row));
+    }
+
+    @Transactional
+    public int approveAllPending() {
+        return repository.approveAllPending(
+                VocabularyStatus.PENDING_REVIEW,
+                VocabularyStatus.PUBLISHED,
+                Instant.now());
     }
     private RegionalVocabularyResponse save(RegionalVocabularyJpaEntity row, RegionalVocabularyRequest input) {
         var master = vocabulary.findById(input.vocabularyId()).orElseThrow(() -> LearningException.notFound("Master vocabulary"));

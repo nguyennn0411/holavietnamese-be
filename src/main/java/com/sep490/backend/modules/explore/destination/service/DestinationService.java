@@ -10,6 +10,7 @@ import com.sep490.backend.common.exception.LearningException;
 import com.sep490.backend.modules.explore.destination.mapper.DestinationResponseMapper;
 import com.sep490.backend.modules.explore.destination.repository.DestinationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,17 @@ public class DestinationService {
                 .stream()
                 .map(DestinationResponseMapper::toResponse)
                 .toList();
+    }
+
+    public Page<DestinationResponse> searchPage(
+            String keyword,
+            DestinationStatus status,
+            VietnamRegion region,
+            int page,
+            int size
+    ) {
+        return repository.searchPage(keyword, status, region, page, size)
+                .map(DestinationResponseMapper::toResponse);
     }
 
     public List<DestinationResponse> searchPublished(

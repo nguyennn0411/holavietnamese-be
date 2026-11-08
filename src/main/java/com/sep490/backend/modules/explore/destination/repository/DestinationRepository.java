@@ -8,6 +8,8 @@ import com.sep490.backend.modules.explore.destination.mapper.DestinationMapper;
 import com.sep490.backend.modules.explore.destination.repository.jpa.DestinationJpaRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
@@ -41,47 +43,8 @@ public class DestinationRepository {
             DestinationStatus status,
             VietnamRegion region
     ) {
-        Specification<DestinationJpaEntity> specification =
-                (root, query, cb) -> {
-
-                    List<Predicate> predicates = new ArrayList<>();
-
-                    if (keyword != null && !keyword.isBlank()) {
-                        String pattern = "%"
-                                + keyword.trim().toLowerCase(Locale.ROOT)
-                                + "%";
-
-                        predicates.add(cb.or(
-                                cb.like(
-                                        cb.lower(root.get("nameVi")),
-                                        pattern
-                                ),
-                                cb.like(
-                                        cb.lower(root.get("nameEn")),
-                                        pattern
-                                )
-                        ));
-                    }
-
-                    if (status != null) {
-                        predicates.add(
-                                cb.equal(root.get("status"), status)
-                        );
-                    }
-
-                    if (region != null) {
-                        predicates.add(
-                                cb.equal(root.get("region"), region)
-                        );
-                    }
-
-                    return cb.and(
-                            predicates.toArray(Predicate[]::new)
-                    );
-                };
-
         return repository.findAll(
-                        specification,
+                        specification(keyword, status, region),
                         Sort.by(
                                 Sort.Order.asc("nameVi"),
                                 Sort.Order.asc("id")
@@ -90,6 +53,47 @@ public class DestinationRepository {
                 .stream()
                 .map(DestinationMapper::toDomain)
                 .toList();
+    }
+
+    public Page<Destination> searchPage(
+            String keyword,
+            DestinationStatus status,
+            VietnamRegion region,
+            int page,
+            int size
+    ) {
+        var pageable = PageRequest.of(
+                Math.max(0, page),
+                Math.max(1, Math.min(size, 100)),
+                Sort.by(Sort.Order.asc("nameVi"), Sort.Order.asc("id"))
+        );
+        return repository.findAll(specification(keyword, status, region), pageable)
+                .map(DestinationMapper::toDomain);
+    }
+
+    private Specification<DestinationJpaEntity> specification(
+            String keyword,
+            DestinationStatus status,
+            VietnamRegion region
+    ) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (keyword != null && !keyword.isBlank()) {
+                String pattern = "%" + keyword.trim().toLowerCase(Locale.ROOT) + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("nameVi")), pattern),
+                        cb.like(cb.lower(root.get("nameEn")), pattern)
+                ));
+            }
+            if (status != null) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
+            if (region != null) {
+                predicates.add(cb.equal(root.get("region"), region));
+            }
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
     }
 
     public Destination save(Destination destination) {

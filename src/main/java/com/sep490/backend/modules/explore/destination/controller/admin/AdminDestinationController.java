@@ -14,10 +14,9 @@ import com.sep490.backend.modules.explore.destination.service.DestinationManagem
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/destinations")
@@ -29,13 +28,15 @@ public class AdminDestinationController {
 
     @GetMapping
     @PreAuthorize(ContentPermissions.EXPLORE_READ_ACCESS)
-    public ApiResponse<List<DestinationResponse>> search(
+    public ApiResponse<Page<DestinationResponse>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) DestinationStatus status,
-            @RequestParam(required = false) VietnamRegion region
+            @RequestParam(required = false) VietnamRegion region,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        return ApiResponse.<List<DestinationResponse>>builder()
-                .result(service.search(keyword, status, region))
+        return ApiResponse.<Page<DestinationResponse>>builder()
+                .result(service.searchPage(keyword, status, region, page, size))
                 .build();
     }
 

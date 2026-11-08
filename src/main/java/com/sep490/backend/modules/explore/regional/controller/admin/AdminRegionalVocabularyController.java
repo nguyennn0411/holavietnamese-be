@@ -56,4 +56,16 @@ public class AdminRegionalVocabularyController {
             @Valid @RequestBody ContentReviewRequest input) {
         return ApiResponse.success(service.review(id,input.decision()));
     }
+
+    @PreAuthorize(ContentPermissions.VOCABULARY_REVIEW_ACCESS)
+    @PostMapping("/review/approve-all")
+    public ApiResponse<Integer> approveAllPending() {
+        int approved = service.approveAllPending();
+        return ApiResponse.<Integer>builder()
+                .result(approved)
+                .message(approved == 0
+                        ? "No regional vocabulary variants are awaiting review."
+                        : approved + " regional vocabulary variants approved and published.")
+                .build();
+    }
 }

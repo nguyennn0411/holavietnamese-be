@@ -95,4 +95,35 @@ class RegionalVocabularyIntegrationTests {
         mvc.perform(get("/api/admin/regional-language").param("page","0").param("size","500").with(user(admin)))
                 .andExpect(jsonPath("$.result.size").value(100));
     }
+
+    @Test
+    void reviewerCanApproveEveryPendingRegionalVariant() throws Exception {
+        for (String word : List.of("Chờ duyệt một", "Chờ duyệt hai")) {
+            long id = json.readTree(create(data(word,"SOUTH","DRAFT"),admin)
+                    .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString())
+                    .path("result").path("id").asLong();
+            mvc.perform(post("/api/admin/regional-language/"+id+"/submit-review")
+                            .with(user(admin)).with(csrf()))
+                    .andExpect(status().isOk());
+        }
+        create(data("Giữ nguyên bản nháp","NORTH","DRAFT"),admin).andExpect(status().isCreated());
+
+        mvc.perform(post("/api/admin/regional-language/review/approve-all")
+                        .with(user(learner)).with(csrf()))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/admin/regional-language/review/approve-all")
+                        .with(user(admin)).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result").value(2));
+
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM regional_vocabularies WHERE vocabulary_id=? AND status='PENDING_REVIEW'",
+                Integer.class, master)).isZero();
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM regional_vocabularies WHERE vocabulary_id=? AND status='PUBLISHED'",
+                Integer.class, master)).isEqualTo(2);
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM regional_vocabularies WHERE vocabulary_id=? AND status='DRAFT'",
+                Integer.class, master)).isEqualTo(1);
+    }
 }

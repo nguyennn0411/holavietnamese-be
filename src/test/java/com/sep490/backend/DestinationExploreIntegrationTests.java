@@ -91,6 +91,31 @@ class DestinationExploreIntegrationTests {
                 .contentType("application/json").content("{\"decision\":\"APPROVE\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.status").value("PUBLISHED"));
     }
+    @Test void destinationManagementListIsPaginatedByTheBackend() throws Exception {
+        String marker = "Phân trang " + UUID.randomUUID();
+        for (int index = 1; index <= 3; index++) {
+            destinations.create(new DestinationRequest(
+                    marker + " " + index,
+                    "Paged destination " + index,
+                    "paged-" + UUID.randomUUID(),
+                    VietnamRegion.CENTRAL,
+                    null, null, null, null, null,
+                    DestinationStatus.DRAFT));
+        }
+
+        mvc.perform(get("/api/admin/destinations")
+                        .with(user(admin))
+                        .param("keyword", marker)
+                        .param("status", "DRAFT")
+                        .param("page", "1")
+                        .param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.content.length()").value(1))
+                .andExpect(jsonPath("$.result.number").value(1))
+                .andExpect(jsonPath("$.result.size").value(2))
+                .andExpect(jsonPath("$.result.totalElements").value(3))
+                .andExpect(jsonPath("$.result.totalPages").value(2));
+    }
     @Test void referencesPersistInOrderWithoutEditingSourceAndLearnersSeeOnlyAvailableContent() throws Exception {
         long id=destination(DestinationStatus.PUBLISHED), published=word("PUBLISHED"), draft=word("DRAFT");
         String active=scenario("ACTIVE"), hidden=scenario("DRAFT");
