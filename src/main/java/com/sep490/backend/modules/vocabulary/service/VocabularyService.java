@@ -1,165 +1,104 @@
 package com.sep490.backend.modules.vocabulary.service;
+
 import com.sep490.backend.common.exception.LearningException;
-import com.sep490.backend.modules.auth.repository.UserRepository;
-import com.sep490.backend.modules.learning.course.domain.model.Course;
-import com.sep490.backend.modules.learning.course.infrastructure.persistence.CourseRepository;
-import com.sep490.backend.modules.learning.lesson.domain.model.Lesson;
-import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.LessonRepository;
-import com.sep490.backend.modules.learning.progress.application.AchievementService;
-import com.sep490.backend.modules.learning.progress.application.LearnerAccess;
-import com.sep490.backend.modules.vocabulary.dto.model.VocabularyEntry;
-import com.sep490.backend.modules.vocabulary.dto.model.VocabularyWord;
-import com.sep490.backend.modules.vocabulary.dto.request.VocabularyRequest;
 import com.sep490.backend.modules.vocabulary.dto.response.VocabularyResponse;
 import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus;
-import com.sep490.backend.modules.vocabulary.repository.VocabularyCatalogRepository;
+import com.sep490.backend.modules.vocabulary.mapper.VocabularyMapper;
 import com.sep490.backend.modules.vocabulary.repository.VocabularyRepository;
-import com.sep490.backend.modules.vocabulary.repository.VocabularyReviewRepository;
-import java.time.Clock;
-import java.util.*;
+
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-@Slf4j
 public class VocabularyService {
-    private final VocabularyRepository vocabulary;
-    private final VocabularyCatalogRepository catalog;
-    private final VocabularyReviewRepository reviews;
-    private final LessonRepository lessons;
-    private final CourseRepository courses;
-    private final LearnerAccess access;
-    private final Clock clock;
-    private final UserRepository userRepository;
-    private final AchievementService achievementService;
+    private final VocabularyRepository repository;
 
-    public List<VocabularyResponse> search(Long userId, String search, Long courseId, Long lessonId) {
-        if (search != null && search.length() > 200) throw new LearningException(LearningException.Kind.INVALID, "Search must be at most 200 characters.");
-        return vocabulary.search(userId, search == null ? "" : search.trim(), courseId, lessonId).stream().map(this::response).toList();
+    /** Chi tra du lieu da xuat ban cho nguoi hoc. */
+    public List<VocabularyResponse> searchPublished(String keyword, String partOfSpeech) {
+        return repository.search(keyword, VocabularyStatus.PUBLISHED, partOfSpeech).stream()
+                .map(VocabularyMapper::toResponse)
+                .toList();
     }
 
-    public VocabularyResponse get(Long userId, Long id) { return response(owned(userId, id)); }
+    /** Tra chi tiet da xuat ban, bao loi neu noi dung chua duoc cong khai. */
+    public VocabularyResponse findPublishedById(Long id) {
+        VocabularyResponse word =
+                repository
+                        .findById(id)
+                        .map(VocabularyMapper::toResponse)
+                        .filter(item -> item.status() == VocabularyStatus.PUBLISHED)
+                        .orElseThrow(() -> LearningException.notFound("Vocabulary"));
 
-    @Transactional
-    public VocabularyResponse add(Long userId, VocabularyRequest r) {
-        validateLesson(userId, r.lessonId());
+        return word;
+    }
 
-        Long masterVocabularyId = r.masterVocabularyId();
+    /** Truy van du lieu theo bo loc va gioi han kich thuoc trang. */
+    public org.springframework.data.domain.Page<VocabularyResponse> searchPage(
+            String keyword, int page, int size, boolean exact) {
 
-        if (masterVocabularyId != null) {
-            var masterWord = catalog.findById(masterVocabularyId)
-                    .filter(item -> item.status() == VocabularyStatus.PUBLISHED)
-                    .orElseThrow(() ->
-                            LearningException.notFound("Vocabulary")
-                    );
+        if (keyword != null && keyword.length() > 200) {
+            throw new LearningException(
+                    LearningException.Kind.INVALID, "Từ khóa tối đa 200 ký tự.");
+        }
 
-            boolean validWord = masterWord.word().equals(r.word().trim());
+        return repository
+                .searchPage(keyword, VocabularyStatus.PUBLISHED, null, page, size, exact)
+                .map(VocabularyMapper::toResponse);
+    }
 
-            boolean validMeaning = masterWord.meanings() != null
-                    && masterWord.meanings().stream()
-                    .anyMatch(meaning ->
-                            VocabularyText.notebookMeaning(meaning).equals(r.meaning().trim())
-                    );
+    /** Lay cac tu cung cach viet va cac tu lien quan da xuat ban. */
+    public java.util.Map<String, Object> links(Long id) {
+        var word =
+                repository
+                        .findById(id)
+                        .map(VocabularyMapper::toResponse)
+                        .orElseThrow(() -> LearningException.notFound("Vocabulary"));
 
-            if (!validWord || !validMeaning) {
-                throw new LearningException(
-                        LearningException.Kind.INVALID,
-                        "Vocabulary content does not match Master Vocabulary."
-                );
+        if (word.status() != VocabularyStatus.PUBLISHED) {
+            throw LearningException.notFound("Vocabulary");
+        }
+
+        var family =
+                repository
+                        .findByWordIgnoreCaseAndStatusOrderByPartOfSpeechAscIdAsc(
+                                word.word(), VocabularyStatus.PUBLISHED)
+                        .stream()
+                        .filter(w -> !w.getId().equals(id))
+                        .map(
+                                w ->
+                                        java.util.Map.of(
+                                                "id", w.getId(),
+                                                "word", w.getWord(),
+                                                "partOfSpeech", w.getPartOfSpeech()))
+                        .toList();
+
+        var related = new java.util.ArrayList<java.util.Map<String, Object>>();
+
+        if (word.lexical() != null && word.lexical().relatedWords() != null) {
+            for (var relation : word.lexical().relatedWords()) {
+                var row = new java.util.LinkedHashMap<String, Object>();
+
+                row.put("word", relation.word());
+                row.put("kind", relation.kind());
+                row.put("sense", relation.sense());
+
+                var targets =
+                        repository.findByWordIgnoreCaseAndStatusOrderByPartOfSpeechAscIdAsc(
+                                relation.word(), VocabularyStatus.PUBLISHED);
+
+                row.put("id", targets.isEmpty() ? null : targets.getFirst().getId());
+                related.add(row);
             }
-
-            if (vocabulary.findOwnedByMasterVocabulary(
-                    userId, masterVocabularyId
-            ).isPresent()) {
-                throw new LearningException(
-                        LearningException.Kind.CONFLICT,
-                        "Vocabulary already saved in notebook."
-                );
-            }
         }
 
-        var entry = vocabulary.save(new VocabularyEntry(
-                null,
-                userId,
-                r.lessonId(),
-                r.word().trim(),
-                r.meaning().trim(),
-                trim(r.pronunciation()),
-                trim(r.exampleSentence()),
-                trim(r.note()),
-                clock.instant(),
-                masterVocabularyId
-        ));
-
-        // Evaluate vocabulary badge conditions (e.g. VOCAB_50)
-        try {
-            int totalWords = vocabulary.countByUser(userId);
-            userRepository.findById(userId).ifPresent(user ->
-                    achievementService.checkAndAwardBadges(user, "VOCAB_LEARNED", totalWords));
-        } catch (Exception ex) {
-            log.warn("Không thể kiểm tra huy hiệu từ vựng: {}", ex.getMessage());
-        }
-
-        return response(entry);
-    }
-
-    @Transactional
-    public VocabularyResponse update(Long userId, Long id, VocabularyRequest r) {
-        var e = owned(userId, id);
-        if (r.masterVocabularyId() != null && !Objects.equals(r.masterVocabularyId(), e.masterVocabularyId())) {
-            throw new LearningException(LearningException.Kind.INVALID, "The Master Vocabulary link cannot be changed.");
-        }
-        if (e.masterVocabularyId() != null && (!e.word().equals(r.word().trim()) || !e.meaning().equals(r.meaning().trim()))) {
-            throw new LearningException(LearningException.Kind.INVALID, "Saved Master Vocabulary word and meaning cannot be changed.");
-        }
-        if (!Objects.equals(e.lessonId(), r.lessonId())) validateLesson(userId, r.lessonId());
-        return response(vocabulary.save(new VocabularyEntry(e.id(), userId, r.lessonId(), r.word().trim(), r.meaning().trim(), trim(r.pronunciation()), trim(r.exampleSentence()), trim(r.note()), e.createdAt(), e.masterVocabularyId())));
-    }
-
-    @Transactional
-    public void delete(Long userId, Long id) { vocabulary.delete(owned(userId, id)); }
-
-    private VocabularyEntry owned(Long userId, Long id) { return vocabulary.findOwned(id, userId).orElseThrow(() -> LearningException.notFound("Vocabulary entry")); }
-
-    private void validateLesson(Long userId, Long lessonId) {
-        if (lessonId == null) return;
-        var l = lessons.findById(lessonId).filter(Lesson::published).orElseThrow(() -> LearningException.notFound("Lesson"));
-        access.requireEnrollment(userId, l.courseId(), false);
-    }
-
-    private static String trim(String value) { return value == null ? null : value.trim(); }
-
-    VocabularyResponse response(VocabularyEntry e) {
-        Lesson l = e.lessonId() == null ? null : lessons.findById(e.lessonId()).orElse(null);
-        Course c = l == null ? null : courses.findById(l.courseId()).orElse(null);
-        var now = clock.instant();
-        var state = reviews.state(e.id()).map(s -> new com.sep490.backend.modules.vocabulary.dto.response.VocabularyReviewStateResponse(
-                s.getRepetitionCount() == 0 ? "LEARNING" : s.getRepetitionCount() >= 3 ? "MASTERED" : "REVIEW",
-                s.getRepetitionCount(), s.getIntervalMinutes(), s.getLastReviewedAt(), s.getNextReviewAt(),
-                !s.getNextReviewAt().isAfter(now))).orElseGet(() ->
-                new com.sep490.backend.modules.vocabulary.dto.response.VocabularyReviewStateResponse("NEW", 0, 0, null, null, true));
-        String audioUrl = e.masterVocabularyId() == null ? null : catalog.findById(e.masterVocabularyId())
-                .filter(w -> w.status() == VocabularyStatus.PUBLISHED).map(VocabularyWord::audioUrl).orElse(null);
-
-        return new VocabularyResponse(
-                e.id(),
-                e.lessonId(),
-                c == null ? null : c.id(),
-                l == null ? null : l.title(),
-                c == null ? null : c.title(),
-                e.word(),
-                e.meaning(),
-                e.pronunciation(),
-                e.exampleSentence(),
-                e.note(),
-                e.createdAt(),
-                e.masterVocabularyId(),
-                audioUrl,
-                state
-        );
+        return java.util.Map.of(
+                "otherPartsOfSpeech", family,
+                "relatedWords", related);
     }
 }

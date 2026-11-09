@@ -2,11 +2,14 @@ package com.sep490.backend.modules.explore.seed;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sep490.backend.modules.explore.destination.dto.request.DestinationRequest;
-import com.sep490.backend.modules.explore.destination.repository.DestinationRepository;
-import com.sep490.backend.modules.explore.destination.service.DestinationService;
+import com.sep490.backend.modules.explore.dto.request.DestinationRequest;
+import com.sep490.backend.modules.explore.repository.DestinationRepository;
+import com.sep490.backend.modules.explore.service.AdminDestinationService;
+
 import jakarta.validation.Validator;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,35 +27,27 @@ public class DestinationDemoSeed {
     private final ObjectMapper objectMapper;
     private final Validator validator;
     private final DestinationRepository repository;
-    private final DestinationService service;
+    private final AdminDestinationService service;
 
     @Transactional
     public SeedResult seed() throws IOException {
         List<DestinationRequest> destinations;
 
-        try (var input = new ClassPathResource(
-                "demo/destinations.json"
-        ).getInputStream()) {
-            destinations = objectMapper.readValue(
-                    input,
-                    new TypeReference<List<DestinationRequest>>() {}
-            );
+        try (var input = new ClassPathResource("demo/destinations.json").getInputStream()) {
+            destinations =
+                    objectMapper.readValue(input, new TypeReference<List<DestinationRequest>>() {});
         }
 
         if (destinations == null || destinations.isEmpty()) {
-            throw new IllegalStateException(
-                    "File dữ liệu điểm đến đang trống."
-            );
+            throw new IllegalStateException("File dữ liệu điểm đến đang trống.");
         }
 
-        // Kiểm tra toàn bộ dữ liệu trước khi bắt đầu lưu.
+        // Kiem tra toan bo du lieu truoc khi bat dau luu.
         var slugs = new HashSet<String>();
 
         for (var destination : destinations) {
             if (destination == null) {
-                throw new IllegalStateException(
-                        "File có điểm đến không hợp lệ."
-                );
+                throw new IllegalStateException("File có điểm đến không hợp lệ.");
             }
 
             var violations = validator.validate(destination);
@@ -62,32 +57,30 @@ public class DestinationDemoSeed {
                         "Dữ liệu điểm đến không hợp lệ: "
                                 + destination.slug()
                                 + " — "
-                                + violations
-                );
+                                + violations);
             }
 
             String slug = normalizeSlug(destination.slug());
 
             if (!slugs.add(slug)) {
-                throw new IllegalStateException(
-                        "Slug bị trùng trong file JSON: " + slug
-                );
+                throw new IllegalStateException("Slug bị trùng trong file JSON: " + slug);
             }
         }
 
         int created = 0;
         int updated = 0;
-        var existingBySlug = repository.search(null, null, null).stream()
-                .collect(Collectors.toMap(
-                        item -> normalizeSlug(item.slug()),
-                        item -> item.id()
-                ));
+        var existingBySlug =
+                repository.search(null, null, null).stream()
+                        .collect(
+                                Collectors.toMap(
+                                        item -> normalizeSlug(item.getSlug()),
+                                        item -> item.getId()));
 
         for (var destination : destinations) {
             String slug = normalizeSlug(destination.slug());
 
-            // JSON là nguồn dữ liệu cho các slug có trong file.
-            // Cập nhật tại chỗ để giữ ID và các liên kết hiện có.
+            // JSON la nguon du lieu cho cac slug co trong file.
+            // Cap nhat tai cho de giu ID va cac lien ket hien co.
             Long existingId = existingBySlug.get(slug);
             if (existingId != null) {
                 service.update(existingId, destination);

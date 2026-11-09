@@ -1,59 +1,49 @@
-
 package com.sep490.backend.modules.vocabulary.dto.response;
 
+import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus;
+
 import java.time.Instant;
+import java.util.List;
 
 public record VocabularyResponse(
         Long id,
-        Long lessonId,
-        Long courseId,
-        String lessonTitle,
-        String courseTitle,
         String word,
-        String meaning,
         String pronunciation,
-        String exampleSentence,
-        String note,
-        Instant createdAt,
-        Long masterVocabularyId,
+        String partOfSpeech,
         String audioUrl,
-        VocabularyReviewStateResponse review
-) {
+        VocabularyStatus status,
+        Instant publishedAt,
+        Instant archivedAt,
+        List<VocabularyMeaningResponse> meanings,
+        Instant createdAt,
+        Instant updatedAt,
+        DictionaryMetadata.Source source,
+        DictionaryMetadata.Lexical lexical) {
     public VocabularyResponse(
             Long id,
-            Long lessonId,
-            Long courseId,
-            String lessonTitle,
-            String courseTitle,
             String word,
-            String meaning,
             String pronunciation,
-            String exampleSentence,
-            String note,
-            Instant createdAt
-    ) {
+            String partOfSpeech,
+            String audioUrl,
+            VocabularyStatus status,
+            Instant publishedAt,
+            Instant archivedAt,
+            List<VocabularyMeaningResponse> meanings,
+            Instant createdAt,
+            Instant updatedAt) {
         this(
                 id,
-                lessonId,
-                courseId,
-                lessonTitle,
-                courseTitle,
                 word,
-                meaning,
                 pronunciation,
-                exampleSentence,
-                note,
+                partOfSpeech,
+                audioUrl,
+                status,
+                publishedAt,
+                archivedAt,
+                meanings,
                 createdAt,
+                updatedAt,
                 null,
-                null,
-                null
-        );
-    }
-
-    public VocabularyResponse(Long id, Long lessonId, Long courseId, String lessonTitle, String courseTitle,
-            String word, String meaning, String pronunciation, String exampleSentence, String note,
-            Instant createdAt, Long masterVocabularyId) {
-        this(id, lessonId, courseId, lessonTitle, courseTitle, word, meaning, pronunciation,
-                exampleSentence, note, createdAt, masterVocabularyId, null, null);
+                null);
     }
 }

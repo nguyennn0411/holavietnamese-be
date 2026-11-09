@@ -1,26 +1,19 @@
-
 package com.sep490.backend.modules.vocabulary.dto.request;
 
-import jakarta.validation.constraints.*;
+import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
+
+import java.util.List;
 
 public record VocabularyRequest(
-        @Positive Long lessonId,
         @NotBlank @Size(max = 200) String word,
-        @NotBlank @Size(max = 1000) String meaning,
         @Size(max = 200) String pronunciation,
-        @Size(max = 2000) String exampleSentence,
-        @Size(max = 2000) String note,
-        @Positive Long masterVocabularyId
-) {
-    public VocabularyRequest(
-            Long lessonId,
-            String word,
-            String meaning,
-            String pronunciation,
-            String exampleSentence,
-            String note
-    ) {
-        this(lessonId, word, meaning, pronunciation,
-                exampleSentence, note, null);
-    }
-}
+        @NotBlank @Size(max = 40) String partOfSpeech,
+        @Size(max = 2048) String audioUrl,
+        VocabularyStatus status,
+        @Valid @NotEmpty
+                List<@jakarta.validation.constraints.NotNull VocabularyMeaningRequest> meanings) {}
