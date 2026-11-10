@@ -1,0 +1,25 @@
+package com.sep490.backend.modules.ai.repository;
+
+import com.sep490.backend.modules.ai.entity.AiSession;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface AiSessionRepository extends JpaRepository<AiSession, String> {
+    List<AiSession> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<AiSession> findByUserIdAndModeOrderByCreatedAtDesc(Long userId, String mode);
+    Optional<AiSession> findByIdAndUserId(String id, Long userId);
+    long countByUserIdAndCreatedAtAfter(Long userId, LocalDateTime after);
+    long countByUserIdAndStatus(Long userId, String status);
+
+    @Modifying
+    @Query("UPDATE AiSession s SET s.scenario = null WHERE s.scenario.id = :scenarioId")
+    void clearScenarioReference(@Param("scenarioId") String scenarioId);
+}

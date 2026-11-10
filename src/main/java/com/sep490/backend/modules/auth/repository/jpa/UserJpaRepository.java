@@ -1,0 +1,6 @@
+package com.sep490.backend.modules.auth.repository.jpa;
+
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.sep490.backend.modules.auth.entity.User;
+public interface UserJpaRepository extends JpaRepository<User, Long> { Optional<User> findByEmail(String email); }

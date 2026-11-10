@@ -1,11 +1,11 @@
 package com.sep490.backend;
 
-
 import com.fasterxml.jackson.databind.*;
-import com.sep490.backend.config.LearnerPrincipal;
-import com.sep490.backend.service.*;
-import com.sep490.backend.dto.model.LearningProgress;
-import com.sep490.backend.exception.LearningException;
+import com.sep490.backend.common.security.LearnerPrincipal;
+import com.sep490.backend.modules.learning.course.application.CourseService;
+import com.sep490.backend.modules.learning.lesson.application.LessonService;
+import com.sep490.backend.modules.learning.progress.domain.model.LearningProgress;
+import com.sep490.backend.common.exception.LearningException;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -44,7 +44,7 @@ class LearnerFeaturesIntegrationTests {
             if (!url.startsWith("jdbc:h2:mem:hola-tests") && !url.matches("jdbc:mysql://[^/]+/hola_features_test(\\?.*)?") && !isolatedSqlServer)
                 throw new IllegalStateException("Integration tests require the isolated hola_features_test database.");
         }
-        for (String table : List.of("exercise_options", "exercises", "sentence_drills", "dialogue_lines", "dialogues", "course_vocabulary", "lesson_blocks", "vocabulary_entries", "lesson_progress", "enrollments", "lessons", "course_units", "courses", "users_roles", "users"))
+        for (String table : List.of("exercise_options", "exercises", "sentence_drills", "dialogue_lines", "dialogues", "course_vocabulary", "lesson_blocks", "vocabulary_entries", "lesson_progress", "enrollments", "lessons", "course_units", "courses", "users"))
             jdbc.update("delete from " + table);
         fixtureInsert("users", "insert into users(id,username,email,password_hash) values(1,?,?,?)", "learner@example.test", "learner@example.test", passwords.encode("Test-password-123"));
         fixtureInsert("users", "insert into users(id,username,email,password_hash) values(2,?,?,?)", "other@example.test", "other@example.test", passwords.encode("Other-password-123"));
@@ -115,6 +115,8 @@ class LearnerFeaturesIntegrationTests {
     @Test void lessonNavigationAndProgressPersistAndCompletionIsIdempotent() throws Exception {
         enroll();
         mvc.perform(get("/api/courses/10/lessons").with(user(learner))).andExpect(jsonPath("$.length()").value(3)).andExpect(jsonPath("$[0].learningStatus").value("NOT_STARTED"));
+        mvc.perform(post("/api/lessons/102/start").with(user(learner)).with(csrf()))
+            .andExpect(status().isForbidden());
         mvc.perform(post("/api/lessons/101/start").with(user(learner)).with(csrf())).andExpect(jsonPath("$.learningStatus").value("IN_PROGRESS")).andExpect(jsonPath("$.nextLessonId").value(102)).andExpect(jsonPath("$.previousLessonId").isEmpty());
         var first = complete(101).andExpect(jsonPath("$.learningStatus").value("COMPLETED")).andReturn();
         var timestamp = json.readTree(first.getResponse().getContentAsString()).get("completedAt").asText();
@@ -164,6 +166,27 @@ class LearnerFeaturesIntegrationTests {
         mvc.perform(delete("/api/me/vocabulary/" + id).with(user(learner)).with(csrf())).andExpect(status().isNoContent());
         mvc.perform(get("/api/me/vocabulary/" + id).with(user(learner))).andExpect(status().isNotFound());
     }
+    @Test void vocabularyMasteryReadsTheSeparateReviewStateTable() throws Exception {
+        var saved = mvc.perform(post("/api/me/vocabulary").with(user(learner)).with(csrf())
+                        .contentType("application/json").content(vocabulary(null, "Reviewed word")))
+                .andExpect(status().isCreated()).andReturn();
+        long id = json.readTree(saved.getResponse().getContentAsString()).get("id").asLong();
+        jdbc.update("""
+                INSERT INTO vocabulary_review_states(
+                    vocabulary_entry_id,repetition_count,interval_minutes,ease_factor,lapse_count,next_review_at)
+                VALUES(?,3,1440,2.50,0,CURRENT_TIMESTAMP)
+                """, id);
+
+        mvc.perform(get("/api/learner/vocabulary/mastery").with(user(learner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.totalWords").value(1))
+                .andExpect(jsonPath("$.result.masteredWords").value(1))
+                .andExpect(jsonPath("$.result.learningWords").value(0))
+                .andExpect(jsonPath("$.result.words[0].vi").value("Reviewed word"))
+                .andExpect(jsonPath("$.result.words[0].pronunciation").exists())
+                .andExpect(jsonPath("$.result.words[0].masteryLevel").value(3))
+                .andExpect(jsonPath("$.result.words[0].reviewCount").value(3));
+    }
     @Test void vocabularyValidationAndLessonAccessAreEnforced() throws Exception {
         mvc.perform(post("/api/me/vocabulary").with(user(learner)).with(csrf()).contentType("application/json").content(vocabulary(null, " "))).andExpect(status().isBadRequest());
         mvc.perform(post("/api/me/vocabulary").with(user(learner)).with(csrf()).contentType("application/json").content(vocabulary(null, "x".repeat(201)))).andExpect(status().isBadRequest());
@@ -175,10 +198,12 @@ class LearnerFeaturesIntegrationTests {
         try (var pool = Executors.newFixedThreadPool(3)) {
             var tasks = List.<Callable<Void>>of(
                 () -> { completeUseCase.complete(1L, 101L); return null; },
-                () -> { completeUseCase.complete(1L, 102L); return null; },
-                () -> { completeUseCase.complete(1L, 103L); return null; });
+                () -> { completeUseCase.complete(1L, 101L); return null; },
+                () -> { completeUseCase.complete(1L, 101L); return null; });
             for (var future : pool.invokeAll(tasks)) future.get(10, TimeUnit.SECONDS);
         }
+        completeUseCase.complete(1L, 102L);
+        completeUseCase.complete(1L, 103L);
         mvc.perform(get("/api/me/courses/10/progress").with(user(learner))).andExpect(jsonPath("$.completedLessons").value(3)).andExpect(jsonPath("$.status").value("COMPLETED"));
     }
     @Test void concurrentEnrollmentsCreateOnlyOneRow() throws Exception {

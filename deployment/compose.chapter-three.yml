@@ -1,4 +1,0 @@
-services:
-  backend:
-    environment:
-      APP_CHAPTERTHREE_SEED_ENABLED: "true"

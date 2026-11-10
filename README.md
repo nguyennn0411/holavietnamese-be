@@ -1,47 +1,45 @@
 # Hola Vietnamese Backend
 
-Backend Spring Boot được tổ chức theo monolith phân lớp, sử dụng MySQL 8.4 và Flyway. Frontend là ứng dụng React riêng trong `FE/holavietnamese_fe`.
+Backend Spring Boot được tổ chức theo modular monolith/package-by-feature, sử dụng MySQL 8.4 và Flyway. Frontend là ứng dụng React riêng trong `FE/holavietnamese_fe`.
 
-Các chức năng course/activity/grammar/question bank/quiz được xếp theo lớp dùng chung: endpoint trong `controller`, nghiệp vụ trong `service`, DTO trong `dto` và dữ liệu mẫu trong `seed`.
+Các chức năng course, lesson, grammar, quiz, progress và import nằm trong các capability riêng của module `learning`.
 Các lesson đã xuất bản được học theo thứ tự tùy ý sau khi đăng ký course; bài tiên quyết không còn khóa truy cập. Điều kiện hoàn thành activity, quiz và course vẫn được kiểm tra khi ghi nhận tiến độ.
-Chạy dữ liệu demo tùy chọn bằng `./scripts/dev/start-demo.ps1`.
 
 ## Cấu trúc
 
 ```text
 BE/
-├── deployment/         # Dockerfile và các Docker Compose overlay
-├── docs/               # Tài liệu kiến trúc, dữ liệu mẫu và hướng dẫn tính năng
+├── deployment/         # Dockerfile và Docker Compose cho ứng dụng
+├── docs/               # Tài liệu kiến trúc và hướng dẫn tính năng
 ├── scripts/
 │   ├── dev/            # Script khởi động, dừng và kiểm thử môi trường local
-│   └── ...             # Script tạo/import nội dung học tập
+│   └── ...             # Import MSU và tiện ích media
 ├── src/                 # Source code và test của Spring Boot
 ├── pom.xml
 └── README.md
 
 src/main/java/com/sep490/backend/
 ├── BackendApplication.java
-├── controller/          # REST endpoints
-├── service/             # Nghiệp vụ và transaction
-│   └── importing/       # Đọc và kiểm tra workbook Excel
-├── repository/          # Truy vấn, lưu dữ liệu và khóa đồng thời
-│   └── jpa/             # Spring Data JPA repositories
-├── entity/              # JPA entities, giữ nguyên mapping bảng
-│   └── enums/
-├── dto/
-│   ├── request/
-│   ├── response/        # Response DTO; response học tập nằm trong response/learning
-│   ├── model/           # Snapshot dữ liệu và tính toán tiến độ
-│   └── courseimport/    # Dữ liệu và hợp đồng workbook
-├── seed/                # Seed runner và dữ liệu khóa học mẫu
-├── mapper/              # Chuyển JPA entity sang model
-├── config/              # Security, principal và cấu hình Spring
-└── exception/           # Exception và REST error handler
+├── common/              # Hợp đồng và hạ tầng dùng chung
+└── modules/
+    ├── admin/           # Quản trị hệ thống, CMS và media
+    ├── ai/              # AI tutor, roleplay và provider
+    ├── auth/            # Xác thực, người dùng và phân quyền
+    ├── explore/         # Điểm đến và ngôn ngữ vùng miền
+    ├── learning/
+    │   ├── authoring/   # Content Manager và workflow duyệt nội dung
+    │   ├── course/      # Khóa học và đăng ký học
+    │   ├── grammar/     # Nội dung ngữ pháp
+    │   ├── importing/   # Import Excel và website
+    │   ├── lesson/      # Bài học và activity
+    │   ├── path/        # Lộ trình cá nhân hóa
+    │   ├── progress/    # Tiến độ, XP và thành tích
+    │   ├── quiz/        # Question bank, quiz và attempt
+    │   └── shared/      # Thành phần dùng chung nội bộ learning
+    └── vocabulary/      # Từ điển, sổ tay và ôn tập
 ```
 
-Controller gọi service trực tiếp. Service gọi repository; các repository dùng Spring Data JPA hoặc JDBC.
-Không còn lớp port/use-case interface và persistence adapter của cấu trúc cũ.
-Các model bất biến và mapper được giữ để bảo toàn hành vi, không trả JPA entity trực tiếp qua API.
+Mỗi module sở hữu controller, application service, domain và persistence của mình. Các port hẹp được dùng khi một module cần dữ liệu từ module khác.
 Transaction, phân quyền và URL API được giữ nguyên. Flyway dùng migration MySQL trong `src/main/resources/db/migration`.
 
 ## Chạy và kiểm thử
@@ -57,7 +55,6 @@ Yêu cầu Java 21 và Maven. Cache dependency dùng mặc định `%USERPROFILE
 
 ## Tài liệu
 
-- [DEMO_DATA.md](docs/DEMO_DATA.md): nạp lại toàn bộ dữ liệu nội dung/demo từ nhánh backup trên máy của nhóm.
 - [MSU_OPENBOOKS_CONTENT.md](MSU_OPENBOOKS_CONTENT.md): tái tạo 22 khóa học mẫu Basic/Advanced Vietnamese từ dữ liệu nguồn đã commit.
 - [INTEGRATION_DEMO.md](docs/INTEGRATION_DEMO.md): luồng Khám phá Việt Nam hiện tại và lưu ý đối chiếu lịch sử migration.
 

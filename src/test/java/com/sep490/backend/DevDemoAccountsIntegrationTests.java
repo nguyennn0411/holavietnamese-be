@@ -4,10 +4,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sep490.backend.service.ContentStore;
+import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest(properties = "APP_DEMO_PASSWORD=LongTestPass123")
 @AutoConfigureMockMvc
 @ActiveProfiles({"mysql-test", "dev-demo"})
+@EnabledIfEnvironmentVariable(named = "RUN_MYSQL_TESTS", matches = "true")
 class DevDemoAccountsIntegrationTests {
   private static final String DEMO_PASSWORD = "LongTestPass123";
 
@@ -31,7 +33,7 @@ class DevDemoAccountsIntegrationTests {
   void seededAccountsAuthenticateWithTheirOwnRoles() throws Exception {
     String manager = token("contentmanager", DEMO_PASSWORD);
     mvc.perform(get("/api/me/session").header("Authorization", manager))
-        .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("CONTENT_MANAGER"));
+        .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("CONTENT"));
     mvc.perform(get("/api/admin/courses").header("Authorization", manager))
         .andExpect(status().isOk());
     mvc.perform(get("/api/admin/users").header("Authorization", manager))
@@ -49,13 +51,13 @@ class DevDemoAccountsIntegrationTests {
     String name = "new-manager-" + UUID.randomUUID();
     long id = db.insert("INSERT INTO users(email,username,password_hash,enabled,status,role) VALUES(?,?,?,true,'ACTIVE','LEARNER')",
         name + "@test.local", name, passwords.encode("Test-pass123"));
-    mvc.perform(put("/api/admin/users/" + id + "/roles")
+    mvc.perform(put("/api/admin/users/" + id + "/role")
         .header("Authorization", token("admin", DEMO_PASSWORD))
-        .contentType(MediaType.APPLICATION_JSON).content("[\"CONTENT_MANAGER\"]"))
+        .contentType(MediaType.APPLICATION_JSON).content("{\"role\":\"CONTENT\"}"))
         .andExpect(status().isOk());
     String manager = token(name, "Test-pass123");
     mvc.perform(get("/api/me/session").header("Authorization", manager))
-        .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("CONTENT_MANAGER"));
+        .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("CONTENT"));
     mvc.perform(get("/api/admin/courses").header("Authorization", manager))
         .andExpect(status().isOk());
   }

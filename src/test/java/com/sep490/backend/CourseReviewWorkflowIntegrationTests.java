@@ -6,11 +6,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sep490.backend.config.LearnerPrincipal;
-import com.sep490.backend.service.CourseContentService;
-import com.sep490.backend.service.CourseReviewService;
-import com.sep490.backend.dto.request.ContentRequests;
-import com.sep490.backend.service.ContentStore;
+import com.sep490.backend.common.security.LearnerPrincipal;
+import com.sep490.backend.modules.learning.authoring.application.CourseContentService;
+import com.sep490.backend.modules.learning.authoring.application.CourseReviewService;
+import com.sep490.backend.modules.learning.authoring.web.dto.ContentRequests;
+import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,9 +39,9 @@ class CourseReviewWorkflowIntegrationTests {
 
   @BeforeEach
   void setup() {
-    managerId=user("manager","CONTENT_MANAGER"); otherManagerId=user("other-manager","CONTENT_MANAGER"); adminId=user("review-admin","ADMIN");
-    manager=new LearnerPrincipal(managerId,"manager@test","",true,"CONTENT_MANAGER");
-    otherManager=new LearnerPrincipal(otherManagerId,"other@test","",true,"CONTENT_MANAGER");
+    managerId=user("manager","CONTENT"); otherManagerId=user("other-manager","CONTENT"); adminId=user("review-admin","ADMIN");
+    manager=new LearnerPrincipal(managerId,"manager@test","",true,"CONTENT");
+    otherManager=new LearnerPrincipal(otherManagerId,"other@test","",true,"CONTENT");
     admin=new LearnerPrincipal(adminId,"admin@test","",true,"ADMIN");
     learner=new LearnerPrincipal(user("learner","LEARNER"),"learner@test","",true,"LEARNER");
   }
@@ -102,6 +102,29 @@ class CourseReviewWorkflowIntegrationTests {
   }
 
   @Test
+  void contentManagerAuthorsCourseContentWhileAdminRemainsReviewOnly() throws Exception {
+    mvc.perform(post("/api/admin/courses").with(actor(admin)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content(courseJson("admin-must-not-author")))
+        .andExpect(status().isForbidden());
+
+    String questionBody = "{\"questionType\":\"MULTIPLE_CHOICE\",\"promptEn\":\"Choose hello\","
+        + "\"difficulty\":\"EASY\",\"status\":\"PUBLISHED\","
+        + "\"options\":[{\"id\":\"a\",\"text\":\"Hello\"},{\"id\":\"b\",\"text\":\"Goodbye\"}],"
+        + "\"correctAnswerJson\":{\"optionIds\":[\"a\"]}}";
+    long question = json.readTree(mvc.perform(post("/api/admin/questions")
+        .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+        .content(questionBody)).andExpect(status().isOk()).andReturn()
+        .getResponse().getContentAsString()).path("id").asLong();
+
+    mvc.perform(put("/api/admin/questions/" + question).with(actor(admin)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content(questionBody))
+        .andExpect(status().isForbidden());
+    mvc.perform(put("/api/admin/questions/" + question).with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content(questionBody))
+        .andExpect(status().isOk());
+  }
+
+  @Test
   void managerCanSeePublishedCatalogCoursesWithoutEditingThem() throws Exception {
     long ownDraft=courses.create(request("own-draft"),managerId);
     long published=courses.create(request("published-catalog"),adminId);
@@ -136,6 +159,78 @@ class CourseReviewWorkflowIntegrationTests {
     mvc.perform(delete("/api/admin/courses/"+course).with(actor(manager)).with(csrf()))
         .andExpect(status().isOk());
     assertThat(db.one("SELECT status FROM courses WHERE id=?",course)).containsEntry("status","ARCHIVED");
+  }
+
+  @Test
+  void publishedCourseRequiresAdminApprovalBeforeManagerCanEditAgain() throws Exception {
+    long course=courses.create(request("published-edit-flow"),managerId);
+    long module=courses.addModule(course,new ContentRequests.Module("Module","Description"));
+    long lesson=courses.addLesson(module,new ContentRequests.Lesson("L3","lesson-three","Lesson three","Description","NORMAL",10,List.of()));
+    finishCourse(course,lesson);
+    workflow.submit(course,manager);
+    workflow.review(course,"APPROVE","Ready to publish.",admin);
+
+    mvc.perform(put("/api/admin/courses/"+course).with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content(courseJson("published-edit-flow")))
+        .andExpect(status().isConflict());
+    mvc.perform(post("/api/admin/courses/"+course+"/edit-request").with(actor(otherManager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"Update lesson content\"}"))
+        .andExpect(status().isForbidden());
+
+    mvc.perform(post("/api/admin/courses/"+course+"/edit-request").with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"Update lesson content and final quiz\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("PUBLISHED"))
+        .andExpect(jsonPath("$.editRequestStatus").value("PENDING"));
+    mvc.perform(get("/api/courses/"+course)).andExpect(status().isOk());
+    mvc.perform(post("/api/admin/courses/"+course+"/edit-request").with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"Duplicate request\"}"))
+        .andExpect(status().isConflict());
+    mvc.perform(post("/api/admin/courses/"+course+"/edit-request/review").with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content("{\"decision\":\"APPROVE\"}"))
+        .andExpect(status().isForbidden());
+
+    mvc.perform(post("/api/admin/courses/"+course+"/edit-request/review").with(actor(admin)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content("{\"decision\":\"APPROVE\",\"note\":\"Approved for revision.\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("DRAFT"))
+        .andExpect(jsonPath("$.editRequestStatus").value("APPROVED"));
+    mvc.perform(get("/api/courses/"+course)).andExpect(status().isNotFound());
+    mvc.perform(put("/api/admin/courses/"+course).with(actor(manager)).with(csrf())
+        .contentType(MediaType.APPLICATION_JSON).content(courseJson("published-edit-flow")))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void successfulCourseChangesRecordActorActionAndTime() throws Exception {
+    long course = createCourse(manager, "audited-course");
+
+    assertThat(db.one(
+        "SELECT admin_username,action,target,created_at FROM audit_logs"
+            + " WHERE action='CREATE_COURSE' ORDER BY id DESC LIMIT 1"))
+        .containsEntry("adminUsername", "manager@test")
+        .containsEntry("action", "CREATE_COURSE")
+        .containsEntry("target", "/api/admin/courses")
+        .containsKey("createdAt");
+
+    mvc.perform(put("/api/admin/courses/" + course).with(actor(manager)).with(csrf())
+            .contentType(MediaType.APPLICATION_JSON).content(courseJson("audited-course")))
+        .andExpect(status().isOk());
+
+    assertThat(db.one(
+        "SELECT admin_username,action,target,created_at FROM audit_logs"
+            + " WHERE action='UPDATE_COURSE' ORDER BY id DESC LIMIT 1"))
+        .containsEntry("adminUsername", "manager@test")
+        .containsEntry("action", "UPDATE_COURSE")
+        .containsEntry("target", "/api/admin/courses/" + course)
+        .containsKey("createdAt");
+
+    mvc.perform(get("/api/admin/audit-logs").with(actor(admin)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.result[0].adminUsername").value("manager@test"))
+        .andExpect(jsonPath("$.result[0].action").value("UPDATE_COURSE"))
+        .andExpect(jsonPath("$.result[0].createdAt").isNotEmpty())
+        .andExpect(jsonPath("$.result[0].status").value("SUCCESS"));
   }
 
   private long createCourse(LearnerPrincipal actor,String slug) throws Exception {

@@ -16,6 +16,7 @@ spring:
       hibernate.jdbc.time_zone: UTC
   flyway:
     enabled: true
+    locations: classpath:db/migration,classpath:db/migration-vendor/{vendor}
 
 server:
   port: 0
@@ -31,6 +32,9 @@ google:
 app:
   mail:
     enabled: false
+  notification:
+    test-endpoint-enabled: true
+    cleanup-cron: "-"
   destination:
     seed:
       enabled: false

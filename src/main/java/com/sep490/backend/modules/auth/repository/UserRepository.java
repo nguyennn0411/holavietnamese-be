@@ -1,0 +1,52 @@
+package com.sep490.backend.modules.auth.repository;
+
+import com.sep490.backend.modules.auth.entity.User;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+import java.util.List;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT u FROM User u WHERE u.id = :id")
+    Optional<User> findByIdForUpdate(@Param("id") Long id);
+
+    @Query("SELECT u FROM User u " +
+           "WHERE (u.username = :usernameOrEmail OR u.email = :usernameOrEmail) AND u.isRemoved = false")
+    Optional<User> findActiveByUsernameWithRoles(@Param("usernameOrEmail") String usernameOrEmail);
+
+    @Query("SELECT u FROM User u " +
+           "WHERE (u.username = :usernameOrEmail OR u.email = :usernameOrEmail) " +
+           "AND u.isRemoved = false AND u.enabled = true AND UPPER(u.status) = 'ACTIVE'")
+    Optional<User> findEnabledActiveByUsernameWithRoles(@Param("usernameOrEmail") String usernameOrEmail);
+
+    Optional<User> findByUsername(String username);
+
+    @Query("SELECT u FROM User u " +
+           "WHERE u.email = :email AND u.isRemoved = false")
+    Optional<User> findActiveByEmailWithRoles(@Param("email") String email);
+
+    Optional<User> findByEmail(String email);
+
+    Optional<User> findByEmailVerificationToken(String emailVerificationToken);
+
+    boolean existsByUsername(String username);
+
+    boolean existsByEmail(String email);
+
+    @Query("SELECT u FROM User u " +
+           "WHERE u.isRemoved = false AND u.enabled = true AND UPPER(u.status) = 'ACTIVE' " +
+           "AND UPPER(u.role) = UPPER(:role)")
+    List<User> findActiveUsersByRole(@Param("role") String role);
+
+    @Query("SELECT u FROM User u WHERE u.isRemoved = false AND u.enabled = true " +
+           "AND UPPER(u.status) = 'ACTIVE'")
+    List<User> findAllActiveUsers();
+}

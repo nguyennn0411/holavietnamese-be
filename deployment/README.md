@@ -1,6 +1,6 @@
 # Deployment files
 
-Thư mục này chứa `Dockerfile`, Compose chính và các overlay theo từng bộ dữ liệu.
+Thư mục này chứa `Dockerfile`, Compose chính và overlay tài khoản demo cho môi trường phát triển.
 Chạy lệnh từ thư mục gốc `BE`, ví dụ:
 
 ```powershell

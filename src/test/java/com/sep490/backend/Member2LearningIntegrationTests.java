@@ -6,20 +6,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.*;
-import com.sep490.backend.config.LearnerPrincipal;
-import com.sep490.backend.controller.ContentDeletionController;
-import com.sep490.backend.service.CourseContentService;
-import com.sep490.backend.service.ActivityService;
-import com.sep490.backend.service.ActivityProgressService;
-import com.sep490.backend.service.*;
-import com.sep490.backend.dto.request.ContentRequests;
-import com.sep490.backend.dto.response.learning.PageResponse;
-import com.sep490.backend.exception.ContentException;
-import com.sep490.backend.service.ContentList;
-import com.sep490.backend.service.ContentRules;
-import com.sep490.backend.service.ContentStore;
-import com.sep490.backend.service.CourseService;
-import com.sep490.backend.service.LessonService;
+import com.sep490.backend.common.security.LearnerPrincipal;
+import com.sep490.backend.modules.learning.authoring.web.ContentDeletionController;
+import com.sep490.backend.modules.learning.authoring.application.CourseContentService;
+import com.sep490.backend.modules.learning.authoring.application.ActivityService;
+import com.sep490.backend.modules.learning.lesson.application.ActivityProgressService;
+import com.sep490.backend.modules.learning.course.application.CourseService;
+import com.sep490.backend.modules.learning.grammar.application.GrammarService;
+import com.sep490.backend.modules.learning.lesson.application.LessonService;
+import com.sep490.backend.modules.learning.quiz.application.QuestionBankService;
+import com.sep490.backend.modules.learning.quiz.application.QuizService;
+import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
+import com.sep490.backend.modules.learning.authoring.web.dto.ContentRequests;
+import com.sep490.backend.common.exception.ContentException;
 import java.math.BigDecimal;
 import java.util.*;
 import org.junit.jupiter.api.*;
@@ -44,7 +43,7 @@ class Member2LearningIntegrationTests {
   @Autowired LessonService legacy;
   @Autowired MockMvc mvc;
   @Autowired ContentDeletionController deletion;
-  @Autowired com.sep490.backend.service.GrammarService grammar;
+  @Autowired com.sep490.backend.modules.learning.grammar.application.GrammarService grammar;
   long user, other, course, module, lesson, next, text, quizActivity, question, quiz;
   LearnerPrincipal principal;
 
@@ -204,12 +203,27 @@ class Member2LearningIntegrationTests {
   }
 
   @Test
-  void lessonsCanBeStudiedOutOfOrderWithoutCompletingPrerequisites() throws Exception {
+  void lessonsRequireAllPreviousLessonsToBeCompleted() throws Exception {
+    mvc.perform(get("/api/courses/" + course).with(user(principal)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.modules[0].lessons[1].isLocked").value(true));
+    mvc.perform(get("/api/lessons/" + next).with(user(principal)))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value("LESSON_LOCKED"));
+    assertThatThrownBy(() -> progress.startLesson(user, next))
+        .isInstanceOf(ContentException.class)
+        .hasMessageContaining("prerequisite");
+
+    activities.interact(user, text, null, true);
+    long quizAttempt = start();
+    quizzes.save(user, quizAttempt, question, answer("a"));
+    quizzes.submit(user, quizAttempt);
+    assertThat(progress.lessonProgress(user, lesson).get("completed")).isEqualTo(true);
+
     mvc.perform(get("/api/courses/" + course).with(user(principal)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.modules[0].lessons[1].isLocked").value(false));
-    mvc.perform(get("/api/lessons/" + next).with(user(principal)))
-        .andExpect(status().isOk());
+    mvc.perform(get("/api/lessons/" + next).with(user(principal))).andExpect(status().isOk());
     progress.startLesson(user, next);
     legacy.start(user, next);
     assertThat(activities.lesson(next, user, false)).containsEntry("id", next);
@@ -217,9 +231,8 @@ class Member2LearningIntegrationTests {
     assertThat(activities.interact(user, nextActivity, null, true).get("activityCompleted"))
         .isEqualTo(true);
     assertThat(progress.lessonProgress(user, next).get("completed")).isEqualTo(true);
-    assertThat(progress.lessonProgress(user, lesson).get("completed")).isEqualTo(false);
-    assertThat(progress.courseProgress(user, course).get("completedLessons")).isEqualTo(1L);
-    assertThat(progress.courseProgress(user, course).get("status")).isEqualTo("IN_PROGRESS");
+    assertThat(progress.courseProgress(user, course).get("completedLessons")).isEqualTo(2L);
+    assertThat(progress.courseProgress(user, course).get("status")).isEqualTo("COMPLETED");
   }
 
   @Test
@@ -447,6 +460,55 @@ class Member2LearningIntegrationTests {
                 "SELECT count(*) FROM learning_events WHERE user_id=? AND"
                     + " event_type='COURSE_COMPLETED'",
                 user))
+        .isEqualTo(1);
+  }
+
+  @Test
+  void passingFinalAssessmentAfterAllLessonsCompletesCourseAndRecordsEvent() {
+    long finalQuiz =
+        quizzes.create(
+            new ContentRequests.Quiz(
+                "Final Assessment",
+                "Course final assessment",
+                "COURSE",
+                course,
+                null,
+                BigDecimal.valueOf(70),
+                10,
+                2,
+                false));
+    quizzes.addQuestion(finalQuiz, new ContentRequests.QuizQuestion(question, BigDecimal.TEN));
+    quizzes.status(finalQuiz, "PUBLISHED");
+    courses.setFinalAssessment(course, finalQuiz);
+
+    activities.interact(user, text, null, true);
+    long lessonQuizAttempt = start();
+    quizzes.save(user, lessonQuizAttempt, question, answer("a"));
+    quizzes.submit(user, lessonQuizAttempt);
+    long nextActivity = db.count("SELECT id FROM lesson_activities WHERE lesson_id=?", next);
+    activities.interact(user, nextActivity, null, true);
+
+    assertThat(progress.courseProgress(user, course).get("status"))
+        .isNotEqualTo("COMPLETED");
+    assertThat(
+            db.count(
+                "SELECT count(*) FROM learning_events WHERE user_id=? AND entity_id=?"
+                    + " AND event_type='COURSE_COMPLETED'",
+                user,
+                course))
+        .isZero();
+
+    long finalAttempt = ((Number) quizzes.start(user, finalQuiz).get("id")).longValue();
+    quizzes.save(user, finalAttempt, question, answer("a"));
+    quizzes.submit(user, finalAttempt);
+
+    assertThat(progress.courseProgress(user, course).get("status")).isEqualTo("COMPLETED");
+    assertThat(
+            db.count(
+                "SELECT count(*) FROM learning_events WHERE user_id=? AND entity_id=?"
+                    + " AND event_type='COURSE_COMPLETED'",
+                user,
+                course))
         .isEqualTo(1);
   }
 
