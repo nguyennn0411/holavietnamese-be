@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,9 @@ public class AuthenticationService {
     PasswordEncoder passwordEncoder;
     EmailService emailService;
     NotificationPort notifications;
+    @NonFinal
+    @Autowired(required = false)
+    PasswordPolicyValidator passwordPolicyValidator = new PasswordPolicyValidator();
 
     Set<String> invalidatedTokens = Collections.newSetFromMap(new ConcurrentHashMap<>());
     Map<String, Instant> userRoleChangedAt = new ConcurrentHashMap<>();
@@ -338,6 +342,8 @@ public class AuthenticationService {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        passwordPolicyValidator.validate(request.getNewPassword(), user.getUsername(), user.getEmail());
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         user.setResetPasswordOtp(null);

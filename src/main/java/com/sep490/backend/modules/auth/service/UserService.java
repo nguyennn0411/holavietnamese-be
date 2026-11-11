@@ -43,6 +43,7 @@ public class UserService {
     AuthenticationService authenticationService;
     CloudinarySignatureService cloudinarySignatureService;
     NotificationPort notifications;
+    PasswordPolicyValidator passwordPolicyValidator;
 
     /**
      * Public registration has no role input: every newly created account is a
@@ -56,6 +57,8 @@ public class UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(ErrorCode.EMAIL_EXISTED);
         }
+
+        passwordPolicyValidator.validate(request.getPassword(), request.getUsername(), request.getEmail());
 
         User user = new User();
         user.setUsername(request.getUsername().trim());
