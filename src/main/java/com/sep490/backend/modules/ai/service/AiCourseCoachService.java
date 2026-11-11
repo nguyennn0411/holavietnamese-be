@@ -292,9 +292,9 @@ public class AiCourseCoachService {
 
     private String sanitize(String text) {
         if (text == null) return "";
-        return text.replaceAll("(?s)\\n*\\[(?:Language rule|Quy tắc ngôn ngữ):.*\\]\\s*$", "")
-                .trim()
-                .substring(0, Math.min(text.trim().length(), 2000));
+        String cleaned = text.replaceAll("(?s)\\n*\\[(?:Language rule|Quy tắc ngôn ngữ):.*\\]\\s*$", "")
+                .trim();
+        return cleaned.substring(0, Math.min(cleaned.length(), 2000));
     }
 
     private String truncate(String s, int max) {
