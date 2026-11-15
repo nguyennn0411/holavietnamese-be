@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 import com.sep490.backend.common.exception.LearningException;
 import com.sep490.backend.modules.auth.entity.User;
 import com.sep490.backend.modules.auth.repository.UserRepository;
+import com.sep490.backend.modules.learning.course.domain.CourseStatus;
+import com.sep490.backend.modules.learning.course.domain.model.Course;
 import com.sep490.backend.modules.learning.course.infrastructure.persistence.CourseRepository;
 import com.sep490.backend.modules.learning.lesson.domain.model.Lesson;
 import com.sep490.backend.modules.learning.lesson.infrastructure.persistence.LessonRepository;
@@ -19,6 +21,7 @@ import com.sep490.backend.modules.learning.progress.application.LearnerAccess;
 import com.sep490.backend.modules.vocabulary.dto.request.VocabularyNotebookRequest;
 import com.sep490.backend.modules.vocabulary.entity.VocabularyMeaning;
 import com.sep490.backend.modules.vocabulary.entity.VocabularyNotebookEntry;
+import com.sep490.backend.modules.vocabulary.entity.VocabularyReviewState;
 import com.sep490.backend.modules.vocabulary.entity.VocabularyWord;
 import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus;
 import com.sep490.backend.modules.vocabulary.repository.VocabularyNotebookRepository;
@@ -40,6 +43,7 @@ class VocabularyNotebookServiceTests {
     private VocabularyRepository catalog;
     private VocabularyReviewStateRepository reviews;
     private LessonRepository lessons;
+    private CourseRepository courses;
     private LearnerAccess access;
     private UserRepository users;
     private AchievementService achievements;
@@ -53,12 +57,13 @@ class VocabularyNotebookServiceTests {
         catalog = mock(VocabularyRepository.class);
         reviews = mock(VocabularyReviewStateRepository.class);
         lessons = mock(LessonRepository.class);
+        courses = mock(CourseRepository.class);
         access = mock(LearnerAccess.class);
         users = mock(UserRepository.class);
         achievements = mock(AchievementService.class);
         service =
                 new VocabularyNotebookService(
-                        entries, em, catalog, reviews, lessons, mock(CourseRepository.class),
+                        entries, em, catalog, reviews, lessons, courses,
                         access, Clock.fixed(now, ZoneOffset.UTC), users, achievements);
 
         when(entries.saveAndFlush(any(VocabularyNotebookEntry.class)))
@@ -195,6 +200,50 @@ class VocabularyNotebookServiceTests {
         assertKind(() -> service.delete(8L, 1L), LearningException.Kind.NOT_FOUND);
     }
 
+    @Test
+    void responseMapsLearningReviewAndMasteredStatesAtTheirBoundaries() {
+        var learning = entry(1L, 7L, null, null);
+        var review = entry(2L, 7L, null, null);
+        var mastered = entry(3L, 7L, null, null);
+        when(reviews.findById(1L)).thenReturn(Optional.of(reviewState(0, now.plusSeconds(60))));
+        when(reviews.findById(2L)).thenReturn(Optional.of(reviewState(1, now)));
+        when(reviews.findById(3L)).thenReturn(Optional.of(reviewState(3, now.minusSeconds(60))));
+
+        // 0 lan dung lai van dang hoc; 1-2 lan la on tap; tu 3 lan la da nam vung.
+        assertThat(service.response(learning).review().memoryStatus()).isEqualTo("LEARNING");
+        assertThat(service.response(learning).review().due()).isFalse();
+        assertThat(service.response(review).review().memoryStatus()).isEqualTo("REVIEW");
+        assertThat(service.response(review).review().due()).isTrue();
+        assertThat(service.response(mastered).review().memoryStatus()).isEqualTo("MASTERED");
+        assertThat(service.response(mastered).review().due()).isTrue();
+    }
+
+    @Test
+    void responseEnrichesLessonCourseAndOnlyExposesPublishedMasterAudio() {
+        var lessonEntity = new LessonJpaEntity();
+        lessonEntity.setId(99L);
+        var master = master(10L, "xin chào", "hello", VocabularyStatus.PUBLISHED);
+        var entry = entry(1L, 7L, master, lessonEntity);
+        var lesson = new Lesson(99L, 5L, "Chào hỏi", null, 1, null, null, null, 10, true);
+        var course = new Course(5L, "Tiếng Việt A1", null, null, "A1", 60, CourseStatus.PUBLISHED);
+        master.setAudioUrl("https://cdn.test/xin-chao.mp3");
+        when(lessons.findById(99L)).thenReturn(Optional.of(lesson));
+        when(courses.findById(5L)).thenReturn(Optional.of(course));
+        when(catalog.findById(10L)).thenReturn(Optional.of(master));
+
+        var response = service.response(entry);
+
+        assertThat(response.lessonId()).isEqualTo(99L);
+        assertThat(response.lessonTitle()).isEqualTo("Chào hỏi");
+        assertThat(response.courseId()).isEqualTo(5L);
+        assertThat(response.courseTitle()).isEqualTo("Tiếng Việt A1");
+        assertThat(response.audioUrl()).isEqualTo("https://cdn.test/xin-chao.mp3");
+
+        // Neu ban master bi ha ve DRAFT, API khong duoc lam ro ri audio cua noi dung chua xuat ban.
+        master.setStatus(VocabularyStatus.DRAFT);
+        assertThat(service.response(entry).audioUrl()).isNull();
+    }
+
     private static VocabularyNotebookRequest request(
             Long lessonId, String word, String meaning, Long masterId) {
         return new VocabularyNotebookRequest(
@@ -232,6 +281,15 @@ class VocabularyNotebookServiceTests {
         var user = new User();
         user.setId(id);
         return user;
+    }
+
+    private static VocabularyReviewState reviewState(int repetitions, Instant nextReviewAt) {
+        var state = new VocabularyReviewState();
+        state.setRepetitionCount(repetitions);
+        state.setIntervalMinutes(60);
+        state.setLastReviewedAt(Instant.parse("2026-11-09T00:00:00Z"));
+        state.setNextReviewAt(nextReviewAt);
+        return state;
     }
 
     private static void assertKind(Runnable action, LearningException.Kind expected) {

@@ -41,4 +41,47 @@ class VocabularyApiTests extends ContentApiTestSupport {
         mvc.perform(get("/api/admin/vocabulary").with(user(LEARNER)))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void dictionarySearchSupportsAccentFoldingEnglishMeaningsAndExactMode() throws Exception {
+        jdbc.update(
+                "INSERT INTO vocabularies (word, search_word, part_of_speech, status, created_at,"
+                        + " updated_at) VALUES ('kiểm-thử-chào', 'kiem-thu-chao', 'phrase',"
+                        + " 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
+        Long id = jdbc.queryForObject(
+                "SELECT id FROM vocabularies WHERE word='kiểm-thử-chào'", Long.class);
+        jdbc.update(
+                "INSERT INTO vocabulary_meanings (vocabulary_id, translation_en, definition_vi,"
+                        + " display_order) VALUES (?, 'integration greeting', 'lời chào kiểm thử', 0)",
+                id);
+
+        // Non-exact search uses the folded search_word column.
+        mvc.perform(get("/api/vocabulary/search")
+                        .param("keyword", "kiem-thu-chao")
+                        .with(user(LEARNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.totalElements").value(1))
+                .andExpect(jsonPath("$.result.content[0].word").value("kiểm-thử-chào"));
+
+        // The same query can match an English translation through the meaning subquery.
+        mvc.perform(get("/api/vocabulary/search")
+                        .param("keyword", "integration greeting")
+                        .with(user(LEARNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.totalElements").value(1));
+
+        // Exact mode deliberately compares the real Vietnamese word, not its folded form.
+        mvc.perform(get("/api/vocabulary/search")
+                        .param("keyword", "kiem-thu-chao")
+                        .param("exact", "true")
+                        .with(user(LEARNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.totalElements").value(0));
+        mvc.perform(get("/api/vocabulary/search")
+                        .param("keyword", "kiểm-thử-chào")
+                        .param("exact", "true")
+                        .with(user(LEARNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.totalElements").value(1));
+    }
 }
