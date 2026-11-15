@@ -21,7 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/admin/destinations")
+@RequestMapping({"/api/admin/destinations", "/api/content/destinations"})
 @RequiredArgsConstructor
 public class AdminDestinationController {
 

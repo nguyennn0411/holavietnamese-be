@@ -34,8 +34,10 @@ class DevDemoAccountsIntegrationTests {
     String manager = token("contentmanager", DEMO_PASSWORD);
     mvc.perform(get("/api/me/session").header("Authorization", manager))
         .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("CONTENT"));
-    mvc.perform(get("/api/admin/courses").header("Authorization", manager))
+    mvc.perform(get("/api/content/courses").header("Authorization", manager))
         .andExpect(status().isOk());
+    mvc.perform(get("/api/admin/courses").header("Authorization", manager))
+        .andExpect(status().isForbidden());
     mvc.perform(get("/api/admin/users").header("Authorization", manager))
         .andExpect(status().isForbidden());
 
@@ -44,6 +46,8 @@ class DevDemoAccountsIntegrationTests {
         .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("ADMIN"));
     mvc.perform(get("/api/admin/courses").header("Authorization", admin))
         .andExpect(status().isOk());
+    mvc.perform(get("/api/content/courses").header("Authorization", admin))
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -58,7 +62,7 @@ class DevDemoAccountsIntegrationTests {
     String manager = token(name, "Test-pass123");
     mvc.perform(get("/api/me/session").header("Authorization", manager))
         .andExpect(status().isOk()).andExpect(jsonPath("$.role").value("CONTENT"));
-    mvc.perform(get("/api/admin/courses").header("Authorization", manager))
+    mvc.perform(get("/api/content/courses").header("Authorization", manager))
         .andExpect(status().isOk());
   }
 

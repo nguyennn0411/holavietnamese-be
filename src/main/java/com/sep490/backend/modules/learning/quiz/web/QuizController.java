@@ -56,18 +56,18 @@ public class QuizController {
     } else workflow.assertCanEdit(ContentStore.id(quiz, "courseId"), user);
   }
 
-  @GetMapping("/api/admin/questions")
+  @GetMapping({"/api/admin/questions", "/api/content/questions"})
   public Object questions(@RequestParam Map<String, String> p, @AuthenticationPrincipal LearnerPrincipal user) {
     return questions.listForEditor(p, workflow.isAdmin(user) ? null : user.id());
   }
 
-  @GetMapping("/api/admin/questions/{id}")
+  @GetMapping({"/api/admin/questions/{id}", "/api/content/questions/{id}"})
   public Object question(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal user) {
     questionView(id, user);
     return questions.detail(id);
   }
 
-  @PostMapping("/api/admin/questions")
+  @PostMapping({"/api/admin/questions", "/api/content/questions"})
   public Object createQuestion(@Valid @RequestBody ContentRequests.Question r,
       @AuthenticationPrincipal LearnerPrincipal user) {
     long id = questions.create(r, user.id());
@@ -75,7 +75,7 @@ public class QuizController {
   }
 
   @RequestMapping(
-      value = {"/api/admin/questions/{id}"},
+      value = {"/api/admin/questions/{id}", "/api/content/questions/{id}"},
       method = RequestMethod.PUT)
   public Object editQuestion(
       @PathVariable long id, @Valid @RequestBody ContentRequests.Question r,
@@ -85,18 +85,18 @@ public class QuizController {
     return questions.detail(id);
   }
 
-  @PostMapping("/api/admin/questions/{id}/versions")
+  @PostMapping({"/api/admin/questions/{id}/versions", "/api/content/questions/{id}/versions"})
   public Object version(@PathVariable long id, @Valid @RequestBody ContentRequests.Question r,
       @AuthenticationPrincipal LearnerPrincipal user) {
     return editQuestion(id, r, user);
   }
 
-  @GetMapping("/api/admin/quizzes")
+  @GetMapping({"/api/admin/quizzes", "/api/content/quizzes"})
   public Object quizzes(@RequestParam Map<String, String> p, @AuthenticationPrincipal LearnerPrincipal user) {
     return quizzes.listForEditor(p, workflow.isAdmin(user) ? null : user.id());
   }
 
-  @PostMapping("/api/admin/quizzes")
+  @PostMapping({"/api/admin/quizzes", "/api/content/quizzes"})
   public Object create(@Valid @RequestBody ContentRequests.Quiz r,
       @AuthenticationPrincipal LearnerPrincipal user) {
     if (!workflow.isAdmin(user) && r.courseId() == null)
@@ -105,13 +105,13 @@ public class QuizController {
     return quizzes.detail(quizzes.create(r), true);
   }
 
-  @GetMapping("/api/admin/quizzes/{id}")
+  @GetMapping({"/api/admin/quizzes/{id}", "/api/content/quizzes/{id}"})
   public Object adminQuiz(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal user) {
     quizView(id, user);
     return quizzes.detail(id, true);
   }
 
-  @PutMapping("/api/admin/quizzes/{id}")
+  @PutMapping({"/api/admin/quizzes/{id}", "/api/content/quizzes/{id}"})
   public Object edit(@PathVariable long id, @Valid @RequestBody ContentRequests.Quiz r,
       @AuthenticationPrincipal LearnerPrincipal user) {
     quizEdit(id, user);
@@ -121,7 +121,7 @@ public class QuizController {
     return quizzes.detail(id, true);
   }
 
-  @PatchMapping("/api/admin/quizzes/{id}/status")
+  @PatchMapping({"/api/admin/quizzes/{id}/status", "/api/content/quizzes/{id}/status"})
   public Object status(@PathVariable long id, @Valid @RequestBody ContentRequests.Status r,
       @AuthenticationPrincipal LearnerPrincipal user) {
     quizEdit(id, user);
@@ -129,13 +129,13 @@ public class QuizController {
     return quizzes.detail(id, true);
   }
 
-  @GetMapping("/api/admin/quizzes/{id}/preview")
+  @GetMapping({"/api/admin/quizzes/{id}/preview", "/api/content/quizzes/{id}/preview"})
   public Object preview(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal user) {
     quizView(id, user);
     return quizzes.preview(id);
   }
 
-  @PostMapping("/api/admin/quizzes/{id}/questions")
+  @PostMapping({"/api/admin/quizzes/{id}/questions", "/api/content/quizzes/{id}/questions"})
   public void add(@PathVariable long id, @Valid @RequestBody ContentRequests.QuizQuestion r,
       @AuthenticationPrincipal LearnerPrincipal user) {
     quizEdit(id, user);
@@ -143,33 +143,33 @@ public class QuizController {
     quizzes.addQuestion(id, r);
   }
 
-  @DeleteMapping("/api/admin/quizzes/{id}/questions/{question}")
+  @DeleteMapping({"/api/admin/quizzes/{id}/questions/{question}", "/api/content/quizzes/{id}/questions/{question}"})
   public void remove(@PathVariable long id, @PathVariable long question,
       @AuthenticationPrincipal LearnerPrincipal user) {
     quizEdit(id, user);
     quizzes.removeQuestion(id, question);
   }
 
-  @PutMapping("/api/admin/quizzes/{id}/questions/reorder")
+  @PutMapping({"/api/admin/quizzes/{id}/questions/reorder", "/api/content/quizzes/{id}/questions/reorder"})
   public void reorder(@PathVariable long id, @Valid @RequestBody ContentRequests.Reorder r,
       @AuthenticationPrincipal LearnerPrincipal user) {
     quizEdit(id, user);
     quizzes.reorder(id, r.ids());
   }
 
-  @GetMapping("/api/admin/quiz-attempts")
+  @GetMapping({"/api/admin/quiz-attempts", "/api/content/quiz-attempts"})
   @PreAuthorize("hasRole('ADMIN')")
   public Object attempts(@RequestParam Map<String, String> p) {
     return quizzes.attempts(p);
   }
 
-  @GetMapping("/api/admin/quiz-attempts/{id}")
+  @GetMapping({"/api/admin/quiz-attempts/{id}", "/api/content/quiz-attempts/{id}"})
   @PreAuthorize("hasRole('ADMIN')")
   public Object adminAttempt(@PathVariable long id) {
     return quizzes.attempt(0, id, true);
   }
 
-  @GetMapping("/api/admin/quizzes/{id}/analytics")
+  @GetMapping({"/api/admin/quizzes/{id}/analytics", "/api/content/quizzes/{id}/analytics"})
   @PreAuthorize("hasRole('ADMIN')")
   public Object analytics(@PathVariable long id) {
     return quizzes.analytics(id);

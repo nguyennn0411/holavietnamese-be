@@ -51,7 +51,7 @@ class VocabularyImportApiTests extends ContentApiTestSupport {
     private JsonNode preview(String word, LearnerPrincipal actor) throws Exception {
         var result =
                 mvc.perform(
-                                multipart("/api/admin/imports/preview")
+                                multipart("/api/content/imports/preview")
                                         .file(
                                                 new MockMultipartFile(
                                                         "file",
@@ -79,7 +79,7 @@ class VocabularyImportApiTests extends ContentApiTestSupport {
                                 Integer.class,
                                 word))
                 .isZero();
-        String path = "/api/admin/imports/" + preview.path("id").asText();
+        String path = "/api/content/imports/" + preview.path("id").asText();
         mvc.perform(post(path + "/confirm").with(user(other)).with(csrf()))
                 .andExpect(status().isForbidden());
         for (int retry = 0; retry < 2; retry++) {
@@ -112,7 +112,7 @@ class VocabularyImportApiTests extends ContentApiTestSupport {
         var owner = contentUser();
         String word = "preview-edit-" + owner.id();
         var preview = preview(word, owner);
-        String path = "/api/admin/imports/" + preview.path("id").asText();
+        String path = "/api/content/imports/" + preview.path("id").asText();
         var rows = preview.path("rows").deepCopy();
         ((com.fasterxml.jackson.databind.node.ObjectNode) rows.get(0).path("values"))
                 .put("word", word + "-edited");
@@ -146,16 +146,16 @@ class VocabularyImportApiTests extends ContentApiTestSupport {
 
     @Test
     void templateAndImportRoutesKeepTheirPermissionAndColumnContracts() throws Exception {
-        mvc.perform(get("/api/admin/imports/types").with(user(LEARNER)))
+        mvc.perform(get("/api/content/imports/types").with(user(LEARNER)))
                 .andExpect(status().isForbidden());
         var owner = contentUser();
-        mvc.perform(get("/api/admin/imports/types").with(user(owner)))
+        mvc.perform(get("/api/content/imports/types").with(user(owner)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.length()").value(1))
                 .andExpect(jsonPath("$.result[0].id").value("VOCABULARY"));
         byte[] template =
                 mvc.perform(
-                                get("/api/admin/imports/template")
+                                get("/api/content/imports/template")
                                         .param("module", "VOCABULARY")
                                         .with(user(owner)))
                         .andExpect(status().isOk())

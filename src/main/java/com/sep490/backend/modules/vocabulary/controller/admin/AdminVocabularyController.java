@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin/vocabulary")
+@RequestMapping({"/api/admin/vocabulary", "/api/content/vocabulary"})
 @RequiredArgsConstructor
 public class AdminVocabularyController {
 

@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/courses/workbook")
+@RequestMapping({"/api/admin/courses/workbook", "/api/content/courses/workbook"})
 @PreAuthorize("hasAnyRole('ADMIN','CONTENT')")
 public class CourseWorkbookController {
   private final CourseWorkbookService workbooks;

@@ -24,28 +24,28 @@ public class GrammarController {
     return grammar.detail(id, false);
   }
 
-  @GetMapping("/api/admin/grammar")
+  @GetMapping({"/api/admin/grammar", "/api/content/grammar"})
   public Object adminList(@RequestParam Map<String, String> p) {
     return grammar.list(p, true);
   }
 
-  @GetMapping("/api/admin/grammar/{id}")
+  @GetMapping({"/api/admin/grammar/{id}", "/api/content/grammar/{id}"})
   public Object adminDetail(@PathVariable long id) {
     return grammar.detail(id, true);
   }
 
-  @PostMapping("/api/admin/grammar")
+  @PostMapping({"/api/admin/grammar", "/api/content/grammar"})
   public Object create(@Valid @RequestBody ContentRequests.Grammar r) {
     return grammar.detail(grammar.create(r), true);
   }
 
-  @PutMapping("/api/admin/grammar/{id}")
+  @PutMapping({"/api/admin/grammar/{id}", "/api/content/grammar/{id}"})
   public Object edit(@PathVariable long id, @Valid @RequestBody ContentRequests.Grammar r) {
     grammar.edit(id, r);
     return grammar.detail(id, true);
   }
 
-  @PatchMapping("/api/admin/grammar/{id}/status")
+  @PatchMapping({"/api/admin/grammar/{id}/status", "/api/content/grammar/{id}/status"})
   public Object status(@PathVariable long id, @Valid @RequestBody ContentRequests.Status r) {
     grammar.status(id, r.status());
     return grammar.detail(id, true);

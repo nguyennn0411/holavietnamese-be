@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 /** Delete unused content; assessed content must be archived to preserve learner history. */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin")
+@RequestMapping({"/api/admin", "/api/content"})
 public class ContentDeletionController {
     private final ContentStore db;
     private final CourseReviewService workflow;
