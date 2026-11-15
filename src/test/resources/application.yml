@@ -36,6 +36,9 @@ google:
   client-id: ""
 
 app:
+  account:
+    seed:
+      enabled: false
   mail:
     enabled: false
   notification:

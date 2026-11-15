@@ -50,6 +50,7 @@ Yêu cầu Java 21 và Maven. Cache dependency dùng mặc định `%USERPROFILE
 - MySQL ở `localhost:3307`; backend mặc định ở `http://localhost:8080`.
 - Muốn dùng TiDB, chỉ thay `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` trong `.env` rồi khởi động lại backend.
 - Chạy `.\scripts\dev\test-mysql.ps1` với Java 21 và Docker đang hoạt động. Integration test chỉ dùng database MySQL 8.4 cô lập.
+- Khi `APP_ACCOUNT_SEED_ENABLED=true`, lúc khởi động backend sẽ tạo các tài khoản còn thiếu: `admin`, `content`, `learner`. Các tài khoản đã tồn tại không bị sửa.
 
 ### Từ vựng song ngữ và Excel
 

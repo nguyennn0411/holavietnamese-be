@@ -2,4 +2,3 @@ services:
   backend:
     environment:
       SPRING_PROFILES_ACTIVE: dev-demo
-      APP_DEMO_PASSWORD: ${APP_DEMO_PASSWORD:?Set APP_DEMO_PASSWORD in .env for demo accounts}

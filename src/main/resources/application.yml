@@ -84,6 +84,9 @@ cloudinary:
 
 app:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+  account:
+    seed:
+      enabled: ${APP_ACCOUNT_SEED_ENABLED:true}
   mail:
     enabled: ${MAIL_ENABLED:false}
   notification:
