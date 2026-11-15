@@ -1,4 +1,4 @@
--- Idempotent re-application of V12__course_review_workflow.sql.
+-- Idempotent re-application of the V12 course review workflow.
 -- Some databases recorded version 12 for an older migration before renumbering,
 -- so the course review workflow columns and foreign keys were never added there.
 

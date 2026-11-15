@@ -229,7 +229,7 @@ public class AdminService {
 
         if (!AccountRole.isAssignableByAdmin(requestedRole)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Only ADMIN, CONTENT or LEARNER may be assigned through the application.");
+                    "Only CONTENT or LEARNER may be assigned through the application.");
         }
 
         user.setRole(requestedRole);

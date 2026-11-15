@@ -12,6 +12,7 @@ import com.sep490.backend.modules.admin.cms.entity.enums.SiteMenuPlacement;
 import com.sep490.backend.modules.admin.cms.repository.SiteBannerRepository;
 import com.sep490.backend.modules.admin.cms.repository.SiteFeatureFlagRepository;
 import com.sep490.backend.modules.admin.cms.repository.SiteMenuItemRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -37,11 +38,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:h2:mem:site-content-tests;MODE=MySQL;DB_CLOSE_DELAY=-1",
-        "spring.flyway.enabled=false",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
-})
+@SpringBootTest(properties =
+        "spring.datasource.url=jdbc:mysql://127.0.0.1:${MYSQL_PORT:3307}/hola_vietnamese_site_content_test?connectionTimeZone=UTC&allowPublicKeyRetrieval=true&useSSL=false")
 @AutoConfigureMockMvc
 @Transactional
 class SiteContentIntegrationTests {
@@ -57,6 +55,14 @@ class SiteContentIntegrationTests {
     @Autowired SiteMenuItemRepository menus;
     @Autowired SiteBannerRepository banners;
     @Autowired SiteFeatureFlagRepository features;
+
+    @BeforeEach
+    void isolateSiteContentFixtures() {
+        banners.deleteAllInBatch();
+        menus.deleteAllInBatch();
+        features.deleteAllInBatch();
+        jdbc.update("DELETE FROM audit_logs WHERE action LIKE 'TOGGLE_SITE_%'");
+    }
 
     @Test
     void anonymousPublicConfigIsSortedAndFiltersDisabledScheduledAndFeatureLinkedContent() throws Exception {

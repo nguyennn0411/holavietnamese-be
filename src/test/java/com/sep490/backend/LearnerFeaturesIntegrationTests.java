@@ -21,8 +21,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties =
-    "spring.datasource.url=jdbc:h2:mem:hola-tests-learner;MODE=MySQL;DB_CLOSE_DELAY=-1")
+@SpringBootTest
 @AutoConfigureMockMvc
 class LearnerFeaturesIntegrationTests {
     @Autowired MockMvc mvc;
@@ -33,16 +32,12 @@ class LearnerFeaturesIntegrationTests {
     @Autowired LessonService completeUseCase;
     private final LearnerPrincipal learner = new LearnerPrincipal(1L, "learner@example.test", "", true);
     private final LearnerPrincipal other = new LearnerPrincipal(2L, "other@example.test", "", true);
-    private boolean sqlServer;
-
     @BeforeEach
     void fixture() throws Exception {
         try (var connection = jdbc.getDataSource().getConnection()) {
             String url = connection.getMetaData().getURL();
-            sqlServer = connection.getMetaData().getDatabaseProductName().equals("Microsoft SQL Server");
-            boolean isolatedSqlServer = sqlServer && "hola_features_test".equals(connection.getCatalog());
-            if (!url.startsWith("jdbc:h2:mem:hola-tests") && !url.matches("jdbc:mysql://[^/]+/hola_features_test(\\?.*)?") && !isolatedSqlServer)
-                throw new IllegalStateException("Integration tests require the isolated hola_features_test database.");
+            if (!url.matches("jdbc:mysql://[^/]+/hola_vietnamese_test(\\?.*)?"))
+                throw new IllegalStateException("Integration tests require the isolated hola_vietnamese_test database.");
         }
         for (String table : List.of("exercise_options", "exercises", "sentence_drills", "dialogue_lines", "dialogues", "course_vocabulary", "lesson_blocks", "vocabulary_entries", "lesson_progress", "enrollments", "lessons", "course_units", "courses", "users"))
             jdbc.update("delete from " + table);
@@ -54,14 +49,9 @@ class LearnerFeaturesIntegrationTests {
     }
     private void fixtureInsert(String table, String sql, Object... values) {
         jdbc.execute((org.springframework.jdbc.core.ConnectionCallback<Void>) connection -> {
-            try (var statement = connection.createStatement()) {
-                if (sqlServer) statement.execute("SET IDENTITY_INSERT " + table + " ON");
-                try (var insert = connection.prepareStatement(sql)) {
-                    for (int i = 0; i < values.length; i++) insert.setObject(i + 1, values[i]);
-                    insert.executeUpdate();
-                } finally {
-                    if (sqlServer) statement.execute("SET IDENTITY_INSERT " + table + " OFF");
-                }
+            try (var insert = connection.prepareStatement(sql)) {
+                for (int i = 0; i < values.length; i++) insert.setObject(i + 1, values[i]);
+                insert.executeUpdate();
             }
             return null;
         });

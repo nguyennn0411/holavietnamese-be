@@ -1,4 +1,4 @@
--- Idempotent re-application of V36__notification_integration.sql.
+-- Idempotent re-application of the V36 notification integration.
 -- Some databases recorded version 36 for the culture migration, so the notification
 -- changes were never executed there. Each step runs only when still missing.
 

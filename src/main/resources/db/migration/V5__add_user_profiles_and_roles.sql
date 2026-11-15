@@ -1,5 +1,8 @@
--- Add Huy's profile/role model to the existing user identity; preserve all learning FKs.
-ALTER TABLE users ADD COLUMN username VARCHAR(254) UNIQUE;
+-- Add profile and role data to the existing user identity; preserve all learning FKs.
+ALTER TABLE users ADD COLUMN username VARCHAR(254);
+
+CREATE UNIQUE INDEX uk_users_username
+    ON users(username);
 ALTER TABLE users ADD COLUMN full_name VARCHAR(100);
 ALTER TABLE users ADD COLUMN phone_number VARCHAR(20);
 ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500);

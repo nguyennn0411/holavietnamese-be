@@ -7,6 +7,9 @@ target/
 .DS_Store
 *.log
 .env
-.env.sqlserver
-.env.mysql
-.env.cloudinary
+.env.*
+!.env.example
+*.sql.gz
+*.dump
+*.bak
+outputs/database-backups/

@@ -229,12 +229,18 @@ class CourseReviewWorkflowIntegrationTests {
         .containsEntry("target", "/api/content/courses/" + course)
         .containsKey("createdAt");
 
-    mvc.perform(get("/api/admin/audit-logs").with(actor(admin)))
+    var auditResponse = mvc.perform(get("/api/admin/audit-logs").with(actor(admin)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.result[0].adminUsername").value("manager@test"))
-        .andExpect(jsonPath("$.result[0].action").value("UPDATE_COURSE"))
-        .andExpect(jsonPath("$.result[0].createdAt").isNotEmpty())
-        .andExpect(jsonPath("$.result[0].status").value("SUCCESS"));
+        .andReturn().getResponse().getContentAsString();
+    var entries = json.readTree(auditResponse).path("result");
+    var matchingAudit = java.util.stream.StreamSupport.stream(entries.spliterator(), false)
+        .filter(entry -> "UPDATE_COURSE".equals(entry.path("action").asText()))
+        .filter(entry -> "manager@test".equals(entry.path("adminUsername").asText()))
+        .filter(entry -> ("/api/content/courses/" + course).equals(entry.path("target").asText()))
+        .findFirst();
+    assertThat(matchingAudit).isPresent();
+    assertThat(matchingAudit.orElseThrow().path("createdAt").asText()).isNotBlank();
+    assertThat(matchingAudit.orElseThrow().path("status").asText()).isEqualTo("SUCCESS");
   }
 
   private long createCourse(LearnerPrincipal actor,String slug) throws Exception {

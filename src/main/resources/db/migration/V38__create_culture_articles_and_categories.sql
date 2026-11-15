@@ -1,4 +1,4 @@
--- V36: Culture Articles and Categories Management (Learner & Admin)
+-- V38: Culture Articles and Categories Management (Learner & Admin)
 
 CREATE TABLE IF NOT EXISTS culture_categories (
     id VARCHAR(100) NOT NULL PRIMARY KEY,

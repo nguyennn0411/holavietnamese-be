@@ -4,7 +4,7 @@ Thư mục này chứa `Dockerfile`, Compose chính và overlay tài khoản dem
 Chạy lệnh từ thư mục gốc `BE`, ví dụ:
 
 ```powershell
-docker compose --env-file .env.mysql `
+docker compose --env-file .env `
   -f deployment/compose.yml `
   -f deployment/compose.demo.yml `
   up -d --build --wait
