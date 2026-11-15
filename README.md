@@ -1,64 +1,145 @@
 # Hola Vietnamese Backend
 
-Backend Spring Boot được tổ chức theo modular monolith/package-by-feature, sử dụng MySQL 8.4 và Flyway. Frontend là ứng dụng React riêng trong `FE/holavietnamese_fe`.
+## Tổng quan
 
-Các chức năng course, lesson, grammar, quiz, progress và import nằm trong các capability riêng của module `learning`.
-Các lesson đã xuất bản được học theo thứ tự tùy ý sau khi đăng ký course; bài tiên quyết không còn khóa truy cập. Điều kiện hoàn thành activity, quiz và course vẫn được kiểm tra khi ghi nhận tiến độ.
+Hola Vietnamese Backend là REST API được xây dựng bằng Spring Boot, phục vụ nền tảng học tiếng Việt Hola Vietnamese. Hệ thống sử dụng Java 21, MySQL 8.4 và Flyway để quản lý phiên bản cơ sở dữ liệu.
 
-## Cấu trúc
+Backend được tổ chức theo mô hình modular monolith và package-by-feature. Mỗi module chịu trách nhiệm cho một nhóm nghiệp vụ độc lập, giúp source code dễ mở rộng, kiểm thử và bảo trì. MySQL chạy bằng Docker ở môi trường local và TiDB Cloud khi triển khai đều sử dụng chung một chuỗi migration tại `src/main/resources/db/migration`.
+
+Frontend React được phát triển trong repository riêng `holavietnamese_fe`.
+
+## Kiến trúc
 
 ```text
-BE/
-├── deployment/         # Dockerfile và Docker Compose cho ứng dụng
+holavietnamese-be/
+├── deployment/                         # Dockerfile và Docker Compose
 ├── scripts/
-│   └── dev/            # Script khởi động, dừng và kiểm thử môi trường local
-├── src/                 # Source code và test của Spring Boot
-├── pom.xml
+│   └── dev/                            # Script hỗ trợ môi trường local
+├── src/
+│   ├── main/
+│   │   ├── java/com/sep490/backend/
+│   │   │   ├── BackendApplication.java
+│   │   │   ├── common/                 # Thành phần dùng chung
+│   │   │   └── modules/
+│   │   │       ├── admin/              # Quản trị, CMS và media
+│   │   │       ├── ai/                 # AI tutor, roleplay và provider
+│   │   │       ├── auth/               # Xác thực và phân quyền
+│   │   │       ├── explore/            # Điểm đến và nội dung vùng miền
+│   │   │       ├── learning/
+│   │   │       │   ├── authoring/      # Biên soạn và duyệt nội dung
+│   │   │       │   ├── course/         # Khóa học và đăng ký học
+│   │   │       │   ├── grammar/        # Ngữ pháp
+│   │   │       │   ├── importing/      # Import nội dung
+│   │   │       │   ├── lesson/         # Bài học và hoạt động
+│   │   │       │   ├── path/           # Lộ trình học tập
+│   │   │       │   ├── progress/       # Tiến độ và thành tích
+│   │   │       │   ├── quiz/           # Câu hỏi và bài kiểm tra
+│   │   │       │   └── shared/         # Thành phần nội bộ dùng chung
+│   │   │       └── vocabulary/         # Từ điển, sổ tay và ôn tập
+│   │   └── resources/
+│   │       ├── application.yml         # Cấu hình Spring Boot
+│   │       └── db/migration/            # Flyway migration V1–V48
+│   └── test/                            # Unit test và integration test
+├── .env.example                        # Mẫu biến môi trường
+├── pom.xml                              # Maven dependencies
 └── README.md
-
-src/main/java/com/sep490/backend/
-├── BackendApplication.java
-├── common/              # Hợp đồng và hạ tầng dùng chung
-└── modules/
-    ├── admin/           # Quản trị hệ thống, CMS và media
-    ├── ai/              # AI tutor, roleplay và provider
-    ├── auth/            # Xác thực, người dùng và phân quyền
-    ├── explore/         # Điểm đến và ngôn ngữ vùng miền
-    ├── learning/
-    │   ├── authoring/   # Content Manager và workflow duyệt nội dung
-    │   ├── course/      # Khóa học và đăng ký học
-    │   ├── grammar/     # Nội dung ngữ pháp
-    │   ├── importing/   # Import Excel và website
-    │   ├── lesson/      # Bài học và activity
-    │   ├── path/        # Lộ trình cá nhân hóa
-    │   ├── progress/    # Tiến độ, XP và thành tích
-    │   ├── quiz/        # Question bank, quiz và attempt
-    │   └── shared/      # Thành phần dùng chung nội bộ learning
-    └── vocabulary/      # Từ điển, sổ tay và ôn tập
 ```
 
-Mỗi module sở hữu controller, application service, domain và persistence của mình. Các port hẹp được dùng khi một module cần dữ liệu từ module khác.
-Transaction, phân quyền và URL API được giữ nguyên. MySQL local và TiDB Cloud dùng chung một lịch sử Flyway trong `src/main/resources/db/migration`.
+Các module sở hữu controller, application service, domain và persistence của mình. Thành phần trong `common` chỉ chứa hợp đồng và hạ tầng thực sự dùng chung; module nghiệp vụ không được tạo phụ thuộc vòng.
 
-## Chạy và kiểm thử
+Flyway là nguồn duy nhất quản lý schema. MySQL local và TiDB Cloud không sử dụng các thư mục migration riêng biệt.
 
-Yêu cầu Java 21 và Maven. Cache dependency dùng mặc định `%USERPROFILE%\.m2\repository`.
+## Cấu hình `.env`
 
-- Mở Docker Desktop (Linux containers), chạy `.\scripts\dev\start-mysql.ps1 -StartBackend` bằng PowerShell để chạy MySQL và BE trong Docker.
-- Script tự tạo `.env` với mật khẩu ngẫu nhiên nếu chưa có. Không commit file này; chỉ commit `.env.example`.
-- Nếu chạy BE trong IntelliJ: chạy `.\scripts\dev\start-mysql.ps1` để bật MySQL, rồi chạy `BackendApplication` với working directory là `BE`, hoặc `mvn spring-boot:run`.
-- MySQL ở `localhost:3307`; backend mặc định ở `http://localhost:8080`.
-- Muốn dùng TiDB, chỉ thay `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` trong `.env` rồi khởi động lại backend.
-- Chạy `.\scripts\dev\test-mysql.ps1` với Java 21 và Docker đang hoạt động. Integration test chỉ dùng database MySQL 8.4 cô lập.
-- Khi `APP_ACCOUNT_SEED_ENABLED=true`, lúc khởi động backend sẽ tạo các tài khoản còn thiếu: `admin`, `content`, `learner`. Các tài khoản đã tồn tại không bị sửa.
+Sao chép file mẫu trước khi chạy dự án:
 
-### Từ vựng song ngữ và Excel
+```powershell
+Copy-Item .env.example .env
+```
 
-- Learner tra cứu qua `GET /api/vocabulary/search` với `keyword`, `page`, `size`. Tìm tên tiếng Việt hoặc thông tin nghĩa tiếng Anh đã lưu; không tự dịch. Chỉ hiển thị mục `PUBLISHED`.
-- Admin tìm theo `keyword`, `status`, `partOfSpeech`. Không còn phân loại từ theo trình độ hoặc chủ đề. Các bảng/cột cũ được giữ trong DB và migration để bảo toàn lịch sử; ứng dụng không đọc/ghi chúng.
-- Mẫu XLSX có sheet `VOCABULARY`. Header bắt buộc: `word`, `part_of_speech`. Mỗi nghĩa cần ít nhất một trường: `definition_vi`, `translation_en`, `definition_en`.
-- Header đầy đủ: `word`, `part_of_speech`, `pronunciation`, `audio_url`, `status`, `meaning_order`, `definition_vi`, `translation_en`, `definition_en`, `usage_note`, `labels`, `example_order`, `example_vi`, `example_en`, `example_audio_url`.
-- Ghi `word` và `part_of_speech` trên mỗi dòng. Các dòng cùng từ/từ loại được gom thành một mục. `meaning_order` (mặc định 0) phân biệt các nghĩa; `example_order` sắp xếp ví dụ, để trống thì nối tiếp. Các trường lặp có thể để trống; nếu giá trị khác nhau trong cùng mục/nghĩa, preview báo lỗi. `labels`: mỗi nhãn một dòng trong ô.
-- Ví dụ cần `example_vi`; bản dịch và audio ví dụ là tùy chọn. Không tự tạo bản dịch còn thiếu. Trạng thái trống là `DRAFT`.
-- Preview không ghi mục từ. Confirm kiểm tra lại và nhập toàn bộ trong một giao dịch; từ/từ loại đã tồn tại bị từ chối, không ghi đè. `importedRows` đếm số mục từ tạo mới, có thể ít hơn số dòng Excel.
-- Nội dung, thông tin nguồn lịch sử và liên kết của các mục từ đã có vẫn được giữ. Không còn phương thức import JSONL hoặc dữ liệu pilot kèm source.
+Không commit file `.env` hoặc credential thật lên Git. Mỗi biến phải nằm trên một dòng theo định dạng `KEY=value`; không thêm dấu `\` cuối dòng và không escape `://`.
+
+Ba biến quyết định database mà backend kết nối:
+
+```env
+DB_URL=jdbc:mysql://127.0.0.1:3307/hola_vietnamese?connectionTimeZone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+DB_USERNAME=hola
+DB_PASSWORD=change-me-local-app-password
+```
+
+Các biến dành cho MySQL Docker local:
+
+```env
+MYSQL_DATABASE=hola_vietnamese
+MYSQL_USER=hola
+MYSQL_PASSWORD=change-me-local-app-password
+MYSQL_ROOT_PASSWORD=change-me-different-root-password
+MYSQL_PORT=3307
+```
+
+Khi backend kết nối MySQL Docker local, `DB_PASSWORD` phải giống `MYSQL_PASSWORD`. Các dịch vụ tùy chọn như email, Cloudinary, Google Login và AI được cấu hình trong cùng file `.env`; xem danh sách đầy đủ tại `.env.example`.
+
+## Chạy với MySQL local hoặc TiDB Cloud
+
+### Yêu cầu
+
+- Java 21.
+- Maven 3.9 trở lên.
+- Docker Desktop sử dụng Linux containers.
+
+### MySQL Docker local
+
+Khởi động riêng MySQL:
+
+```powershell
+.\scripts\dev\start-mysql.ps1
+```
+
+Sau đó chạy backend trong IntelliJ bằng `BackendApplication`, hoặc dùng Maven:
+
+```powershell
+mvn spring-boot:run
+```
+
+Để chạy cả MySQL và backend bằng Docker:
+
+```powershell
+.\scripts\dev\start-mysql.ps1 -StartBackend
+```
+
+Thông tin mặc định:
+
+```text
+MySQL:   127.0.0.1:3307
+Backend: http://localhost:8080
+Database: hola_vietnamese
+```
+
+Script sẽ tự tạo `.env` từ `.env.example` và sinh credential local ngẫu nhiên nếu file `.env` chưa tồn tại.
+
+### TiDB Cloud
+
+Giữ nguyên source code và Flyway migration. Chỉ thay ba biến kết nối backend trong `.env`:
+
+```env
+DB_URL=jdbc:mysql://<tidb-host>:4000/hola_vietnamese?sslMode=VERIFY_IDENTITY&enabledTLSProtocols=TLSv1.2,TLSv1.3&connectionTimeZone=UTC
+DB_USERNAME=<tidb-username>
+DB_PASSWORD=<tidb-password>
+```
+
+Sau đó khởi động lại backend:
+
+```powershell
+mvn spring-boot:run
+```
+
+Các biến `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD` và `MYSQL_PORT` chỉ dùng để tạo MySQL Docker local; chúng không cấu hình kết nối TiDB của backend.
+
+Với database mới, giữ cấu hình:
+
+```env
+FLYWAY_ENABLED=true
+FLYWAY_VALIDATE_ON_MIGRATE=true
+```
+
+Không trỏ phiên bản code đã đổi tên migration vào database cũ có `flyway_schema_history` không tương thích. Hãy sử dụng database mới hoặc kiểm tra và đồng bộ lịch sử Flyway trước khi triển khai.
