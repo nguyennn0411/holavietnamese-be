@@ -14,6 +14,11 @@ public final class ContentPermissions {
     public static final String EXPLORE_REVIEW = "EXPLORE_REVIEW";
     public static final String EXPLORE_PUBLISH = "EXPLORE_PUBLISH";
 
+    public static final String CULTURE_READ = "CULTURE_READ";
+    public static final String CULTURE_WRITE = "CULTURE_WRITE";
+    public static final String CULTURE_REVIEW = "CULTURE_REVIEW";
+    public static final String CULTURE_PUBLISH = "CULTURE_PUBLISH";
+
     public static final String VOCABULARY_READ_ACCESS =
             "hasAnyRole('CONTENT','ADMIN') or hasAnyAuthority('VOCABULARY_READ','VOCABULARY_WRITE','VOCABULARY_REVIEW','VOCABULARY_PUBLISH')";
     public static final String VOCABULARY_WRITE_ACCESS =
@@ -32,6 +37,12 @@ public final class ContentPermissions {
             "(" + EXPLORE_WRITE_ACCESS + ") and (" + EXPLORE_LINK_ACCESS + ")";
     public static final String EXPLORE_REVIEW_ACCESS =
             "hasRole('ADMIN') or hasAnyAuthority('EXPLORE_REVIEW','EXPLORE_PUBLISH')";
+    public static final String CULTURE_READ_ACCESS =
+            "hasAnyRole('CONTENT','ADMIN') or hasAnyAuthority('CULTURE_READ','CULTURE_WRITE','CULTURE_REVIEW','CULTURE_PUBLISH')";
+    public static final String CULTURE_WRITE_ACCESS =
+            "hasAnyRole('CONTENT','ADMIN') or hasAuthority('CULTURE_WRITE')";
+    public static final String CULTURE_REVIEW_ACCESS =
+            "hasRole('ADMIN') or hasAnyAuthority('CULTURE_REVIEW','CULTURE_PUBLISH')";
 
     private ContentPermissions() {
     }

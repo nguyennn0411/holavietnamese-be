@@ -45,7 +45,10 @@ public class SecurityConfig {
                 .hasAnyAuthority("ROLE_CONTENT", ContentPermissions.EXPLORE_READ,
                     ContentPermissions.EXPLORE_WRITE, ContentPermissions.EXPLORE_LINK_WRITE,
                     ContentPermissions.EXPLORE_REVIEW, ContentPermissions.EXPLORE_PUBLISH)
-            .requestMatchers("/api/content/culture/**").hasRole("CONTENT")
+            .requestMatchers("/api/admin/culture/**", "/api/content/culture/**")
+                .hasAnyAuthority("ROLE_ADMIN", "ROLE_CONTENT",
+                    ContentPermissions.CULTURE_READ, ContentPermissions.CULTURE_WRITE,
+                    ContentPermissions.CULTURE_REVIEW, ContentPermissions.CULTURE_PUBLISH)
             .requestMatchers("/api/content/**").hasRole("CONTENT")
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated())
