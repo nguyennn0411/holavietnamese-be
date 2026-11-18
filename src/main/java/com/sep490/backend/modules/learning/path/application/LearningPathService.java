@@ -107,11 +107,14 @@ public class LearningPathService {
     if (requestedLevel != null && Set.of("USER_CONFIRMED","PROFILE").contains(source))
       db.update("UPDATE users SET target_level=?,updated_at=CURRENT_TIMESTAMP WHERE id=?", requestedLevel, user);
 
-    notifications.send(user, NotificationMessage.standard(
-        "Tùy chỉnh lộ trình học đã lưu",
-        "Mục tiêu và trình độ học tập của bạn đã được cập nhật thành công.",
-        NotificationType.COURSE,
-        "/learning-path"));
+    if (source != null && !Set.of("ONBOARDING", "PLACEMENT").contains(source)) {
+      notifications.sendOnce(user, NotificationMessage.standard(
+          "Tùy chỉnh lộ trình học đã lưu",
+          "Mục tiêu và trình độ học tập của bạn đã được cập nhật thành công.",
+          NotificationType.COURSE,
+          "/learning-path"),
+          "LP_PREF_UPDATED:" + user + ":" + (System.currentTimeMillis() / 120_000));
+    }
 
     return me(user);
   }
