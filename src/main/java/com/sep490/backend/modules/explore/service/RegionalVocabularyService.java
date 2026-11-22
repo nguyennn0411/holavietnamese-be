@@ -25,6 +25,8 @@ import java.util.*;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class RegionalVocabularyService {
+    public static final int PUBLIC_PAGE_SIZE = 10;
+
     private final RegionalVocabularyRepository repository;
 
     /** Tim kiem theo cac bo loc va giu thu tu hien thi hien tai. */
@@ -143,6 +145,25 @@ public class RegionalVocabularyService {
                     return new RegionalVocabularyResponse.Comparison(
                             id, rows.getFirst().masterWord(), rows);
                 });
+    }
+
+    /** Lay mot trang bien the cua diem den; kich thuoc trang duoc backend co dinh. */
+    public Page<RegionalVocabularyResponse> forDestinationPage(
+            Collection<Long> masterIds, VietnamRegion region, int page) {
+        if (page < 0) {
+            throw new LearningException(LearningException.Kind.INVALID, "Page phải không âm.");
+        }
+        if (masterIds.isEmpty()) {
+            return Page.empty(PageRequest.of(page, PUBLIC_PAGE_SIZE));
+        }
+        return repository
+                .findAll(
+                        specification(null, region, null, masterIds, null, true),
+                        PageRequest.of(
+                                page,
+                                PUBLIC_PAGE_SIZE,
+                                Sort.by("vocabulary.word", "vocabulary.id", "region", "word", "id")))
+                .map(RegionalVocabularyMapper::toResponse);
     }
 
     /** Lay cac bien the cong khai cua mot tu chuan. */

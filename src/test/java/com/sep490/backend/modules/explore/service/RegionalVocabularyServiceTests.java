@@ -104,6 +104,28 @@ class RegionalVocabularyServiceTests {
                 .satisfies(row -> assertThat(row.vocabularyId()).isEqualTo(1L));
     }
 
+    @Test
+    void destinationPageUsesBackendOwnedPageSize() {
+        var masterOne = master(1L, "quả dứa");
+        var row = variant(11L, masterOne, VietnamRegion.SOUTH, "Thơm");
+        when(repository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenAnswer(
+                        invocation -> {
+                            Pageable pageable = invocation.getArgument(1);
+                            assertThat(pageable.getPageNumber()).isEqualTo(2);
+                            assertThat(pageable.getPageSize())
+                                    .isEqualTo(RegionalVocabularyService.PUBLIC_PAGE_SIZE);
+                            return new PageImpl<>(List.of(row), pageable, 21);
+                        });
+
+        var result = service.forDestinationPage(List.of(1L), VietnamRegion.SOUTH, 2);
+
+        assertThat(result.getContent()).singleElement()
+                .satisfies(item -> assertThat(item.word()).isEqualTo("Thơm"));
+        assertThat(result.getTotalElements()).isEqualTo(21);
+        verify(repository).findAll(any(Specification.class), any(Pageable.class));
+    }
+
     private static VocabularyWord master(long id, String text) {
         var master = new VocabularyWord();
         master.setId(id);

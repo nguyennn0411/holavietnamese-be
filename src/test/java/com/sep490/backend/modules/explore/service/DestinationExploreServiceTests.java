@@ -3,6 +3,7 @@ package com.sep490.backend.modules.explore.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -32,6 +33,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 /** Unit tests for Explore visibility and reference validation before link replacement. */
 class DestinationExploreServiceTests {
@@ -61,6 +64,8 @@ class DestinationExploreServiceTests {
                 new DestinationExploreService(
                         destinations, links, words, adminRegional, scenarios, cultures,
                         regional, jdbc, em);
+        when(regional.forDestinationPage(any(), any(), anyInt()))
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
     }
 
     @Test
@@ -98,7 +103,7 @@ class DestinationExploreServiceTests {
         assertThat(response.vocabulary()).extracting(row -> row.id()).containsExactly(10L);
         assertThat(response.scenarios()).extracting(row -> row.id()).containsExactly("active");
         assertThat(response.cultureIds()).containsExactly("culture-1");
-        verify(regional).forDestination(List.of(10L), VietnamRegion.NORTH);
+        verify(regional).forDestinationPage(List.of(10L), VietnamRegion.NORTH, 0);
     }
 
     @Test

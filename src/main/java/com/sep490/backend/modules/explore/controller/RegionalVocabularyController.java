@@ -30,9 +30,10 @@ public class RegionalVocabularyController {
     public ApiResponse<Page<RegionalVocabularyResponse.Comparison>> page(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) VietnamRegion region,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.success(service.comparisonPage(keyword, region, page, size));
+            @RequestParam(defaultValue = "0") int page) {
+        return ApiResponse.success(
+                service.comparisonPage(
+                        keyword, region, page, RegionalVocabularyService.PUBLIC_PAGE_SIZE));
     }
 
     /** Lay chi tiet theo ID va quyen truy cap hien tai. */

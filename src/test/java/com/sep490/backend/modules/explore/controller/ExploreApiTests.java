@@ -119,4 +119,65 @@ class ExploreApiTests extends ContentApiTestSupport {
                 .andExpect(jsonPath("$.result.length()").value(1))
                 .andExpect(jsonPath("$.result[0].slug").value("region-south"));
     }
+
+    @Test
+    void destinationRegionalVocabularyUsesTenItemsPerBackendPage() throws Exception {
+        String suffix = Long.toUnsignedString(System.nanoTime());
+        jdbc.update(
+                "INSERT INTO destinations (name_vi, name_en, slug, region, status, created_at,"
+                    + " updated_at) VALUES (?, ?, ?, 'SOUTH', 'PUBLISHED', CURRENT_TIMESTAMP,"
+                    + " CURRENT_TIMESTAMP)",
+                "Phân trang " + suffix,
+                "Paging " + suffix,
+                "regional-page-" + suffix);
+        Long destinationId =
+                jdbc.queryForObject(
+                        "SELECT id FROM destinations WHERE slug=?",
+                        Long.class,
+                        "regional-page-" + suffix);
+
+        for (int index = 0; index < 11; index++) {
+            String word = "regional-page-" + suffix + "-" + String.format("%02d", index);
+            jdbc.update(
+                    "INSERT INTO vocabularies (word, search_word, part_of_speech, status,"
+                        + " created_at, updated_at) VALUES (?, ?, 'noun', 'PUBLISHED',"
+                        + " CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                    word,
+                    word);
+            Long vocabularyId =
+                    jdbc.queryForObject(
+                            "SELECT id FROM vocabularies WHERE word=?", Long.class, word);
+            jdbc.update(
+                    "INSERT INTO destination_vocabularies (destination_id, vocabulary_id,"
+                            + " display_order) VALUES (?, ?, ?)",
+                    destinationId,
+                    vocabularyId,
+                    index);
+            jdbc.update(
+                    "INSERT INTO regional_vocabularies (vocabulary_id, region, word, meaning,"
+                        + " status, created_at, updated_at) VALUES (?, 'SOUTH', ?, 'meaning',"
+                        + " 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                    vocabularyId,
+                    "variant-" + index);
+        }
+
+        mvc.perform(
+                        get("/api/destinations/" + destinationId + "/content")
+                                .param("page", "0")
+                                .param("size", "1")
+                                .with(user(LEARNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.regionalVariants.length()").value(10))
+                .andExpect(jsonPath("$.result.regionalSize").value(10))
+                .andExpect(jsonPath("$.result.regionalTotalElements").value(11))
+                .andExpect(jsonPath("$.result.regionalTotalPages").value(2));
+
+        mvc.perform(
+                        get("/api/destinations/" + destinationId + "/content")
+                                .param("page", "1")
+                                .with(user(LEARNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.regionalVariants.length()").value(1))
+                .andExpect(jsonPath("$.result.regionalPage").value(1));
+    }
 }

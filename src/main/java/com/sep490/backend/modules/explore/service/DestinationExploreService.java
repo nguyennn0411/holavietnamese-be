@@ -44,6 +44,11 @@ public class DestinationExploreService {
 
     /** Lay noi dung dia diem theo che do nguoi hoc hoac quan tri. */
     public DestinationExploreContentResponse content(long id, boolean management) {
+        return content(id, management, 0);
+    }
+
+    /** Lay noi dung dia diem; nguoi hoc nhan 10 bien the vung mien moi trang. */
+    public DestinationExploreContentResponse content(long id, boolean management, int regionalPage) {
         Destination destination =
                 destinations
                         .findById(id)
@@ -82,14 +87,37 @@ public class DestinationExploreService {
             scenarioRows.add(DestinationMapper.toScenarioResponse(scenario));
         }
 
-        var variants =
-                management
-                        ? adminRegional.forDestination(
-                                vocabularyIds, destination.getRegion(), false)
-                        : regional.forDestination(vocabularyIds, destination.getRegion());
+        List<com.sep490.backend.modules.explore.dto.response.RegionalVocabularyResponse> variants;
+        int variantPage;
+        int variantSize;
+        long variantTotalElements;
+        int variantTotalPages;
+        if (management) {
+            variants =
+                    adminRegional.forDestination(
+                            vocabularyIds, destination.getRegion(), false);
+            variantPage = 0;
+            variantSize = variants.size();
+            variantTotalElements = variants.size();
+            variantTotalPages = variants.isEmpty() ? 0 : 1;
+        } else {
+            var page = regional.forDestinationPage(vocabularyIds, destination.getRegion(), regionalPage);
+            variants = page.getContent();
+            variantPage = page.getNumber();
+            variantSize = page.getSize();
+            variantTotalElements = page.getTotalElements();
+            variantTotalPages = page.getTotalPages();
+        }
         List<String> cultureIds = visibleCultureIds(references(id, "CULTURE"), management);
         return new DestinationExploreContentResponse(
-                vocabulary, variants, cultureIds, scenarioRows);
+                vocabulary,
+                variants,
+                variantPage,
+                variantSize,
+                variantTotalElements,
+                variantTotalPages,
+                cultureIds,
+                scenarioRows);
     }
 
     /**

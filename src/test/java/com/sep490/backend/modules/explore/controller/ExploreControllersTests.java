@@ -30,9 +30,16 @@ class ExploreControllersTests {
         var controller = new RegionalVocabularyController(service);
 
         controller.list("dứa", VietnamRegion.SOUTH);
+        controller.page("dứa", VietnamRegion.SOUTH, 2);
         controller.get(4L);
 
         verify(service).comparisons("dứa", VietnamRegion.SOUTH);
+        verify(service)
+                .comparisonPage(
+                        "dứa",
+                        VietnamRegion.SOUTH,
+                        2,
+                        RegionalVocabularyService.PUBLIC_PAGE_SIZE);
         verify(service).comparison(4L);
     }
 
@@ -42,11 +49,11 @@ class ExploreControllersTests {
         var controller = new DestinationExploreController(service);
         var request = new DestinationExploreContentRequest(List.of(1L), List.of("culture"), List.of("scenario"));
 
-        controller.content(3L);
+        controller.content(3L, 2);
         controller.management(3L);
         controller.save(3L, request);
 
-        verify(service).content(3L, false);
+        verify(service).content(3L, false, 2);
         verify(service).content(3L, true);
         verify(service).save(3L, request);
     }

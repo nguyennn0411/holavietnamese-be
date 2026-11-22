@@ -20,8 +20,9 @@ public class DestinationExploreController {
 
     /** Lay noi dung dia diem theo che do nguoi hoc hoac quan tri. */
     @GetMapping("/api/destinations/{id}/content")
-    public ApiResponse<DestinationExploreContentResponse> content(@PathVariable long id) {
-        return ApiResponse.success(service.content(id, false));
+    public ApiResponse<DestinationExploreContentResponse> content(
+            @PathVariable long id, @RequestParam(defaultValue = "0") int page) {
+        return ApiResponse.success(service.content(id, false, page));
     }
 
     /** Lay noi dung lien ket de quan tri vien chinh sua. */
