@@ -13,6 +13,8 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,6 +109,40 @@ public class RegionalVocabularyService {
                             group.getKey(), variants.getFirst().masterWord(), variants));
         }
         return result;
+    }
+
+    /** Phan trang theo tu chuan, sau do nap cac bien the cong khai theo batch. */
+    public Page<RegionalVocabularyResponse.Comparison> comparisonPage(
+            String keyword, VietnamRegion region, int page, int size) {
+        if (page < 0 || size < 1 || size > 100) {
+            throw new LearningException(
+                    LearningException.Kind.INVALID, "Page phải không âm và size từ 1 đến 100.");
+        }
+        String text = keyword == null ? "" : keyword.strip().toLowerCase(Locale.ROOT);
+        if (text.length() > 200) {
+            throw new LearningException(
+                    LearningException.Kind.INVALID, "Từ khóa tối đa 200 ký tự.");
+        }
+        var ids =
+                repository.findPublishedMasterIds(
+                        text,
+                        region,
+                        VocabularyStatus.PUBLISHED,
+                        PageRequest.of(page, size));
+        if (ids.isEmpty()) return ids.map(id -> null);
+
+        var variants = search(null, null, null, ids.getContent(), null, true);
+        var groups = variants.stream().collect(
+                java.util.stream.Collectors.groupingBy(
+                        RegionalVocabularyResponse::vocabularyId,
+                        LinkedHashMap::new,
+                        java.util.stream.Collectors.toList()));
+        return ids.map(
+                id -> {
+                    var rows = groups.getOrDefault(id, List.of());
+                    return new RegionalVocabularyResponse.Comparison(
+                            id, rows.getFirst().masterWord(), rows);
+                });
     }
 
     /** Lay cac bien the cong khai cua mot tu chuan. */

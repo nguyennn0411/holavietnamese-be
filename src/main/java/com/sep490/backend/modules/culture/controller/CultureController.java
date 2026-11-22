@@ -52,6 +52,14 @@ public class CultureController {
                 .build();
     }
 
+    @GetMapping("/articles/batch")
+    public ApiResponse<List<CultureArticleResponse>> getArticlesByIds(
+            @RequestParam List<String> ids) {
+        return ApiResponse.<List<CultureArticleResponse>>builder()
+                .result(cultureService.listPublishedByIds(ids))
+                .build();
+    }
+
     @GetMapping("/articles/{id}")
     public ApiResponse<CultureArticleResponse> getArticle(@PathVariable String id) {
         return ApiResponse.<CultureArticleResponse>builder()

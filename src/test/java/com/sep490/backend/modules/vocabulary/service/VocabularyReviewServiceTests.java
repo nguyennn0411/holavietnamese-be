@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.PageRequest;
 
 class VocabularyReviewServiceTests {
     private final VocabularyNotebookRepository entries = mock(VocabularyNotebookRepository.class);
@@ -119,10 +120,15 @@ class VocabularyReviewServiceTests {
         log.setNextReviewAt(now.plusSeconds(86_400));
         log.setIntervalMinutes(1_440);
         when(entries.countByUser(7L)).thenReturn(3);
-        when(notebook.response(entry)).thenReturn(response);
+        when(notebook.responses(List.of(entry))).thenReturn(List.of(response));
 
         UUID existingId = UUID.randomUUID();
-        when(entries.findDue(7L, now, existingId.toString())).thenReturn(List.of(entry));
+        when(entries.findDue(
+                        7L,
+                        now,
+                        existingId.toString(),
+                        PageRequest.of(0, VocabularyReviewService.SESSION_SIZE)))
+                .thenReturn(List.of(entry));
         when(states.findNextDueAt(7L, now)).thenReturn(Optional.of(now.plusSeconds(600)));
         when(logs.findByVocabularyEntry_User_IdAndSessionIdOrderByReviewedAtAscIdAsc(
                         7L, existingId.toString()))

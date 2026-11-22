@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -25,6 +26,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class VocabularyReviewService {
+    static final int SESSION_SIZE = 20;
     private final VocabularyReviewStateRepository states;
     private final VocabularyReviewLogRepository logs;
     private final VocabularyNotebookRepository entries;
@@ -38,17 +40,18 @@ public class VocabularyReviewService {
         var reviewedLogs =
                 logs.findByVocabularyEntry_User_IdAndSessionIdOrderByReviewedAtAscIdAsc(
                         userId, id.toString());
+        var dueEntries =
+                entries.findDue(
+                        userId, now, id.toString(), PageRequest.of(0, SESSION_SIZE));
         return new VocabularyReviewSessionResponse(
                 id,
                 entries.countByUser(userId),
                 states.findNextDueAt(userId, now).orElse(null),
-                entries.findDue(userId, now, id.toString()).stream()
-                        .map(vocabulary::response)
-                        .toList(),
-                reviewedLogs.stream()
-                        .map(VocabularyReviewLog::getVocabularyEntry)
-                        .map(vocabulary::response)
-                        .toList(),
+                vocabulary.responses(dueEntries),
+                vocabulary.responses(
+                        reviewedLogs.stream()
+                                .map(VocabularyReviewLog::getVocabularyEntry)
+                                .toList()),
                 reviewedLogs.stream().map(this::response).toList());
     }
 
