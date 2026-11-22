@@ -18,6 +18,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 /** Unit tests for public regional comparison and destination filtering. */
@@ -39,9 +41,9 @@ class RegionalVocabularyServiceTests {
         var north = variant(12L, masterOne, VietnamRegion.NORTH, "Dứa");
         var unrelated = variant(21L, masterTwo, VietnamRegion.SOUTH, "Ba");
 
-        // First search matches only master 1; second search returns the complete public catalogue.
+        // First search matches master 1; the second query is constrained to that master.
         when(repository.findAll(any(Specification.class), any(Sort.class)))
-                .thenReturn(List.of(south), List.of(south, north, unrelated));
+                .thenReturn(List.of(south), List.of(south, north));
 
         var result = service.comparisons("thơm", VietnamRegion.SOUTH);
 
@@ -77,14 +79,29 @@ class RegionalVocabularyServiceTests {
         var masterOne = master(1L, "quả dứa");
         var masterTwo = master(2L, "cha");
         when(repository.findAll(any(Specification.class), any(Sort.class)))
-                .thenReturn(
-                        List.of(
-                                variant(11L, masterOne, VietnamRegion.SOUTH, "Thơm"),
-                                variant(21L, masterTwo, VietnamRegion.SOUTH, "Ba")));
+                .thenReturn(List.of(variant(21L, masterTwo, VietnamRegion.SOUTH, "Ba")));
 
         assertThat(service.forDestination(List.of(2L), VietnamRegion.SOUTH))
                 .extracting(response -> response.vocabularyId())
                 .containsExactly(2L);
+    }
+
+    @Test
+    void comparisonPagePagesMastersAndBatchLoadsTheirVariants() {
+        var masterOne = master(1L, "quả dứa");
+        when(repository.findPublishedMasterIds(
+                        org.mockito.ArgumentMatchers.eq("thơm"),
+                        org.mockito.ArgumentMatchers.eq(VietnamRegion.SOUTH),
+                        org.mockito.ArgumentMatchers.eq(VocabularyStatus.PUBLISHED),
+                        any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(1L)));
+        when(repository.findAll(any(Specification.class), any(Sort.class)))
+                .thenReturn(List.of(variant(11L, masterOne, VietnamRegion.SOUTH, "Thơm")));
+
+        var result = service.comparisonPage(" Thơm ", VietnamRegion.SOUTH, 0, 20);
+
+        assertThat(result.getContent()).singleElement()
+                .satisfies(row -> assertThat(row.vocabularyId()).isEqualTo(1L));
     }
 
     private static VocabularyWord master(long id, String text) {

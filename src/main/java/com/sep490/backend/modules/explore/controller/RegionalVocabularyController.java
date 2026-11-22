@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,6 +24,15 @@ public class RegionalVocabularyController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) VietnamRegion region) {
         return ApiResponse.success(service.comparisons(keyword, region));
+    }
+
+    @GetMapping("/search")
+    public ApiResponse<Page<RegionalVocabularyResponse.Comparison>> page(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) VietnamRegion region,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.success(service.comparisonPage(keyword, region, page, size));
     }
 
     /** Lay chi tiet theo ID va quyen truy cap hien tai. */
