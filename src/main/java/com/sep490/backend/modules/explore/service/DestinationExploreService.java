@@ -87,8 +87,30 @@ public class DestinationExploreService {
                         ? adminRegional.forDestination(
                                 vocabularyIds, destination.getRegion(), false)
                         : regional.forDestination(vocabularyIds, destination.getRegion());
+        List<String> cultureIds = visibleCultureIds(references(id, "CULTURE"), management);
         return new DestinationExploreContentResponse(
-                vocabulary, variants, references(id, "CULTURE"), scenarioRows);
+                vocabulary, variants, cultureIds, scenarioRows);
+    }
+
+    /**
+     * Giu thu tu lien ket da luu, bo tham chieu da bi xoa va chi cong khai bai van hoa da
+     * xuat ban.
+     */
+    private List<String> visibleCultureIds(List<String> ids, boolean management) {
+        if (ids.isEmpty()) return List.of();
+        var available =
+                cultureArticles.findAllById(ids).stream()
+                        .collect(
+                                java.util.stream.Collectors.toMap(
+                                        article -> article.getId(), article -> article));
+        return ids.stream()
+                .filter(
+                        cultureId -> {
+                            var article = available.get(cultureId);
+                            return article != null
+                                    && (management || "PUBLISHED".equals(article.getStatus()));
+                        })
+                .toList();
     }
 
     /** Kiem tra va luu cac lien ket theo dung thu tu trong request. */

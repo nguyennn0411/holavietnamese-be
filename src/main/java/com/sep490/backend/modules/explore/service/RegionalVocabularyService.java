@@ -30,11 +30,18 @@ public class RegionalVocabularyService {
             String keyword,
             VietnamRegion region,
             Long vocabularyId,
+            Collection<Long> vocabularyIds,
             VocabularyStatus status,
             boolean publishedOnly) {
         return repository
                 .findAll(
-                        specification(keyword, region, vocabularyId, status, publishedOnly),
+                        specification(
+                                keyword,
+                                region,
+                                vocabularyId,
+                                vocabularyIds,
+                                status,
+                                publishedOnly),
                         Sort.by("vocabulary.word", "vocabulary.id", "region", "word", "id"))
                 .stream()
                 .map(RegionalVocabularyMapper::toResponse)
@@ -46,6 +53,7 @@ public class RegionalVocabularyService {
             String keyword,
             VietnamRegion region,
             Long vocabularyId,
+            Collection<Long> vocabularyIds,
             VocabularyStatus status,
             boolean publishedOnly) {
         return (root, query, cb) -> {
@@ -57,6 +65,9 @@ public class RegionalVocabularyService {
             } else if (status != null) predicates.add(cb.equal(root.get("status"), status));
             if (region != null) predicates.add(cb.equal(root.get("region"), region));
             if (vocabularyId != null) predicates.add(cb.equal(master.get("id"), vocabularyId));
+            if (vocabularyIds != null && !vocabularyIds.isEmpty()) {
+                predicates.add(master.get("id").in(vocabularyIds));
+            }
             if (keyword != null && !keyword.isBlank()) {
                 var text = keyword.strip().toLowerCase(Locale.ROOT);
                 predicates.add(
@@ -73,15 +84,15 @@ public class RegionalVocabularyService {
     public List<RegionalVocabularyResponse.Comparison> comparisons(
             String keyword, VietnamRegion region) {
         Set<Long> matchingIds = new HashSet<>();
-        for (RegionalVocabularyResponse variant : search(keyword, region, null, null, true)) {
+        for (RegionalVocabularyResponse variant :
+                search(keyword, region, null, null, null, true)) {
             matchingIds.add(variant.vocabularyId());
         }
+        if (matchingIds.isEmpty()) return List.of();
 
         Map<Long, List<RegionalVocabularyResponse>> groups = new LinkedHashMap<>();
-        for (RegionalVocabularyResponse variant : search(null, null, null, null, true)) {
-            if (!matchingIds.contains(variant.vocabularyId())) {
-                continue;
-            }
+        for (RegionalVocabularyResponse variant :
+                search(null, null, null, matchingIds, null, true)) {
             if (!groups.containsKey(variant.vocabularyId())) {
                 groups.put(variant.vocabularyId(), new ArrayList<>());
             }
@@ -100,7 +111,7 @@ public class RegionalVocabularyService {
 
     /** Lay cac bien the cong khai cua mot tu chuan. */
     public RegionalVocabularyResponse.Comparison comparison(long id) {
-        var variants = search(null, null, id, null, true);
+        var variants = search(null, null, id, null, null, true);
         if (variants.isEmpty()) throw LearningException.notFound("Regional vocabulary");
         return new RegionalVocabularyResponse.Comparison(
                 id, variants.getFirst().masterWord(), variants);
@@ -110,8 +121,6 @@ public class RegionalVocabularyService {
     public List<RegionalVocabularyResponse> forDestination(
             Collection<Long> masterIds, VietnamRegion region) {
         if (masterIds.isEmpty()) return List.of();
-        return search(null, region, null, null, true).stream()
-                .filter(v -> masterIds.contains(v.vocabularyId()))
-                .toList();
+        return search(null, region, null, masterIds, null, true);
     }
 }

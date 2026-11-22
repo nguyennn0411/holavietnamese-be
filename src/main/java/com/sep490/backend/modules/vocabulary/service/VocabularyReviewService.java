@@ -34,18 +34,22 @@ public class VocabularyReviewService {
     /** Tao hoac tiep tuc phien on tap voi cac tu den han. */
     public VocabularyReviewSessionResponse session(Long userId, UUID sessionId) {
         UUID id = sessionId == null ? UUID.randomUUID() : sessionId;
+        var now = clock.instant();
+        var reviewedLogs =
+                logs.findByVocabularyEntry_User_IdAndSessionIdOrderByReviewedAtAscIdAsc(
+                        userId, id.toString());
         return new VocabularyReviewSessionResponse(
                 id,
                 entries.countByUser(userId),
-                entries.findDue(userId, clock.instant(), id.toString()).stream()
+                states.findNextDueAt(userId, now).orElse(null),
+                entries.findDue(userId, now, id.toString()).stream()
                         .map(vocabulary::response)
                         .toList(),
-                logs
-                        .findByVocabularyEntry_User_IdAndSessionIdOrderByReviewedAtAscIdAsc(
-                                userId, id.toString())
-                        .stream()
-                        .map(this::response)
-                        .toList());
+                reviewedLogs.stream()
+                        .map(VocabularyReviewLog::getVocabularyEntry)
+                        .map(vocabulary::response)
+                        .toList(),
+                reviewedLogs.stream().map(this::response).toList());
     }
 
     /** Luu danh gia on tap, xu ly request gui lai va tinh lich on tiep theo. */
@@ -98,7 +102,7 @@ public class VocabularyReviewService {
         return response(log);
     }
 
-    // Tu moi duoc hen on sau 10 phut, 12 gio, 1 ngay hoac 4 ngay.
+    // Tu moi duoc hen on sau 10 phut, 1 gio, 1 ngay hoac 4 ngay.
     // Cac lan sau nhan khoang cach cu va gioi han toi da mot nam.
     private static void schedule(VocabularyReviewState state, VocabularyReviewRating rating) {
         long previous = state.getIntervalMinutes();
@@ -106,7 +110,10 @@ public class VocabularyReviewService {
         long interval =
                 switch (rating) {
                     case AGAIN -> 10;
-                    case HARD -> Math.max(720, Math.round(previous * 1.2));
+                    case HARD ->
+                            state.getRepetitionCount() == 0
+                                    ? 60
+                                    : Math.max(720, Math.round(previous * 1.2));
                     case GOOD -> Math.max(1440, Math.round(previous * ease));
                     case EASY -> Math.max(5760, Math.round(previous * ease * 1.3));
                 };

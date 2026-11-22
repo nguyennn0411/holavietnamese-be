@@ -42,7 +42,7 @@ class VocabularyReviewServiceTests {
 
     @Test
     void schedulesAllFourRatingsForNewEntries() {
-        long[] minutes = {10, 720, 1440, 5760};
+        long[] minutes = {10, 60, 1440, 5760};
         VocabularyReviewRating[] ratings = VocabularyReviewRating.values();
         for (int index = 0; index < ratings.length; index++) {
             VocabularyNotebookEntry entry = new VocabularyNotebookEntry();
@@ -123,6 +123,7 @@ class VocabularyReviewServiceTests {
 
         UUID existingId = UUID.randomUUID();
         when(entries.findDue(7L, now, existingId.toString())).thenReturn(List.of(entry));
+        when(states.findNextDueAt(7L, now)).thenReturn(Optional.of(now.plusSeconds(600)));
         when(logs.findByVocabularyEntry_User_IdAndSessionIdOrderByReviewedAtAscIdAsc(
                         7L, existingId.toString()))
                 .thenReturn(List.of(log));
@@ -130,7 +131,9 @@ class VocabularyReviewServiceTests {
         var continued = service.session(7L, existingId);
         assertThat(continued.sessionId()).isEqualTo(existingId);
         assertThat(continued.notebookCount()).isEqualTo(3);
+        assertThat(continued.nextDueAt()).isEqualTo(now.plusSeconds(600));
         assertThat(continued.entries()).containsExactly(response);
+        assertThat(continued.reviewedEntries()).containsExactly(response);
         assertThat(continued.results()).singleElement()
                 .satisfies(result -> assertThat(result.rating()).isEqualTo(VocabularyReviewRating.GOOD));
 
