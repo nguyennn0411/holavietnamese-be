@@ -175,7 +175,7 @@ class AdminVocabularyServiceTests {
                 () -> service.searchPage("x".repeat(201), null, null, 0, 20, false),
                 LearningException.Kind.INVALID);
 
-        when(repository.searchPage("xin", VocabularyStatus.DRAFT, "noun", -1, 500, true))
+        when(repository.searchPage("xin", VocabularyStatus.DRAFT, "noun", -1, 500, true, true))
                 .thenReturn(new PageImpl<>(List.of(word(1L, "xin", VocabularyStatus.DRAFT))));
         assertThat(service.searchPage("xin", VocabularyStatus.DRAFT, "noun", -1, 500, true))
                 .hasSize(1);

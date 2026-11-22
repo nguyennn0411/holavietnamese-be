@@ -182,12 +182,15 @@ class VocabularyCompatibilityTests extends ContentApiTestSupport {
     }
 
     @Test
-    void dictionaryKeepsBilingualSearchExactMatchingAndBoundedPages() {
+    void dictionaryKeepsDirectBilingualSearchExactMatchingAndBoundedPages() {
         var published = admin.create(word("compat-xin-chao", VocabularyStatus.PUBLISHED));
         admin.create(word("compat-xin-chao-hidden", VocabularyStatus.DRAFT));
-        assertThat(catalog.searchPublished("greeting", "noun"))
+        assertThat(catalog.searchPublished("hello", "noun"))
                 .extracting(item -> item.id())
                 .contains(published.id());
+        assertThat(catalog.searchPublished("greeting", "noun"))
+                .extracting(item -> item.id())
+                .doesNotContain(published.id());
         var page = catalog.searchPage("compat-xin-chao", 0, 500, true);
         assertThat(page.getSize()).isEqualTo(100);
         assertThat(page.getContent()).extracting(item -> item.id()).containsExactly(published.id());

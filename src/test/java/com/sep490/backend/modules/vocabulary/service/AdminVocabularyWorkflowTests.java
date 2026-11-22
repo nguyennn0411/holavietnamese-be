@@ -75,4 +75,80 @@ class AdminVocabularyWorkflowTests extends ContentApiTestSupport {
                 .isInstanceOf(LearningException.class);
         assertThat(admin.restore(draft.id()).status()).isEqualTo(VocabularyStatus.DRAFT);
     }
+
+    @Test
+    void publicSearchUsesDictionaryFieldsWhileManagementMaySearchDefinitions() {
+        long definitionOnly =
+                publish(
+                        "lợn-search-audit",
+                        "pig",
+                        "A domesticated animal commonly raised for meat.");
+        long unaccentedHeadword = publish("cơm-search-audit", "rice", null);
+        long exactEnglish = publish("z-exact-translation-audit", "pig", null);
+        long prefixEnglish = publish("a-prefix-translation-audit", "piglet", null);
+
+        var publicCom = catalog.searchPage("com-search-audit", 0, 20, false);
+        assertThat(publicCom).extracting(item -> item.id()).containsExactly(unaccentedHeadword);
+
+        var publicDefinitionSubstring = catalog.searchPage("com", 0, 20, false);
+        assertThat(publicDefinitionSubstring)
+                .extracting(item -> item.id())
+                .doesNotContain(definitionOnly);
+
+        var managementDefinitionSubstring =
+                admin.searchPage("com", VocabularyStatus.PUBLISHED, null, 0, 20, false);
+        assertThat(managementDefinitionSubstring)
+                .extracting(item -> item.id())
+                .contains(definitionOnly);
+
+        var rankedEnglish = catalog.searchPage("pig", 0, 20, false).getContent();
+        assertThat(rankedEnglish).extracting(item -> item.id()).contains(exactEnglish, prefixEnglish);
+        assertThat(rankedEnglish.indexOf(
+                        rankedEnglish.stream()
+                                .filter(item -> item.id().equals(exactEnglish))
+                                .findFirst()
+                                .orElseThrow()))
+                .isLessThan(rankedEnglish.indexOf(
+                        rankedEnglish.stream()
+                                .filter(item -> item.id().equals(prefixEnglish))
+                                .findFirst()
+                                .orElseThrow()));
+
+        var exactEnglishResults = catalog.searchPage("pig", 0, 20, true);
+        assertThat(exactEnglishResults)
+                .extracting(item -> item.id())
+                .contains(exactEnglish, definitionOnly)
+                .doesNotContain(prefixEnglish);
+
+        var exactUnaccented = catalog.searchPage("com-search-audit", 0, 20, true);
+        assertThat(exactUnaccented).extracting(item -> item.id()).containsExactly(unaccentedHeadword);
+    }
+
+    @Test
+    void managementPageWithoutKeywordUsesStableOrderingWithoutAConditionalRank() {
+        long laterAlphabetically = publish("z-empty-search-audit", "last", null);
+        long earlierAlphabetically = publish("a-empty-search-audit", "first", null);
+
+        var page = admin.searchPage(null, VocabularyStatus.PUBLISHED, null, 0, 100, false);
+
+        var ids = page.getContent().stream().map(item -> item.id()).toList();
+        assertThat(ids).contains(earlierAlphabetically, laterAlphabetically);
+        assertThat(ids.indexOf(earlierAlphabetically)).isLessThan(ids.indexOf(laterAlphabetically));
+    }
+
+    private long publish(String word, String translation, String definition) {
+        var request =
+                new VocabularyRequest(
+                        word,
+                        null,
+                        "noun",
+                        null,
+                        VocabularyStatus.DRAFT,
+                        List.of(
+                                new VocabularyMeaningRequest(
+                                        translation, definition, null, 0, List.of())));
+        var draft = admin.createDraft(request);
+        admin.submitReview(draft.id());
+        return admin.review(draft.id(), ContentReviewRequest.Decision.APPROVE).id();
+    }
 }

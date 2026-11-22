@@ -29,7 +29,7 @@ public class AdminVocabularyService {
     /** Tim kiem theo cac bo loc va giu thu tu hien thi hien tai. */
     public List<VocabularyResponse> search(
             String keyword, VocabularyStatus status, String partOfSpeech) {
-        return repository.search(keyword, status, partOfSpeech).stream()
+        return repository.search(keyword, status, partOfSpeech, true).stream()
                 .map(VocabularyMapper::toResponse)
                 .toList();
     }
@@ -322,7 +322,7 @@ public class AdminVocabularyService {
         }
 
         return repository
-                .searchPage(keyword, status, part, page, size, exact)
+                .searchPage(keyword, status, part, page, size, exact, true)
                 .map(VocabularyMapper::toResponse);
     }
 
