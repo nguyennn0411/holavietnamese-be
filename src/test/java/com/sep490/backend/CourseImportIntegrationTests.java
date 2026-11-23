@@ -45,8 +45,7 @@ class CourseImportIntegrationTests {
     @BeforeEach void cleanIsolatedDatabase() throws Exception {
         try (var c = jdbc.getDataSource().getConnection()) {
             String url = c.getMetaData().getURL();
-            boolean sqlServerTest = c.getMetaData().getDatabaseProductName().equals("Microsoft SQL Server") && "hola_features_test".equals(c.getCatalog());
-            if (!url.startsWith("jdbc:h2:mem:hola-tests") && !url.matches("jdbc:mysql://[^/]+/hola_features_test(\\?.*)?") && !sqlServerTest)
+            if (!url.matches("jdbc:mysql://[^/]+/hola_vietnamese_test(\\?.*)?"))
                 throw new IllegalStateException("Refusing to modify a non-test database.");
         }
         for (String table : List.of("exercise_options","exercises","sentence_drills","dialogue_lines","dialogues",

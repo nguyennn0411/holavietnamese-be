@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/regional-language")
+@RequestMapping({"/api/admin/regional-language", "/api/content/regional-language"})
 public class AdminRegionalVocabularyController {
     private final AdminRegionalVocabularyService service;
 

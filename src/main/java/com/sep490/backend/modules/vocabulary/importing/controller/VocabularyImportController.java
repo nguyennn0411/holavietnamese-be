@@ -24,7 +24,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/imports")
+@RequestMapping({"/api/admin/imports", "/api/content/imports"})
 @PreAuthorize(ContentPermissions.VOCABULARY_IMPORT_ACCESS)
 public class VocabularyImportController {
     private final VocabularyImportService service;

@@ -1,7 +1,5 @@
 package com.sep490.backend.common.security;
 
-import com.sep490.backend.modules.auth.entity.AccountRole;
-
 import java.util.*;
 import org.springframework.security.core.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,7 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 public record LearnerPrincipal(Long id, String email, String passwordHash, boolean enabled, String role,
         Set<String> permissions) implements UserDetails {
     public LearnerPrincipal {
-        role = AccountRole.normalizeStored(role);
+        role = normalizeRole(role);
         permissions = permissions == null ? Set.of() : Set.copyOf(permissions);
     }
     public LearnerPrincipal(Long id, String email, String passwordHash, boolean enabled, String role,
@@ -34,4 +32,12 @@ public record LearnerPrincipal(Long id, String email, String passwordHash, boole
     public String getPassword() { return passwordHash; }
     public String getUsername() { return email; }
     public boolean isEnabled() { return enabled; }
+
+    private static String normalizeRole(String value) {
+        if (value == null || value.isBlank()) {
+            return "LEARNER";
+        }
+        String normalized = value.trim().toUpperCase(Locale.ROOT);
+        return Set.of("LEARNER", "CONTENT", "ADMIN").contains(normalized) ? normalized : "LEARNER";
+    }
 }

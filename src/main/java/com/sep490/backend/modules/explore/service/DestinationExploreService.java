@@ -44,6 +44,11 @@ public class DestinationExploreService {
 
     /** Lay noi dung dia diem theo che do nguoi hoc hoac quan tri. */
     public DestinationExploreContentResponse content(long id, boolean management) {
+        return content(id, management, 0);
+    }
+
+    /** Lay noi dung dia diem; nguoi hoc nhan 10 bien the vung mien moi trang. */
+    public DestinationExploreContentResponse content(long id, boolean management, int regionalPage) {
         Destination destination =
                 destinations
                         .findById(id)
@@ -82,13 +87,58 @@ public class DestinationExploreService {
             scenarioRows.add(DestinationMapper.toScenarioResponse(scenario));
         }
 
-        var variants =
-                management
-                        ? adminRegional.forDestination(
-                                vocabularyIds, destination.getRegion(), false)
-                        : regional.forDestination(vocabularyIds, destination.getRegion());
+        List<com.sep490.backend.modules.explore.dto.response.RegionalVocabularyResponse> variants;
+        int variantPage;
+        int variantSize;
+        long variantTotalElements;
+        int variantTotalPages;
+        if (management) {
+            variants =
+                    adminRegional.forDestination(
+                            vocabularyIds, destination.getRegion(), false);
+            variantPage = 0;
+            variantSize = variants.size();
+            variantTotalElements = variants.size();
+            variantTotalPages = variants.isEmpty() ? 0 : 1;
+        } else {
+            var page = regional.forDestinationPage(vocabularyIds, destination.getRegion(), regionalPage);
+            variants = page.getContent();
+            variantPage = page.getNumber();
+            variantSize = page.getSize();
+            variantTotalElements = page.getTotalElements();
+            variantTotalPages = page.getTotalPages();
+        }
+        List<String> cultureIds = visibleCultureIds(references(id, "CULTURE"), management);
         return new DestinationExploreContentResponse(
-                vocabulary, variants, references(id, "CULTURE"), scenarioRows);
+                vocabulary,
+                variants,
+                variantPage,
+                variantSize,
+                variantTotalElements,
+                variantTotalPages,
+                cultureIds,
+                scenarioRows);
+    }
+
+    /**
+     * Giu thu tu lien ket da luu, bo tham chieu da bi xoa va chi cong khai bai van hoa da
+     * xuat ban.
+     */
+    private List<String> visibleCultureIds(List<String> ids, boolean management) {
+        if (ids.isEmpty()) return List.of();
+        var available =
+                cultureArticles.findAllById(ids).stream()
+                        .collect(
+                                java.util.stream.Collectors.toMap(
+                                        article -> article.getId(), article -> article));
+        return ids.stream()
+                .filter(
+                        cultureId -> {
+                            var article = available.get(cultureId);
+                            return article != null
+                                    && (management || "PUBLISHED".equals(article.getStatus()));
+                        })
+                .toList();
     }
 
     /** Kiem tra va luu cac lien ket theo dung thu tu trong request. */

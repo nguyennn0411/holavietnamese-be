@@ -31,22 +31,23 @@ public class SecurityConfig {
                 "/api/site-content", "/api/grammar", "/api/grammar/{id}", "/api/lessons/public/**", "/api/topics/public/**", "/api/notifications/stream",
                 "/api/ai/scenarios", "/api/ai/scenarios/*", "/api/culture/**").permitAll()
             .requestMatchers("/api/ai/roleplay/scenarios/*/complete", "/api/ai/roleplay/sessions/*/finish").permitAll()
-            .requestMatchers("/api/admin/courses/**", "/api/admin/modules/**",
-                "/api/admin/lessons/**", "/api/admin/activities/**",
-                "/api/admin/questions/**", "/api/admin/quizzes/**")
-                .hasAnyRole("ADMIN", "CONTENT")
-            .requestMatchers("/api/admin/vocabulary/**", "/api/admin/regional-language/**")
-                .hasAnyAuthority("ROLE_CONTENT", "ROLE_ADMIN", ContentPermissions.VOCABULARY_READ,
+            .requestMatchers("/api/content/courses/**", "/api/content/modules/**",
+                "/api/content/lessons/**", "/api/content/activities/**",
+                "/api/content/questions/**", "/api/content/quizzes/**")
+                .hasRole("CONTENT")
+            .requestMatchers("/api/content/vocabulary/**", "/api/content/regional-language/**")
+                .hasAnyAuthority("ROLE_CONTENT", ContentPermissions.VOCABULARY_READ,
                     ContentPermissions.VOCABULARY_WRITE, ContentPermissions.VOCABULARY_IMPORT,
                     ContentPermissions.VOCABULARY_REVIEW, ContentPermissions.VOCABULARY_PUBLISH)
-            .requestMatchers("/api/admin/imports/**")
+            .requestMatchers("/api/content/imports/**")
                 .hasAnyAuthority("ROLE_CONTENT", ContentPermissions.VOCABULARY_IMPORT)
-            .requestMatchers("/api/admin/destinations/**")
-                .hasAnyAuthority("ROLE_CONTENT", "ROLE_ADMIN", ContentPermissions.EXPLORE_READ,
+            .requestMatchers("/api/content/destinations/**")
+                .hasAnyAuthority("ROLE_CONTENT", ContentPermissions.EXPLORE_READ,
                     ContentPermissions.EXPLORE_WRITE, ContentPermissions.EXPLORE_LINK_WRITE,
                     ContentPermissions.EXPLORE_REVIEW, ContentPermissions.EXPLORE_PUBLISH)
-            .requestMatchers("/api/admin/culture/**").hasAnyRole("ADMIN", "CONTENT")
-            .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "CONTENT")
+            .requestMatchers("/api/content/culture/**").hasRole("CONTENT")
+            .requestMatchers("/api/content/**").hasRole("CONTENT")
+            .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated())
             // JWT clients send an explicit Authorization header; legacy session clients keep CSRF.
             .csrf(c -> c.ignoringRequestMatchers("/api/auth/**", "/api/users/register",

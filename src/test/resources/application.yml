@@ -1,13 +1,15 @@
 spring:
+  config:
+    import: "optional:file:./.env[.properties]"
   application:
     name: holavietnamese-be-test
   mail:
     host: localhost
   datasource:
-    url: jdbc:h2:mem:hola-tests;MODE=MySQL;DB_CLOSE_DELAY=-1
-    username: sa
-    password: ""
-    driver-class-name: org.h2.Driver
+    url: jdbc:mysql://127.0.0.1:${MYSQL_PORT:3307}/hola_vietnamese_test?connectionTimeZone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${MYSQL_USER:hola}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     open-in-view: false
     hibernate:
@@ -16,7 +18,11 @@ spring:
       hibernate.jdbc.time_zone: UTC
   flyway:
     enabled: true
-    locations: classpath:db/migration,classpath:db/migration-vendor/{vendor}
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    out-of-order: false
+    baseline-on-migrate: false
+    clean-disabled: true
 
 server:
   port: 0
@@ -30,6 +36,9 @@ google:
   client-id: ""
 
 app:
+  account:
+    seed:
+      enabled: false
   mail:
     enabled: false
   notification:

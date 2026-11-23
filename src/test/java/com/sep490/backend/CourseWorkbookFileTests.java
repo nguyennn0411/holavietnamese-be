@@ -24,7 +24,7 @@ class CourseWorkbookFileTests {
 
     @Test void validatesAndImportsVietnameseForEveryoneWorkbook() throws Exception {
         try (var connection = jdbc.getDataSource().getConnection()) {
-            assertThat(connection.getMetaData().getURL()).startsWith("jdbc:h2:mem:hola-tests");
+            assertThat(connection.getCatalog()).isEqualTo("hola_vietnamese_test");
         }
         var path = Path.of(System.getProperty("course.workbook"));
         var bytes = Files.readAllBytes(path);

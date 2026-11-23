@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/admin/culture")
+@RequestMapping({"/api/admin/culture", "/api/content/culture"})
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @PreAuthorize("hasAnyRole('ADMIN', 'CONTENT')")

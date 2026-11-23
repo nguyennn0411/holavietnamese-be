@@ -3,6 +3,7 @@ package com.sep490.backend.modules.culture.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sep490.backend.common.exception.ContentException;
+import com.sep490.backend.common.exception.LearningException;
 import com.sep490.backend.modules.culture.dto.response.CultureArticleResponse;
 import com.sep490.backend.modules.culture.dto.response.CultureCategoryResponse;
 import com.sep490.backend.modules.culture.dto.response.UsefulPhraseResponse;
@@ -92,6 +93,29 @@ public class CultureService {
                 })
                 .map(this::toArticleResponse)
                 .collect(Collectors.toList());
+    }
+
+    /** Lay dung cac bai cong khai duoc yeu cau va giu nguyen thu tu ID. */
+    @Transactional(readOnly = true)
+    public List<CultureArticleResponse> listPublishedByIds(List<String> ids) {
+        if (ids == null || ids.isEmpty() || ids.size() > 100) {
+            throw new LearningException(
+                    LearningException.Kind.INVALID, "Danh sách culture ID phải có từ 1 đến 100 mục.");
+        }
+        var normalized = ids.stream().map(String::strip).toList();
+        if (normalized.stream().anyMatch(String::isEmpty)
+                || new HashSet<>(normalized).size() != normalized.size()) {
+            throw new LearningException(
+                    LearningException.Kind.INVALID, "Culture ID không hợp lệ hoặc bị trùng.");
+        }
+        var articles = articleRepository.findAllById(normalized).stream()
+                .filter(article -> "PUBLISHED".equals(article.getStatus()))
+                .collect(Collectors.toMap(CultureArticle::getId, article -> article));
+        return normalized.stream()
+                .map(articles::get)
+                .filter(Objects::nonNull)
+                .map(this::toArticleResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)

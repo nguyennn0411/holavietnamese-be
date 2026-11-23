@@ -22,6 +22,7 @@ class LearningPathIntegrationTests {
 
   @Test
   void resolvesLevelPriorityAndRecommendsPublishedCourseRanges() {
+    db.update("UPDATE courses SET status='DRAFT' WHERE status='PUBLISHED'");
     long learner = user(null);
     long ranged = course("A0-A1-" + UUID.randomUUID(), "Vietnamese Foundations A0-A1", "A1", "PUBLISHED");
     long b1Course = course("B1-" + UUID.randomUUID(), "Independent Vietnamese", "B1", "PUBLISHED");

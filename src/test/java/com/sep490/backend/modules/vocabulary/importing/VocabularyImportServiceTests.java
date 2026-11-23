@@ -97,6 +97,20 @@ class VocabularyImportServiceTests {
     }
 
     @Test
+    void previewRejectsAnActorThatNoLongerExists() {
+        when(reader.read(any(byte[].class), any(), any()))
+                .thenReturn(new VocabularyExcelReader.WorkbookData(List.of(row(2)), List.of()));
+        when(handler.validate(any())).thenReturn(List.of());
+        when(handler.previewSummary(any())).thenReturn(Map.of());
+        when(users.findById(7L)).thenReturn(Optional.empty());
+
+        // Principal con hop le nhung tai khoan da bi xoa thi khong duoc tao import job mo coi.
+        assertKind(
+                () -> service.preview("VOCABULARY", new byte[] {1}, "words.xlsx", owner),
+                LearningException.Kind.NOT_FOUND);
+    }
+
+    @Test
     void previewStoresReadyJobWithSanitizedFilenameAndActorFallback() {
         var parsedRows = List.of(row(2));
         when(reader.read(any(byte[].class), any(), any()))
@@ -202,6 +216,27 @@ class VocabularyImportServiceTests {
     }
 
     @Test
+    void updatePreviewRejectsMissingJobNullRowsOutOfRangeRowsAndOversizedCells() {
+        when(jobs.lockById("missing")).thenReturn(Optional.empty());
+        assertKind(
+                () -> service.updatePreview("missing", List.of(row(2)), owner),
+                LearningException.Kind.NOT_FOUND);
+
+        var editable = job("editable-limits", 7L, "READY");
+        when(jobs.lockById("editable-limits")).thenReturn(Optional.of(editable));
+        assertKind(
+                () -> service.updatePreview("editable-limits", java.util.Arrays.asList((Row) null), owner),
+                LearningException.Kind.INVALID);
+        assertKind(
+                () -> service.updatePreview("editable-limits", List.of(row(20002)), owner),
+                LearningException.Kind.INVALID);
+        var oversized = new Row(2, Map.of("word", "x".repeat(10001)));
+        assertKind(
+                () -> service.updatePreview("editable-limits", List.of(oversized), owner),
+                LearningException.Kind.INVALID);
+    }
+
+    @Test
     void updatePreviewSanitizesValuesAndRecomputesStatus() {
         var editable = job("editable", 7L, "VALIDATION_FAILED");
         when(jobs.lockById("editable")).thenReturn(Optional.of(editable));
@@ -237,6 +272,60 @@ class VocabularyImportServiceTests {
         when(jobs.findById("completed")).thenReturn(Optional.of(completed));
         when(jobs.lockById("completed")).thenReturn(Optional.of(completed));
         assertThat(service.confirm("completed", owner).status()).isEqualTo("IMPORTED");
+    }
+
+    @Test
+    void confirmRejectsMissingJobBothBeforeAndAfterLocking() {
+        when(jobs.findById("missing-before-lock")).thenReturn(Optional.empty());
+        assertKind(
+                () -> service.confirm("missing-before-lock", owner),
+                LearningException.Kind.NOT_FOUND);
+
+        var disappeared = job("missing-after-lock", 7L, "READY");
+        when(jobs.findById("missing-after-lock")).thenReturn(Optional.of(disappeared));
+        when(jobs.lockById("missing-after-lock")).thenReturn(Optional.empty());
+        assertKind(
+                () -> service.confirm("missing-after-lock", owner),
+                LearningException.Kind.NOT_FOUND);
+    }
+
+    @Test
+    void confirmStopsAndStoresFreshValidationErrorsBeforeWriting() {
+        var ready = job("invalid-after-preview", 7L, "READY");
+        ready.setPayload(new ObjectMapper().valueToTree(List.of(row(2))).toString());
+        when(jobs.findById("invalid-after-preview")).thenReturn(Optional.of(ready));
+        when(jobs.lockById("invalid-after-preview")).thenReturn(Optional.of(ready));
+        when(handler.validate(any()))
+                .thenReturn(List.of(new Error("VOCABULARY", 2, "word", "required")));
+
+        // Du lieu co the da thay doi sau preview, nen confirm bat buoc validate lan cuoi.
+        var response = service.confirm("invalid-after-preview", owner);
+
+        assertThat(response.status()).isEqualTo("VALIDATION_FAILED");
+        assertThat(response.errorRows()).isOne();
+        assertThat(response.canConfirm()).isFalse();
+        assertThat(response.errors()).singleElement()
+                .satisfies(error -> assertThat(error.column()).isEqualTo("word"));
+    }
+
+    @Test
+    void detailResolvesLegacyImportedStatusFromDuplicateSummary() {
+        var partiallyImported = job("legacy-partial", 7L, "IMPORTED");
+        partiallyImported.setImportedRows(1);
+        partiallyImported.setSummary(
+                new ObjectMapper()
+                        .valueToTree(Map.of("duplicateWords", List.of("xin")))
+                        .toString());
+        var fullySkipped = job("legacy-skipped", 7L, "IMPORTED");
+        fullySkipped.setSummary(
+                new ObjectMapper()
+                        .valueToTree(Map.of("duplicateRegionalVariants", List.of("chao")))
+                        .toString());
+        when(jobs.findById("legacy-partial")).thenReturn(Optional.of(partiallyImported));
+        when(jobs.findById("legacy-skipped")).thenReturn(Optional.of(fullySkipped));
+
+        assertThat(service.detail("legacy-partial").status()).isEqualTo("IMPORTED_WITH_SKIPS");
+        assertThat(service.detail("legacy-skipped").status()).isEqualTo("SKIPPED");
     }
 
     @Test

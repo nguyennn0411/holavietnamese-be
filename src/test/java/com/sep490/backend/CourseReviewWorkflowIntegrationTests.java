@@ -28,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @Transactional
 class CourseReviewWorkflowIntegrationTests {
+  private static final String ADMIN_API = "/api/admin";
+  private static final String CONTENT_API = "/api/content";
   @Autowired MockMvc mvc;
   @Autowired ObjectMapper json;
   @Autowired ContentStore db;
@@ -56,35 +58,37 @@ class CourseReviewWorkflowIntegrationTests {
         .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"REVIEW\"}"))
         .andExpect(status().isConflict());
 
-    mvc.perform(get("/api/admin/courses/"+course).with(actor(otherManager)))
+    mvc.perform(get(CONTENT_API+"/courses/"+course).with(actor(otherManager)))
         .andExpect(status().isForbidden());
-    mvc.perform(get("/api/admin/courses").with(actor(manager)))
+    mvc.perform(get(ADMIN_API+"/courses").with(actor(manager)))
+        .andExpect(status().isForbidden());
+    mvc.perform(get(CONTENT_API+"/courses").with(actor(manager)))
         .andExpect(status().isOk()).andExpect(jsonPath("$.content[0].id").value(course));
-    mvc.perform(get("/api/admin/courses").with(actor(learner)))
+    mvc.perform(get(CONTENT_API+"/courses").with(actor(learner)))
         .andExpect(status().isForbidden());
 
-    long module=json.readTree(mvc.perform(post("/api/admin/courses/"+course+"/modules")
+    long module=json.readTree(mvc.perform(post(CONTENT_API+"/courses/"+course+"/modules")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content("{\"titleEn\":\"Module\",\"titleVi\":\"Học phần\",\"descriptionEn\":\"Description\"}"))
         .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("id").asLong();
-    long lesson=json.readTree(mvc.perform(post("/api/admin/modules/"+module+"/lessons")
+    long lesson=json.readTree(mvc.perform(post(CONTENT_API+"/modules/"+module+"/lessons")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content("{\"code\":\"L1\",\"slug\":\"lesson-one\",\"titleEn\":\"Lesson one\",\"descriptionEn\":\"Description\",\"lessonType\":\"NORMAL\",\"estimatedMinutes\":10,\"prerequisiteIds\":[]}"))
         .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("id").asLong();
-    mvc.perform(post("/api/admin/courses/"+course+"/submit").with(actor(manager)).with(csrf()))
+    mvc.perform(post(CONTENT_API+"/courses/"+course+"/submit").with(actor(manager)).with(csrf()))
         .andExpect(status().isBadRequest());
     finishCourse(course,lesson);
 
-    mvc.perform(post("/api/admin/courses/"+course+"/submit").with(actor(manager)).with(csrf()))
+    mvc.perform(post(CONTENT_API+"/courses/"+course+"/submit").with(actor(manager)).with(csrf()))
         .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("REVIEW"));
     mvc.perform(get("/api/courses/"+course)).andExpect(status().isNotFound());
-    mvc.perform(post("/api/admin/courses/"+course+"/review").with(actor(manager)).with(csrf())
+    mvc.perform(post(CONTENT_API+"/courses/"+course+"/review").with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content("{\"decision\":\"APPROVE\"}"))
         .andExpect(status().isForbidden());
-    mvc.perform(put("/api/admin/courses/"+course).with(actor(manager)).with(csrf())
+    mvc.perform(put(CONTENT_API+"/courses/"+course).with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content(courseJson("review-flow")))
         .andExpect(status().isConflict());
-    mvc.perform(patch("/api/admin/courses/"+course+"/status").with(actor(manager)).with(csrf())
+    mvc.perform(patch(CONTENT_API+"/courses/"+course+"/status").with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"PUBLISHED\"}"))
         .andExpect(status().isForbidden());
     mvc.perform(patch("/api/admin/courses/"+course+"/status").with(actor(admin)).with(csrf())
@@ -111,7 +115,7 @@ class CourseReviewWorkflowIntegrationTests {
         + "\"difficulty\":\"EASY\",\"status\":\"PUBLISHED\","
         + "\"options\":[{\"id\":\"a\",\"text\":\"Hello\"},{\"id\":\"b\",\"text\":\"Goodbye\"}],"
         + "\"correctAnswerJson\":{\"optionIds\":[\"a\"]}}";
-    long question = json.readTree(mvc.perform(post("/api/admin/questions")
+    long question = json.readTree(mvc.perform(post(CONTENT_API+"/questions")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content(questionBody)).andExpect(status().isOk()).andReturn()
         .getResponse().getContentAsString()).path("id").asLong();
@@ -119,7 +123,7 @@ class CourseReviewWorkflowIntegrationTests {
     mvc.perform(put("/api/admin/questions/" + question).with(actor(admin)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content(questionBody))
         .andExpect(status().isForbidden());
-    mvc.perform(put("/api/admin/questions/" + question).with(actor(manager)).with(csrf())
+    mvc.perform(put(CONTENT_API+"/questions/" + question).with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content(questionBody))
         .andExpect(status().isOk());
   }
@@ -130,13 +134,13 @@ class CourseReviewWorkflowIntegrationTests {
     long published=courses.create(request("published-catalog"),adminId);
     db.update("UPDATE courses SET status='PUBLISHED' WHERE id=?",published);
 
-    mvc.perform(get("/api/admin/courses").with(actor(manager)))
+    mvc.perform(get(CONTENT_API+"/courses").with(actor(manager)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[?(@.id == "+ownDraft+")]").exists())
         .andExpect(jsonPath("$.content[?(@.id == "+published+")]").exists());
-    mvc.perform(get("/api/admin/courses/"+published).with(actor(manager)))
+    mvc.perform(get(CONTENT_API+"/courses/"+published).with(actor(manager)))
         .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(published));
-    mvc.perform(put("/api/admin/courses/"+published).with(actor(manager)).with(csrf())
+    mvc.perform(put(CONTENT_API+"/courses/"+published).with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content(courseJson("published-catalog")))
         .andExpect(status().isForbidden());
   }
@@ -153,10 +157,10 @@ class CourseReviewWorkflowIntegrationTests {
         .containsEntry("status","REJECTED").containsEntry("reviewNote","Bổ sung mục tiêu học tập.");
     mvc.perform(get("/api/courses/"+course)).andExpect(status().isNotFound());
 
-    mvc.perform(put("/api/admin/courses/"+course).with(actor(manager)).with(csrf())
+    mvc.perform(put(CONTENT_API+"/courses/"+course).with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content(courseJson("rejected-flow")))
         .andExpect(status().isOk());
-    mvc.perform(delete("/api/admin/courses/"+course).with(actor(manager)).with(csrf()))
+    mvc.perform(delete(CONTENT_API+"/courses/"+course).with(actor(manager)).with(csrf()))
         .andExpect(status().isOk());
     assertThat(db.one("SELECT status FROM courses WHERE id=?",course)).containsEntry("status","ARCHIVED");
   }
@@ -170,23 +174,23 @@ class CourseReviewWorkflowIntegrationTests {
     workflow.submit(course,manager);
     workflow.review(course,"APPROVE","Ready to publish.",admin);
 
-    mvc.perform(put("/api/admin/courses/"+course).with(actor(manager)).with(csrf())
+    mvc.perform(put(CONTENT_API+"/courses/"+course).with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content(courseJson("published-edit-flow")))
         .andExpect(status().isConflict());
-    mvc.perform(post("/api/admin/courses/"+course+"/edit-request").with(actor(otherManager)).with(csrf())
+    mvc.perform(post(CONTENT_API+"/courses/"+course+"/edit-request").with(actor(otherManager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"Update lesson content\"}"))
         .andExpect(status().isForbidden());
 
-    mvc.perform(post("/api/admin/courses/"+course+"/edit-request").with(actor(manager)).with(csrf())
+    mvc.perform(post(CONTENT_API+"/courses/"+course+"/edit-request").with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"Update lesson content and final quiz\"}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("PUBLISHED"))
         .andExpect(jsonPath("$.editRequestStatus").value("PENDING"));
     mvc.perform(get("/api/courses/"+course)).andExpect(status().isOk());
-    mvc.perform(post("/api/admin/courses/"+course+"/edit-request").with(actor(manager)).with(csrf())
+    mvc.perform(post(CONTENT_API+"/courses/"+course+"/edit-request").with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"Duplicate request\"}"))
         .andExpect(status().isConflict());
-    mvc.perform(post("/api/admin/courses/"+course+"/edit-request/review").with(actor(manager)).with(csrf())
+    mvc.perform(post(CONTENT_API+"/courses/"+course+"/edit-request/review").with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content("{\"decision\":\"APPROVE\"}"))
         .andExpect(status().isForbidden());
 
@@ -196,7 +200,7 @@ class CourseReviewWorkflowIntegrationTests {
         .andExpect(jsonPath("$.status").value("DRAFT"))
         .andExpect(jsonPath("$.editRequestStatus").value("APPROVED"));
     mvc.perform(get("/api/courses/"+course)).andExpect(status().isNotFound());
-    mvc.perform(put("/api/admin/courses/"+course).with(actor(manager)).with(csrf())
+    mvc.perform(put(CONTENT_API+"/courses/"+course).with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content(courseJson("published-edit-flow")))
         .andExpect(status().isOk());
   }
@@ -210,10 +214,10 @@ class CourseReviewWorkflowIntegrationTests {
             + " WHERE action='CREATE_COURSE' ORDER BY id DESC LIMIT 1"))
         .containsEntry("adminUsername", "manager@test")
         .containsEntry("action", "CREATE_COURSE")
-        .containsEntry("target", "/api/admin/courses")
+        .containsEntry("target", "/api/content/courses")
         .containsKey("createdAt");
 
-    mvc.perform(put("/api/admin/courses/" + course).with(actor(manager)).with(csrf())
+    mvc.perform(put(CONTENT_API+"/courses/" + course).with(actor(manager)).with(csrf())
             .contentType(MediaType.APPLICATION_JSON).content(courseJson("audited-course")))
         .andExpect(status().isOk());
 
@@ -222,65 +226,71 @@ class CourseReviewWorkflowIntegrationTests {
             + " WHERE action='UPDATE_COURSE' ORDER BY id DESC LIMIT 1"))
         .containsEntry("adminUsername", "manager@test")
         .containsEntry("action", "UPDATE_COURSE")
-        .containsEntry("target", "/api/admin/courses/" + course)
+        .containsEntry("target", "/api/content/courses/" + course)
         .containsKey("createdAt");
 
-    mvc.perform(get("/api/admin/audit-logs").with(actor(admin)))
+    var auditResponse = mvc.perform(get("/api/admin/audit-logs").with(actor(admin)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.result[0].adminUsername").value("manager@test"))
-        .andExpect(jsonPath("$.result[0].action").value("UPDATE_COURSE"))
-        .andExpect(jsonPath("$.result[0].createdAt").isNotEmpty())
-        .andExpect(jsonPath("$.result[0].status").value("SUCCESS"));
+        .andReturn().getResponse().getContentAsString();
+    var entries = json.readTree(auditResponse).path("result");
+    var matchingAudit = java.util.stream.StreamSupport.stream(entries.spliterator(), false)
+        .filter(entry -> "UPDATE_COURSE".equals(entry.path("action").asText()))
+        .filter(entry -> "manager@test".equals(entry.path("adminUsername").asText()))
+        .filter(entry -> ("/api/content/courses/" + course).equals(entry.path("target").asText()))
+        .findFirst();
+    assertThat(matchingAudit).isPresent();
+    assertThat(matchingAudit.orElseThrow().path("createdAt").asText()).isNotBlank();
+    assertThat(matchingAudit.orElseThrow().path("status").asText()).isEqualTo("SUCCESS");
   }
 
   private long createCourse(LearnerPrincipal actor,String slug) throws Exception {
-    return json.readTree(mvc.perform(post("/api/admin/courses").with(actor(actor)).with(csrf())
+    return json.readTree(mvc.perform(post(CONTENT_API+"/courses").with(actor(actor)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content(courseJson(slug)))
         .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("id").asLong();
   }
 
   private void finishCourse(long course, long lesson) throws Exception {
-    mvc.perform(post("/api/admin/lessons/"+lesson+"/activities")
+    mvc.perform(post(CONTENT_API+"/lessons/"+lesson+"/activities")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content("{\"activityType\":\"TEXT\",\"titleEn\":\"Read\",\"contentJson\":{\"body\":\"Hello\"},\"isRequired\":true,\"maxScore\":0,\"status\":\"PUBLISHED\",\"grammarTopicIds\":[]}"))
         .andExpect(status().isOk());
-    long question=json.readTree(mvc.perform(post("/api/admin/questions")
+    long question=json.readTree(mvc.perform(post(CONTENT_API+"/questions")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content("{\"questionType\":\"MULTIPLE_CHOICE\",\"promptEn\":\"Choose hello\",\"difficulty\":\"EASY\",\"status\":\"PUBLISHED\",\"options\":[{\"id\":\"a\",\"text\":\"Hello\"},{\"id\":\"b\",\"text\":\"Goodbye\"}],\"correctAnswerJson\":{\"optionIds\":[\"a\"]}}"))
         .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("id").asLong();
     long lessonQuiz=quiz(course,lesson,"LESSON",question);
-    mvc.perform(post("/api/admin/lessons/"+lesson+"/activities")
+    mvc.perform(post(CONTENT_API+"/lessons/"+lesson+"/activities")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content("{\"activityType\":\"QUIZ\",\"titleEn\":\"Lesson quiz\",\"contentJson\":{},\"isRequired\":true,\"maxScore\":0,\"status\":\"PUBLISHED\",\"quizId\":"+lessonQuiz+",\"grammarTopicIds\":[]}"))
         .andExpect(status().isOk());
-    mvc.perform(patch("/api/admin/lessons/"+lesson+"/status")
+    mvc.perform(patch(CONTENT_API+"/lessons/"+lesson+"/status")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content("{\"status\":\"PUBLISHED\"}"))
         .andExpect(status().isOk());
     long finalQuiz=quiz(course,lesson,"COURSE",question);
-    mvc.perform(post("/api/admin/lessons/"+lesson+"/activities")
+    mvc.perform(post(CONTENT_API+"/lessons/"+lesson+"/activities")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content("{\"activityType\":\"QUIZ\",\"titleEn\":\"Final quiz\",\"contentJson\":{},\"isRequired\":true,\"maxScore\":0,\"status\":\"PUBLISHED\",\"quizId\":"+finalQuiz+",\"grammarTopicIds\":[]}"))
         .andExpect(status().isOk());
-    mvc.perform(patch("/api/admin/courses/"+course+"/final-assessment")
+    mvc.perform(patch(CONTENT_API+"/courses/"+course+"/final-assessment")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content("{\"quizId\":"+finalQuiz+"}"))
         .andExpect(status().isOk());
-    mvc.perform(get("/api/admin/courses/"+course+"/readiness").with(actor(manager)))
+    mvc.perform(get(CONTENT_API+"/courses/"+course+"/readiness").with(actor(manager)))
         .andExpect(status().isOk()).andExpect(jsonPath("$.ready").value(true));
   }
 
   private long quiz(long course, Long lesson, String type, long question) throws Exception {
     String body="{\"titleEn\":\""+type+" quiz\",\"quizType\":\""+type+"\",\"courseId\":"+course+
         ",\"lessonId\":"+(lesson==null?"null":lesson)+",\"passingScore\":70}";
-    long quiz=json.readTree(mvc.perform(post("/api/admin/quizzes")
+    long quiz=json.readTree(mvc.perform(post(CONTENT_API+"/quizzes")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("id").asLong();
-    mvc.perform(post("/api/admin/quizzes/"+quiz+"/questions")
+    mvc.perform(post(CONTENT_API+"/quizzes/"+quiz+"/questions")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content("{\"questionId\":"+question+",\"points\":1}"))
         .andExpect(status().isOk());
-    mvc.perform(patch("/api/admin/quizzes/"+quiz+"/status")
+    mvc.perform(patch(CONTENT_API+"/quizzes/"+quiz+"/status")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content("{\"status\":\"PUBLISHED\"}"))
         .andExpect(status().isOk());

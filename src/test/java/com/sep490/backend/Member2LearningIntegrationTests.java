@@ -51,8 +51,7 @@ class Member2LearningIntegrationTests {
   void fixture() throws Exception {
     try (var c = jdbc.getDataSource().getConnection()) {
       String url = c.getMetaData().getURL();
-      if (!url.startsWith("jdbc:h2:mem:hola-tests")
-          && !url.matches("jdbc:mysql://[^/]+/hola_features_test(\\?.*)?"))
+      if (!url.matches("jdbc:mysql://[^/]+/hola_vietnamese_test(\\?.*)?"))
         throw new IllegalStateException("Only isolated test databases are allowed.");
     }
     String unique = UUID.randomUUID().toString();

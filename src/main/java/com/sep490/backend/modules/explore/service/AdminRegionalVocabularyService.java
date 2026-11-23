@@ -38,11 +38,18 @@ public class AdminRegionalVocabularyService {
             String keyword,
             VietnamRegion region,
             Long vocabularyId,
+            Collection<Long> vocabularyIds,
             VocabularyStatus status,
             boolean publishedOnly) {
         return repository
                 .findAll(
-                        specification(keyword, region, vocabularyId, status, publishedOnly),
+                        specification(
+                                keyword,
+                                region,
+                                vocabularyId,
+                                vocabularyIds,
+                                status,
+                                publishedOnly),
                         Sort.by("vocabulary.word", "vocabulary.id", "region", "word", "id"))
                 .stream()
                 .map(RegionalVocabularyMapper::toResponse)
@@ -63,7 +70,9 @@ public class AdminRegionalVocabularyService {
                         Math.max(1, Math.min(size, 100)),
                         Sort.by("vocabulary.word", "vocabulary.id", "region", "word", "id"));
         return repository
-                .findAll(specification(keyword, region, vocabularyId, status, false), pageable)
+                .findAll(
+                        specification(keyword, region, vocabularyId, null, status, false),
+                        pageable)
                 .map(RegionalVocabularyMapper::toResponse);
     }
 
@@ -72,6 +81,7 @@ public class AdminRegionalVocabularyService {
             String keyword,
             VietnamRegion region,
             Long vocabularyId,
+            Collection<Long> vocabularyIds,
             VocabularyStatus status,
             boolean publishedOnly) {
         return (root, query, cb) -> {
@@ -83,6 +93,9 @@ public class AdminRegionalVocabularyService {
             } else if (status != null) predicates.add(cb.equal(root.get("status"), status));
             if (region != null) predicates.add(cb.equal(root.get("region"), region));
             if (vocabularyId != null) predicates.add(cb.equal(master.get("id"), vocabularyId));
+            if (vocabularyIds != null && !vocabularyIds.isEmpty()) {
+                predicates.add(master.get("id").in(vocabularyIds));
+            }
             if (keyword != null && !keyword.isBlank()) {
                 var text = keyword.strip().toLowerCase(Locale.ROOT);
                 predicates.add(
@@ -104,9 +117,7 @@ public class AdminRegionalVocabularyService {
     public List<RegionalVocabularyResponse> forDestination(
             Collection<Long> masterIds, VietnamRegion region, boolean publishedOnly) {
         if (masterIds.isEmpty()) return List.of();
-        return search(null, region, null, null, publishedOnly).stream()
-                .filter(v -> masterIds.contains(v.vocabularyId()))
-                .toList();
+        return search(null, region, null, masterIds, null, publishedOnly);
     }
 
     /** Tao noi dung moi voi cac gia tri mac dinh hien tai. */

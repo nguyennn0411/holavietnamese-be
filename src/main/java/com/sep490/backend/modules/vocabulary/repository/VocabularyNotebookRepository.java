@@ -4,6 +4,8 @@ import com.sep490.backend.modules.learning.progress.port.VocabularyProgressReade
 import com.sep490.backend.modules.vocabulary.entity.VocabularyNotebookEntry;
 
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.*;
 
@@ -32,7 +34,9 @@ public interface VocabularyNotebookRepository
             order by coalesce(s.nextReviewAt, v.createdAt), v.id
             """)
     /** Lay cac tu den han va chua duoc danh gia trong phien on tap. */
-    List<VocabularyNotebookEntry> findDue(Long userId, java.time.Instant now, String sessionId);
+    @EntityGraph(attributePaths = {"lesson", "lesson.course", "masterVocabulary"})
+    List<VocabularyNotebookEntry> findDue(
+            Long userId, java.time.Instant now, String sessionId, Pageable pageable);
 
     /** Tim muc so tu theo ID va chu so huu. */
     Optional<VocabularyNotebookEntry> findByIdAndUserId(Long id, Long userId);
@@ -43,6 +47,7 @@ public interface VocabularyNotebookRepository
     int countByUser(Long userId);
 
     /** Tim lien ket tu chuan trong so ca nhan de chan luu trung. */
+    @EntityGraph(attributePaths = {"lesson", "lesson.course", "masterVocabulary"})
     Optional<VocabularyNotebookEntry> findByUser_IdAndMasterVocabulary_Id(
             Long userId, Long masterVocabularyId);
 
@@ -57,4 +62,26 @@ order by v.createdAt desc, v.id desc
 """)
     /** Tim kiem theo cac bo loc va giu thu tu hien thi hien tai. */
     List<VocabularyNotebookEntry> search(Long userId, String search, Long courseId, Long lessonId);
+
+    @EntityGraph(attributePaths = {"lesson", "lesson.course", "masterVocabulary"})
+    @Query(
+            value = """
+            select v from VocabularyNotebookEntry v left join v.lesson l
+            where v.user.id = :userId
+            and (:courseId is null or l.course.id = :courseId)
+            and (:lessonId is null or l.id = :lessonId)
+            and (:search = '' or locate(lower(:search), lower(v.word)) > 0
+                 or locate(lower(:search), lower(v.meaning)) > 0)
+            order by v.createdAt desc, v.id desc
+            """,
+            countQuery = """
+            select count(v) from VocabularyNotebookEntry v left join v.lesson l
+            where v.user.id = :userId
+            and (:courseId is null or l.course.id = :courseId)
+            and (:lessonId is null or l.id = :lessonId)
+            and (:search = '' or locate(lower(:search), lower(v.word)) > 0
+                 or locate(lower(:search), lower(v.meaning)) > 0)
+            """)
+    Page<VocabularyNotebookEntry> searchPage(
+            Long userId, String search, Long courseId, Long lessonId, Pageable pageable);
 }

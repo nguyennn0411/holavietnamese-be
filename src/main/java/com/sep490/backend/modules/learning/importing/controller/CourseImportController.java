@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/admin/courses/import")
+@RequestMapping({"/api/admin/courses/import", "/api/content/courses/import"})
 @PreAuthorize("hasRole('ADMIN')")
 public class CourseImportController {
     private final CourseImportService service;

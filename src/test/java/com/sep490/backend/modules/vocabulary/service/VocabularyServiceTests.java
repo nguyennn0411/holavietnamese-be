@@ -31,7 +31,7 @@ class VocabularyServiceTests {
     @Test
     void searchAndDetailNeverExposeUnpublishedWords() {
         var published = word(1L, "xin chào", "phrase", VocabularyStatus.PUBLISHED);
-        when(repository.search("xin", VocabularyStatus.PUBLISHED, "phrase"))
+        when(repository.search("xin", VocabularyStatus.PUBLISHED, "phrase", false))
                 .thenReturn(List.of(published));
         when(repository.findById(1L)).thenReturn(Optional.of(published));
         when(repository.findById(2L))
@@ -54,10 +54,10 @@ class VocabularyServiceTests {
                         LearningException.class,
                         error -> assertThat(error.kind()).isEqualTo(LearningException.Kind.INVALID));
 
-        when(repository.searchPage("xin", VocabularyStatus.PUBLISHED, null, -1, 500, true))
+        when(repository.searchPage("xin", VocabularyStatus.PUBLISHED, null, -1, 500, true, false))
                 .thenReturn(new PageImpl<>(List.of(word(1L, "xin", "verb", VocabularyStatus.PUBLISHED))));
         assertThat(service.searchPage("xin", -1, 500, true).getContent()).hasSize(1);
-        verify(repository).searchPage("xin", VocabularyStatus.PUBLISHED, null, -1, 500, true);
+        verify(repository).searchPage("xin", VocabularyStatus.PUBLISHED, null, -1, 500, true, false);
     }
 
     @Test

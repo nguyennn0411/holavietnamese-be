@@ -45,6 +45,7 @@ public class CourseAuditInterceptor implements HandlerInterceptor {
     }
 
     static String actionFor(String method, String path) {
+        path = path.replaceFirst("^/api/content", "/api/admin");
         if ("POST".equals(method) && "/api/admin/courses".equals(path)) return "CREATE_COURSE";
         if ("PUT".equals(method) && path.matches("/api/admin/courses/\\d+")) return "UPDATE_COURSE";
         if ("PATCH".equals(method) && path.matches("/api/admin/courses/\\d+/status")) return "CHANGE_COURSE_STATUS";

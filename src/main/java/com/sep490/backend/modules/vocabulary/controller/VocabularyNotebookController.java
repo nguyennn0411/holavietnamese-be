@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +30,31 @@ public class VocabularyNotebookController {
             @RequestParam(required = false) Long courseId,
             @RequestParam(required = false) Long lessonId) {
         return vocabulary.search(user.id(), search, courseId, lessonId);
+    }
+
+    @GetMapping("/page")
+    public Page<VocabularyNotebookResponse> page(
+            @AuthenticationPrincipal LearnerPrincipal user,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long courseId,
+            @RequestParam(required = false) Long lessonId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return vocabulary.page(user.id(), search, courseId, lessonId, page, size);
+    }
+
+    @GetMapping("/practice")
+    public List<VocabularyNotebookResponse> practice(
+            @AuthenticationPrincipal LearnerPrincipal user,
+            @RequestParam(defaultValue = "20") int limit) {
+        return vocabulary.practice(user.id(), limit);
+    }
+
+    @GetMapping("/by-master/{masterVocabularyId}")
+    public VocabularyNotebookResponse findByMasterVocabulary(
+            @AuthenticationPrincipal LearnerPrincipal user,
+            @PathVariable Long masterVocabularyId) {
+        return vocabulary.findByMasterVocabulary(user.id(), masterVocabularyId);
     }
 
     /** Lay chi tiet theo ID va quyen truy cap hien tai. */

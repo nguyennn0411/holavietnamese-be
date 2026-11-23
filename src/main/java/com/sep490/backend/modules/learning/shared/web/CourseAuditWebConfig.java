@@ -19,6 +19,11 @@ public class CourseAuditWebConfig implements WebMvcConfigurer {
                         "/api/admin/modules/**", "/api/admin/lessons/**",
                         "/api/admin/activities/**", "/api/admin/quizzes",
                         "/api/admin/quizzes/**", "/api/admin/questions",
-                        "/api/admin/questions/**");
+                        "/api/admin/questions/**",
+                        "/api/content/courses", "/api/content/courses/**",
+                        "/api/content/modules/**", "/api/content/lessons/**",
+                        "/api/content/activities/**", "/api/content/quizzes",
+                        "/api/content/quizzes/**", "/api/content/questions",
+                        "/api/content/questions/**");
     }
 }

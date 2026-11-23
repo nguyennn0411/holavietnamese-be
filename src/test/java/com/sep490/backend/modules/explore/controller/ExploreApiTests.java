@@ -66,4 +66,118 @@ class ExploreApiTests extends ContentApiTestSupport {
         mvc.perform(get("/api/admin/regional-language").with(user(LEARNER)))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void regionalListFiltersByKeywordAndRegionButReturnsAllPublishedVariantsInGroup()
+            throws Exception {
+        jdbc.update(
+                "INSERT INTO vocabularies (word, search_word, part_of_speech, status, created_at,"
+                        + " updated_at) VALUES ('regional-filter-master', 'regional-filter-master',"
+                        + " 'noun', 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
+        Long master = jdbc.queryForObject(
+                "SELECT id FROM vocabularies WHERE word='regional-filter-master'", Long.class);
+        jdbc.update(
+                "INSERT INTO regional_vocabularies (vocabulary_id, region, word, meaning, status,"
+                        + " created_at, updated_at) VALUES (?, 'NORTH', 'regional-bắc', 'north match',"
+                        + " 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", master);
+        jdbc.update(
+                "INSERT INTO regional_vocabularies (vocabulary_id, region, word, meaning, status,"
+                        + " created_at, updated_at) VALUES (?, 'SOUTH', 'regional-nam', 'south match',"
+                        + " 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", master);
+        jdbc.update(
+                "INSERT INTO regional_vocabularies (vocabulary_id, region, word, meaning, status,"
+                        + " created_at, updated_at) VALUES (?, 'SOUTH', 'regional-draft', 'south match',"
+                        + " 'DRAFT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", master);
+
+        mvc.perform(get("/api/regional-vietnamese")
+                        .param("keyword", "south match")
+                        .param("region", "SOUTH")
+                        .with(user(LEARNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.length()").value(1))
+                .andExpect(jsonPath("$.result[0].vocabularyId").value(master))
+                // Once a master matches, comparison returns all its published regional variants.
+                .andExpect(jsonPath("$.result[0].variants.length()").value(2));
+    }
+
+    @Test
+    void destinationListAppliesRegionFilter() throws Exception {
+        jdbc.update(
+                "INSERT INTO destinations (name_vi, name_en, slug, region, status, created_at,"
+                        + " updated_at) VALUES ('Region North', 'Region North', 'region-north',"
+                        + " 'NORTH', 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
+        jdbc.update(
+                "INSERT INTO destinations (name_vi, name_en, slug, region, status, created_at,"
+                        + " updated_at) VALUES ('Region South', 'Region South', 'region-south',"
+                        + " 'SOUTH', 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
+
+        mvc.perform(get("/api/destinations")
+                        .param("keyword", "Region")
+                        .param("region", "SOUTH")
+                        .with(user(LEARNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.length()").value(1))
+                .andExpect(jsonPath("$.result[0].slug").value("region-south"));
+    }
+
+    @Test
+    void destinationRegionalVocabularyUsesTenItemsPerBackendPage() throws Exception {
+        String suffix = Long.toUnsignedString(System.nanoTime());
+        jdbc.update(
+                "INSERT INTO destinations (name_vi, name_en, slug, region, status, created_at,"
+                    + " updated_at) VALUES (?, ?, ?, 'SOUTH', 'PUBLISHED', CURRENT_TIMESTAMP,"
+                    + " CURRENT_TIMESTAMP)",
+                "Phân trang " + suffix,
+                "Paging " + suffix,
+                "regional-page-" + suffix);
+        Long destinationId =
+                jdbc.queryForObject(
+                        "SELECT id FROM destinations WHERE slug=?",
+                        Long.class,
+                        "regional-page-" + suffix);
+
+        for (int index = 0; index < 11; index++) {
+            String word = "regional-page-" + suffix + "-" + String.format("%02d", index);
+            jdbc.update(
+                    "INSERT INTO vocabularies (word, search_word, part_of_speech, status,"
+                        + " created_at, updated_at) VALUES (?, ?, 'noun', 'PUBLISHED',"
+                        + " CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                    word,
+                    word);
+            Long vocabularyId =
+                    jdbc.queryForObject(
+                            "SELECT id FROM vocabularies WHERE word=?", Long.class, word);
+            jdbc.update(
+                    "INSERT INTO destination_vocabularies (destination_id, vocabulary_id,"
+                            + " display_order) VALUES (?, ?, ?)",
+                    destinationId,
+                    vocabularyId,
+                    index);
+            jdbc.update(
+                    "INSERT INTO regional_vocabularies (vocabulary_id, region, word, meaning,"
+                        + " status, created_at, updated_at) VALUES (?, 'SOUTH', ?, 'meaning',"
+                        + " 'PUBLISHED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+                    vocabularyId,
+                    "variant-" + index);
+        }
+
+        mvc.perform(
+                        get("/api/destinations/" + destinationId + "/content")
+                                .param("page", "0")
+                                .param("size", "1")
+                                .with(user(LEARNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.regionalVariants.length()").value(10))
+                .andExpect(jsonPath("$.result.regionalSize").value(10))
+                .andExpect(jsonPath("$.result.regionalTotalElements").value(11))
+                .andExpect(jsonPath("$.result.regionalTotalPages").value(2));
+
+        mvc.perform(
+                        get("/api/destinations/" + destinationId + "/content")
+                                .param("page", "1")
+                                .with(user(LEARNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.regionalVariants.length()").value(1))
+                .andExpect(jsonPath("$.result.regionalPage").value(1));
+    }
 }
