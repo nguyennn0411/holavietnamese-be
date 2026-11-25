@@ -162,7 +162,7 @@ class VocabularyCompatibilityTests extends ContentApiTestSupport {
         var pending = admin.createDraft(word("bulk-pending", VocabularyStatus.DRAFT));
         var draft = admin.createDraft(word("bulk-draft", VocabularyStatus.DRAFT));
         admin.submitReview(pending.id());
-        var content = new LearnerPrincipal(9002L, "content@test.local", "", true, "CONTENT");
+        var content = new LearnerPrincipal(9002L, "content@test.local", "", true, "CONTENT_CREATOR");
         var reviewer = new LearnerPrincipal(9003L, "reviewer@test.local", "", true, "ADMIN");
         mvc.perform(
                         post("/api/admin/vocabulary/review/approve-all")

@@ -34,7 +34,7 @@ class CourseStudioWorkbookTests {
     }
     Map<String,Object> preview=workbooks.validate(sample,"course-studio-template.xlsx");
     assertThat(preview.get("valid")).isEqualTo(true);
-    long author=db.insert("INSERT INTO users(email,username,password_hash,enabled,status,role) VALUES(?,?,?,true,'ACTIVE','CONTENT_MANAGER')",
+    long author=db.insert("INSERT INTO users(email,username,password_hash,enabled,status,role) VALUES(?,?,?,true,'ACTIVE','CONTENT_CREATOR')",
         "workbook-"+UUID.randomUUID()+"@test","workbook-"+UUID.randomUUID(),"test");
     Map<String,Object> imported=workbooks.importDraft(sample,"course-studio-template.xlsx",author);
     long course=((Number)imported.get("courseId")).longValue();

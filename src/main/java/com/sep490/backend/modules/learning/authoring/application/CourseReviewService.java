@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Ownership and approval workflow for courses authored by content managers. */
+/** Ownership and approval workflow for courses authored by content creators. */
 @Service
 @RequiredArgsConstructor
 public class CourseReviewService {
@@ -38,8 +38,8 @@ public class CourseReviewService {
   public void assertCanEdit(long courseId, LearnerPrincipal actor) {
     Map<String,Object> course=db.one("SELECT c.created_by,c.submitted_by,c.status,u.role AS author_role FROM courses c LEFT JOIN users u ON u.id=c.created_by WHERE c.id=?",courseId);
     if(isAdmin(actor)) {
-      if(isManagerCourse(course))
-        throw ContentException.forbidden("COURSE_REVIEW_ONLY","Review content manager courses without editing their content.");
+      if(isCreatorCourse(course))
+        throw ContentException.forbidden("COURSE_REVIEW_ONLY","Review content creator courses without editing their content.");
       return;
     }
     if(actor==null || course.get("createdBy")==null || ContentStore.id(course,"createdBy")!=actor.id())
@@ -51,13 +51,12 @@ public class CourseReviewService {
 
   public void assertCanChangeStatus(long courseId, String status) {
     Map<String,Object> course=db.one("SELECT c.submitted_by,u.role AS author_role FROM courses c LEFT JOIN users u ON u.id=c.created_by WHERE c.id=?",courseId);
-    if(isManagerCourse(course) && ("REVIEW".equals(status) || "PUBLISHED".equals(status)))
+    if(isCreatorCourse(course) && ("REVIEW".equals(status) || "PUBLISHED".equals(status)))
       throw ContentException.conflict("COURSE_REVIEW_REQUIRED","Content manager courses must use the submit and review workflow.");
   }
 
-  private boolean isManagerCourse(Map<String,Object> course) {
-    return course.get("submittedBy") != null || "CONTENT".equals(course.get("authorRole"))
-        || "CONTENT_MANAGER".equals(course.get("authorRole"));
+  private boolean isCreatorCourse(Map<String,Object> course) {
+    return course.get("submittedBy") != null || "CONTENT_CREATOR".equals(course.get("authorRole"));
   }
 
   public long courseForModule(long moduleId) {
@@ -75,7 +74,7 @@ public class CourseReviewService {
   @Transactional
   public void submit(long courseId, LearnerPrincipal actor) {
     assertCanEdit(courseId,actor);
-    if(isAdmin(actor)) throw ContentException.forbidden("CONTENT_REQUIRED","Only a content account can submit a course for review.");
+    if(isAdmin(actor)) throw ContentException.forbidden("CONTENT_CREATOR_REQUIRED","Only a content creator account can submit a course for review.");
     var issues = readiness(courseId);
     if (!issues.isEmpty()) throw ContentException.invalid(String.join(" ", issues));
     db.update("UPDATE courses SET status='REVIEW',submitted_by=?,submitted_at=CURRENT_TIMESTAMP,"
@@ -123,7 +122,7 @@ public class CourseReviewService {
   @Transactional
   public void requestEdit(long courseId, String reason, LearnerPrincipal actor) {
     if (isAdmin(actor))
-      throw ContentException.forbidden("CONTENT_REQUIRED", "Only a content account can request course editing.");
+      throw ContentException.forbidden("CONTENT_CREATOR_REQUIRED", "Only a content creator account can request course editing.");
     var course = db.one("SELECT id,title,status,created_by FROM courses WHERE id=? FOR UPDATE", courseId);
     if (actor == null || course.get("createdBy") == null
         || ContentStore.id(course, "createdBy") != actor.id())
@@ -136,7 +135,7 @@ public class CourseReviewService {
         courseId, actor.id(), reason.trim());
     notifications.sendToRole("ADMIN", NotificationMessage.mandatory(
         "Yêu cầu chỉnh sửa khóa học đã xuất bản",
-        "Content Manager yêu cầu mở chỉnh sửa khóa học \"" + course.get("title") + "\". Lý do: " + reason.trim(),
+        "Content Creator yêu cầu mở chỉnh sửa khóa học \"" + course.get("title") + "\". Lý do: " + reason.trim(),
         NotificationType.CONTENT_REVIEW,
         "/content/courses/" + courseId + "?step=publish"));
   }

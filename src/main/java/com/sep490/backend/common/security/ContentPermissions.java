@@ -20,19 +20,19 @@ public final class ContentPermissions {
     public static final String CULTURE_PUBLISH = "CULTURE_PUBLISH";
 
     public static final String VOCABULARY_READ_ACCESS =
-            "hasAnyRole('CONTENT','ADMIN') or hasAnyAuthority('VOCABULARY_READ','VOCABULARY_WRITE','VOCABULARY_REVIEW','VOCABULARY_PUBLISH')";
+            "hasAnyRole('CONTENT_CREATOR','ADMIN') or hasAnyAuthority('VOCABULARY_READ','VOCABULARY_WRITE','VOCABULARY_REVIEW','VOCABULARY_PUBLISH')";
     public static final String VOCABULARY_WRITE_ACCESS =
-            "hasRole('CONTENT') or hasAuthority('VOCABULARY_WRITE')";
+            "hasRole('CONTENT_CREATOR') or hasAuthority('VOCABULARY_WRITE')";
     public static final String VOCABULARY_IMPORT_ACCESS =
-            "hasRole('CONTENT') or hasAuthority('VOCABULARY_IMPORT')";
+            "hasRole('CONTENT_CREATOR') or hasAuthority('VOCABULARY_IMPORT')";
     public static final String VOCABULARY_REVIEW_ACCESS =
             "hasRole('ADMIN') or hasAnyAuthority('VOCABULARY_REVIEW','VOCABULARY_PUBLISH')";
     public static final String EXPLORE_READ_ACCESS =
-            "hasAnyRole('CONTENT','ADMIN') or hasAnyAuthority('EXPLORE_READ','EXPLORE_WRITE','EXPLORE_LINK_WRITE','EXPLORE_REVIEW','EXPLORE_PUBLISH')";
+            "hasAnyRole('CONTENT_CREATOR','ADMIN') or hasAnyAuthority('EXPLORE_READ','EXPLORE_WRITE','EXPLORE_LINK_WRITE','EXPLORE_REVIEW','EXPLORE_PUBLISH')";
     public static final String EXPLORE_WRITE_ACCESS =
-            "hasRole('CONTENT') or hasAuthority('EXPLORE_WRITE')";
+            "hasRole('CONTENT_CREATOR') or hasAuthority('EXPLORE_WRITE')";
     public static final String EXPLORE_LINK_ACCESS =
-            "hasRole('CONTENT') or hasAuthority('EXPLORE_LINK_WRITE')";
+            "hasRole('CONTENT_CREATOR') or hasAuthority('EXPLORE_LINK_WRITE')";
     public static final String EXPLORE_MANAGEMENT_ACCESS =
             "(" + EXPLORE_WRITE_ACCESS + ") and (" + EXPLORE_LINK_ACCESS + ")";
     public static final String EXPLORE_REVIEW_ACCESS =

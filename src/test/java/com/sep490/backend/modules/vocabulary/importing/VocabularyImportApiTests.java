@@ -27,7 +27,7 @@ class VocabularyImportApiTests extends ContentApiTestSupport {
         jdbc.update(
                 "INSERT INTO users(username,email,password_hash) VALUES(?,?,'test')", email, email);
         Long id = jdbc.queryForObject("SELECT id FROM users WHERE email=?", Long.class, email);
-        return new LearnerPrincipal(id, email, "", true, "CONTENT");
+        return new LearnerPrincipal(id, email, "", true, "CONTENT_CREATOR");
     }
 
     private byte[] workbook(String word) throws Exception {

@@ -26,8 +26,8 @@ class CourseReviewServiceTests {
   private NotificationPort notifications;
   private CourseReviewService service;
 
-  private final LearnerPrincipal manager = actor(31L, "CONTENT");
-  private final LearnerPrincipal otherManager = actor(32L, "CONTENT_MANAGER");
+  private final LearnerPrincipal manager = actor(31L, "CONTENT_CREATOR");
+  private final LearnerPrincipal otherManager = actor(32L, "CONTENT_CREATOR");
   private final LearnerPrincipal admin = actor(1L, "ADMIN");
 
   @BeforeEach
@@ -129,15 +129,15 @@ class CourseReviewServiceTests {
     String sql = "SELECT c.created_by,c.submitted_by,c.status,u.role AS author_role FROM courses c"
         + " LEFT JOIN users u ON u.id=c.created_by WHERE c.id=?";
     when(db.one(sql, 9L))
-        .thenReturn(Map.of("createdBy", 31L, "status", "DRAFT", "authorRole", "CONTENT"));
+        .thenReturn(Map.of("createdBy", 31L, "status", "DRAFT", "authorRole", "CONTENT_CREATOR"));
     service.assertCanEdit(9L, manager);
 
     when(db.one(sql, 10L))
-        .thenReturn(Map.of("createdBy", 32L, "status", "DRAFT", "authorRole", "CONTENT"));
+        .thenReturn(Map.of("createdBy", 32L, "status", "DRAFT", "authorRole", "CONTENT_CREATOR"));
     assertCode(() -> service.assertCanEdit(10L, manager), "COURSE_NOT_OWNED");
 
     when(db.one(sql, 11L))
-        .thenReturn(Map.of("createdBy", 31L, "status", "PUBLISHED", "authorRole", "CONTENT"));
+        .thenReturn(Map.of("createdBy", 31L, "status", "PUBLISHED", "authorRole", "CONTENT_CREATOR"));
     assertCode(() -> service.assertCanEdit(11L, manager), "COURSE_NOT_EDITABLE");
   }
 

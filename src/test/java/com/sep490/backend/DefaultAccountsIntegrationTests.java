@@ -40,7 +40,7 @@ class DefaultAccountsIntegrationTests {
         String content = token("content", DEFAULT_PASSWORD);
         mvc.perform(get("/api/me/session").header("Authorization", content))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.role").value("CONTENT"));
+                .andExpect(jsonPath("$.role").value("CONTENT_CREATOR"));
         mvc.perform(get("/api/content/courses").header("Authorization", content))
                 .andExpect(status().isOk());
         mvc.perform(get("/api/admin/users").header("Authorization", content))
@@ -67,13 +67,13 @@ class DefaultAccountsIntegrationTests {
         mvc.perform(put("/api/admin/users/" + id + "/role")
                         .header("Authorization", token("admin", DEFAULT_PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"CONTENT\"}"))
+                        .content("{\"role\":\"CONTENT_CREATOR\"}"))
                 .andExpect(status().isOk());
 
         String content = token(name, "Test-pass123");
         mvc.perform(get("/api/me/session").header("Authorization", content))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.role").value("CONTENT"));
+                .andExpect(jsonPath("$.role").value("CONTENT_CREATOR"));
     }
 
     private String token(String username, String password) throws Exception {

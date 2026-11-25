@@ -11,17 +11,21 @@ import java.util.Set;
  */
 public enum AccountRole {
     LEARNER,
-    CONTENT,
+    CONTENT_CREATOR,
     ADMIN;
 
-    private static final Set<String> ASSIGNABLE_BY_ADMIN = Set.of(LEARNER.name(), CONTENT.name());
+    private static final Set<String> ASSIGNABLE_BY_ADMIN = Set.of(LEARNER.name(), CONTENT_CREATOR.name());
 
     public static String normalizeStored(String value) {
         if (value == null || value.isBlank()) {
             return LEARNER.name();
         }
         try {
-            return valueOf(value.trim().toUpperCase(Locale.ROOT)).name();
+            String normalized = value.trim().toUpperCase(Locale.ROOT);
+            if (normalized.equals("CONTENT") || normalized.equals("CONTENT_MANAGER")) {
+                return CONTENT_CREATOR.name();
+            }
+            return valueOf(normalized).name();
         } catch (IllegalArgumentException ignored) {
             return LEARNER.name();
         }
@@ -32,7 +36,11 @@ public enum AccountRole {
             throw new IllegalArgumentException("Account role is required.");
         }
         try {
-            return valueOf(value.trim().toUpperCase(Locale.ROOT)).name();
+            String normalized = value.trim().toUpperCase(Locale.ROOT);
+            if (normalized.equals("CONTENT") || normalized.equals("CONTENT_MANAGER")) {
+                return CONTENT_CREATOR.name();
+            }
+            return valueOf(normalized).name();
         } catch (IllegalArgumentException ignored) {
             throw new IllegalArgumentException("Unsupported account role: " + value);
         }

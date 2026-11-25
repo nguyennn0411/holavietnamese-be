@@ -145,7 +145,7 @@ public class AdminCultureService {
         String requestedStatus = request.getStatus() != null ? request.getStatus().trim().toUpperCase() : null;
 
         if (!isAdmin) {
-            // Content manager can only set DRAFT or IN_REVIEW; cannot directly set PUBLISHED
+            // Content creator can only set DRAFT or IN_REVIEW; cannot directly set PUBLISHED
             if ("PUBLISHED".equals(requestedStatus)) {
                 article.setStatus("IN_REVIEW");
             } else if (requestedStatus != null) {

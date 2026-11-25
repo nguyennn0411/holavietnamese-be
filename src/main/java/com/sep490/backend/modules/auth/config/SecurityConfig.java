@@ -34,22 +34,22 @@ public class SecurityConfig {
             .requestMatchers("/api/content/courses/**", "/api/content/modules/**",
                 "/api/content/lessons/**", "/api/content/activities/**",
                 "/api/content/questions/**", "/api/content/quizzes/**")
-                .hasRole("CONTENT")
+                .hasRole("CONTENT_CREATOR")
             .requestMatchers("/api/content/vocabulary/**", "/api/content/regional-language/**")
-                .hasAnyAuthority("ROLE_CONTENT", ContentPermissions.VOCABULARY_READ,
+                .hasAnyAuthority("ROLE_CONTENT_CREATOR", ContentPermissions.VOCABULARY_READ,
                     ContentPermissions.VOCABULARY_WRITE, ContentPermissions.VOCABULARY_IMPORT,
                     ContentPermissions.VOCABULARY_REVIEW, ContentPermissions.VOCABULARY_PUBLISH)
             .requestMatchers("/api/content/imports/**")
-                .hasAnyAuthority("ROLE_CONTENT", ContentPermissions.VOCABULARY_IMPORT)
+                .hasAnyAuthority("ROLE_CONTENT_CREATOR", ContentPermissions.VOCABULARY_IMPORT)
             .requestMatchers("/api/content/destinations/**")
-                .hasAnyAuthority("ROLE_CONTENT", ContentPermissions.EXPLORE_READ,
+                .hasAnyAuthority("ROLE_CONTENT_CREATOR", ContentPermissions.EXPLORE_READ,
                     ContentPermissions.EXPLORE_WRITE, ContentPermissions.EXPLORE_LINK_WRITE,
                     ContentPermissions.EXPLORE_REVIEW, ContentPermissions.EXPLORE_PUBLISH)
             .requestMatchers("/api/admin/culture/**", "/api/content/culture/**")
-                .hasAnyAuthority("ROLE_ADMIN", "ROLE_CONTENT",
+                .hasAnyAuthority("ROLE_ADMIN", "ROLE_CONTENT_CREATOR",
                     ContentPermissions.CULTURE_READ, ContentPermissions.CULTURE_WRITE,
                     ContentPermissions.CULTURE_REVIEW, ContentPermissions.CULTURE_PUBLISH)
-            .requestMatchers("/api/content/**").hasRole("CONTENT")
+            .requestMatchers("/api/content/**").hasRole("CONTENT_CREATOR")
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated())
             // JWT clients send an explicit Authorization header; legacy session clients keep CSRF.

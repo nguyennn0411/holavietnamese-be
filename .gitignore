@@ -12,4 +12,4 @@ target/
 *.sql.gz
 *.dump
 *.bak
-outputs/database-backups/
+outputs/

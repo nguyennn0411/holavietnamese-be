@@ -27,7 +27,7 @@ public class ContentDeletionController {
     }
 
     @DeleteMapping("/quizzes/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','CONTENT')")
+    @PreAuthorize("hasAnyRole('ADMIN','CONTENT_CREATOR')")
     public void quizEndpoint(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal actor) {
         var quiz = db.one("SELECT course_id FROM quizzes WHERE id=?", id);
         if (quiz.get("courseId") == null) {
