@@ -11,7 +11,6 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 @SuiteDisplayName("Learning module: unit and integration tests")
 @SelectPackages("com.sep490.backend.modules.learning")
 @SelectClasses({
-  C1CourseCatalogIntegrationTests.class,
   CourseImportIntegrationTests.class,
   CourseReviewWorkflowIntegrationTests.class,
   CourseStudioWorkbookTests.class,
