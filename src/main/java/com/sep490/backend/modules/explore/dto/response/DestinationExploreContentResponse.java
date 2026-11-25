@@ -5,6 +5,10 @@ import java.util.List;
 public record DestinationExploreContentResponse(
         List<Word> vocabulary,
         List<RegionalVocabularyResponse> regionalVariants,
+        int regionalPage,
+        int regionalSize,
+        long regionalTotalElements,
+        int regionalTotalPages,
         List<String> cultureIds,
         List<Scenario> scenarios) {
     public record Word(Long id, String word, String pronunciation, String status) {}

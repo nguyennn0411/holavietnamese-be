@@ -14,6 +14,7 @@ import com.sep490.backend.modules.vocabulary.dto.request.VocabularyNotebookReque
 import com.sep490.backend.modules.vocabulary.dto.response.VocabularyNotebookResponse;
 import com.sep490.backend.modules.vocabulary.dto.response.VocabularyReviewStateResponse;
 import com.sep490.backend.modules.vocabulary.entity.VocabularyNotebookEntry;
+import com.sep490.backend.modules.vocabulary.entity.VocabularyReviewState;
 import com.sep490.backend.modules.vocabulary.entity.enums.VocabularyStatus;
 import com.sep490.backend.modules.vocabulary.mapper.VocabularyMapper;
 import com.sep490.backend.modules.vocabulary.mapper.VocabularyNotebookMapper;
@@ -28,10 +29,15 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +66,96 @@ public class VocabularyNotebookService {
         return vocabulary.search(userId, keyword, courseId, lessonId).stream()
                 .map(this::response)
                 .toList();
+    }
+
+    /** Lay mot trang so tu va nap cac trang thai on tap theo batch. */
+    public Page<VocabularyNotebookResponse> page(
+            Long userId, String search, Long courseId, Long lessonId, int page, int size) {
+        validateSearch(search);
+        if (page < 0 || size < 1 || size > 100) {
+            throw new LearningException(
+                    LearningException.Kind.INVALID, "Page must be non-negative and size from 1 to 100.");
+        }
+        String keyword = search == null ? "" : search.trim();
+        var entriesPage =
+                vocabulary.searchPage(
+                        userId, keyword, courseId, lessonId, PageRequest.of(page, size));
+        var states = reviewStates(entriesPage.getContent());
+        return entriesPage.map(entry -> loadedResponse(entry, states));
+    }
+
+    /** Lay mot batch nho cho luyen tu do; khong tao log hay thay doi lich SRS. */
+    public List<VocabularyNotebookResponse> practice(Long userId, int limit) {
+        if (limit < 1 || limit > 50) {
+            throw new LearningException(
+                    LearningException.Kind.INVALID, "Practice limit must be from 1 to 50.");
+        }
+        return page(userId, "", null, null, 0, limit).getContent();
+    }
+
+    /** Kiem tra mot tu chuan da nam trong so cua learner hay chua. */
+    public VocabularyNotebookResponse findByMasterVocabulary(Long userId, Long masterVocabularyId) {
+        var entry =
+                vocabulary
+                        .findByUser_IdAndMasterVocabulary_Id(userId, masterVocabularyId)
+                        .orElseThrow(() -> LearningException.notFound("Vocabulary entry"));
+        return responses(List.of(entry)).getFirst();
+    }
+
+    /** Chuyen mot batch entity da nap quan he sang response va chi doc review state mot lan. */
+    List<VocabularyNotebookResponse> responses(List<VocabularyNotebookEntry> entries) {
+        var states = reviewStates(entries);
+        return entries.stream().map(entry -> loadedResponse(entry, states)).toList();
+    }
+
+    private static void validateSearch(String search) {
+        if (search != null && search.length() > 200) {
+            throw new LearningException(
+                    LearningException.Kind.INVALID, "Search must be at most 200 characters.");
+        }
+    }
+
+    private Map<Long, VocabularyReviewState> reviewStates(
+            List<VocabularyNotebookEntry> notebookEntries) {
+        if (notebookEntries.isEmpty()) {
+            return Map.of();
+        }
+        return reviews.findAllById(notebookEntries.stream().map(VocabularyNotebookEntry::getId).toList())
+                .stream()
+                .collect(Collectors.toMap(VocabularyReviewState::getId, Function.identity()));
+    }
+
+    private VocabularyNotebookResponse loadedResponse(
+            VocabularyNotebookEntry entry, Map<Long, VocabularyReviewState> states) {
+        var lesson = entry.getLesson();
+        var course = lesson == null ? null : lesson.getCourse();
+        var master = entry.getMasterVocabulary();
+        String audioUrl =
+                master != null && master.getStatus() == VocabularyStatus.PUBLISHED
+                        ? master.getAudioUrl()
+                        : null;
+        return VocabularyNotebookMapper.toResponse(
+                entry,
+                course == null ? null : course.getId(),
+                lesson == null ? null : lesson.getTitle(),
+                course == null ? null : course.getTitle(),
+                audioUrl,
+                reviewResponse(states.get(entry.getId())));
+    }
+
+    private VocabularyReviewStateResponse reviewResponse(VocabularyReviewState state) {
+        if (state == null) return new VocabularyReviewStateResponse("NEW", 0, 0, null, null, true);
+        String memoryStatus =
+                state.getRepetitionCount() == 0
+                        ? "LEARNING"
+                        : state.getRepetitionCount() >= 3 ? "MASTERED" : "REVIEW";
+        return new VocabularyReviewStateResponse(
+                memoryStatus,
+                state.getRepetitionCount(),
+                state.getIntervalMinutes(),
+                state.getLastReviewedAt(),
+                state.getNextReviewAt(),
+                !state.getNextReviewAt().isAfter(clock.instant()));
     }
 
     /** Lay chi tiet theo ID va quyen truy cap hien tai. */

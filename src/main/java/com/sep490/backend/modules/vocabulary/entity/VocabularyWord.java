@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
@@ -76,5 +77,6 @@ public class VocabularyWord {
 
     @OneToMany(mappedBy = "vocabulary", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC, id ASC")
+    @BatchSize(size = 50)
     private List<VocabularyMeaning> meanings = new ArrayList<>();
 }

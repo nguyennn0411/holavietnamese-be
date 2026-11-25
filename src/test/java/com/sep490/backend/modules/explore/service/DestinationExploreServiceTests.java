@@ -3,6 +3,7 @@ package com.sep490.backend.modules.explore.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -32,6 +33,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 /** Unit tests for Explore visibility and reference validation before link replacement. */
 class DestinationExploreServiceTests {
@@ -61,6 +64,8 @@ class DestinationExploreServiceTests {
                 new DestinationExploreService(
                         destinations, links, words, adminRegional, scenarios, cultures,
                         regional, jdbc, em);
+        when(regional.forDestinationPage(any(), any(), anyInt()))
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
     }
 
     @Test
@@ -84,6 +89,10 @@ class DestinationExploreServiceTests {
                 .thenReturn(List.of("active", "inactive"));
         when(jdbc.queryForList(anyString(), eq(String.class), eq(1L), eq("CULTURE")))
                 .thenReturn(List.of("culture-1"));
+        var culture = new CultureArticle();
+        culture.setId("culture-1");
+        culture.setStatus("PUBLISHED");
+        when(cultures.findAllById(List.of("culture-1"))).thenReturn(List.of(culture));
         var active = scenario("active", "ACTIVE");
         var inactive = scenario("inactive", "DRAFT");
         when(scenarios.findAllById(List.of("active", "inactive")))
@@ -94,7 +103,26 @@ class DestinationExploreServiceTests {
         assertThat(response.vocabulary()).extracting(row -> row.id()).containsExactly(10L);
         assertThat(response.scenarios()).extracting(row -> row.id()).containsExactly("active");
         assertThat(response.cultureIds()).containsExactly("culture-1");
-        verify(regional).forDestination(List.of(10L), VietnamRegion.NORTH);
+        verify(regional).forDestinationPage(List.of(10L), VietnamRegion.NORTH, 0);
+    }
+
+    @Test
+    void publicContentOnlyReturnsExistingPublishedCulturesInSavedOrder() {
+        var publishedDestination = destination(1L, DestinationStatus.PUBLISHED);
+        when(destinations.findById(1L)).thenReturn(Optional.of(publishedDestination));
+        when(jdbc.queryForList(anyString(), eq(String.class), eq(1L), eq("CULTURE")))
+                .thenReturn(List.of("published-b", "draft", "missing", "published-a"));
+
+        var publishedA = culture("published-a", "PUBLISHED");
+        var publishedB = culture("published-b", "PUBLISHED");
+        var draft = culture("draft", "DRAFT");
+        when(cultures.findAllById(List.of("published-b", "draft", "missing", "published-a")))
+                .thenReturn(List.of(publishedA, draft, publishedB));
+
+        assertThat(service.content(1L, false).cultureIds())
+                .containsExactly("published-b", "published-a");
+        assertThat(service.content(1L, true).cultureIds())
+                .containsExactly("published-b", "draft", "published-a");
     }
 
     @Test
@@ -168,6 +196,13 @@ class DestinationExploreServiceTests {
         scenario.setTitle(id);
         scenario.setStatus(status);
         return scenario;
+    }
+
+    private static CultureArticle culture(String id, String status) {
+        var article = new CultureArticle();
+        article.setId(id);
+        article.setStatus(status);
+        return article;
     }
 
     private static void assertKind(Runnable action, LearningException.Kind expected) {

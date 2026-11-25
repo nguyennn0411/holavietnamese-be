@@ -70,6 +70,7 @@ class VocabularyCompatibilityTests extends ContentApiTestSupport {
                 new VocabularyReviewRequest(session.sessionId(), VocabularyReviewRating.GOOD));
         var resumed = review.session(owner, session.sessionId());
         assertThat(resumed.entries()).isEmpty();
+        assertThat(resumed.reviewedEntries()).extracting(entry -> entry.id()).containsExactly(saved.id());
         assertThat(resumed.results()).hasSize(1);
         assertThatThrownBy(
                         () ->
@@ -79,6 +80,81 @@ class VocabularyCompatibilityTests extends ContentApiTestSupport {
                                         new VocabularyReviewRequest(
                                                 UUID.randomUUID(), VocabularyReviewRating.GOOD)))
                 .isInstanceOf(LearningException.class);
+    }
+
+    @Test
+    void fiveWordSessionResumesWithPendingCardsAndCompleteReviewedFlashcards() {
+        String email = UUID.randomUUID() + "@review-session.test";
+        jdbc.update(
+                "INSERT INTO users(username,email,password_hash) VALUES(?,?,'test')", email, email);
+        Long owner = jdbc.queryForObject("SELECT id FROM users WHERE email=?", Long.class, email);
+
+        var saved =
+                java.util.stream.IntStream.rangeClosed(1, 5)
+                        .mapToObj(
+                                index ->
+                                        notebook.add(
+                                                owner,
+                                                new VocabularyNotebookRequest(
+                                                        null,
+                                                        "word-" + index,
+                                                        "meaning-" + index,
+                                                        null,
+                                                        null,
+                                                        null,
+                                                        null)))
+                        .toList();
+        var session = review.session(owner, null);
+        assertThat(session.entries()).hasSize(5);
+
+        var ratings =
+                List.of(
+                        VocabularyReviewRating.AGAIN,
+                        VocabularyReviewRating.HARD,
+                        VocabularyReviewRating.GOOD);
+        for (int index = 0; index < ratings.size(); index++) {
+            review.rate(
+                    owner,
+                    saved.get(index).id(),
+                    new VocabularyReviewRequest(session.sessionId(), ratings.get(index)));
+        }
+
+        var resumed = review.session(owner, session.sessionId());
+        assertThat(resumed.entries())
+                .extracting(entry -> entry.id())
+                .containsExactly(saved.get(3).id(), saved.get(4).id());
+        assertThat(resumed.reviewedEntries())
+                .extracting(entry -> entry.id())
+                .containsExactly(saved.get(0).id(), saved.get(1).id(), saved.get(2).id());
+        assertThat(resumed.results())
+                .extracting(result -> result.rating())
+                .containsExactlyElementsOf(ratings);
+        assertThat(resumed.results())
+                .extracting(result -> result.intervalMinutes())
+                .containsExactly(10L, 60L, 1_440L);
+
+        review.rate(
+                owner,
+                saved.get(3).id(),
+                new VocabularyReviewRequest(session.sessionId(), VocabularyReviewRating.GOOD));
+        review.rate(
+                owner,
+                saved.get(4).id(),
+                new VocabularyReviewRequest(session.sessionId(), VocabularyReviewRating.EASY));
+        assertThat(review.session(owner, session.sessionId()).entries()).isEmpty();
+        assertThat(
+                        jdbc.queryForObject(
+                                """
+                                SELECT COUNT(*)
+                                FROM vocabulary_review_logs log
+                                JOIN vocabulary_entries entry
+                                  ON entry.id = log.vocabulary_entry_id
+                                WHERE entry.user_id=? AND log.session_id=?
+                                """,
+                                Integer.class,
+                                owner,
+                                session.sessionId().toString()))
+                .isEqualTo(5);
     }
 
     @Test
@@ -106,12 +182,15 @@ class VocabularyCompatibilityTests extends ContentApiTestSupport {
     }
 
     @Test
-    void dictionaryKeepsBilingualSearchExactMatchingAndBoundedPages() {
+    void dictionaryKeepsDirectBilingualSearchExactMatchingAndBoundedPages() {
         var published = admin.create(word("compat-xin-chao", VocabularyStatus.PUBLISHED));
         admin.create(word("compat-xin-chao-hidden", VocabularyStatus.DRAFT));
-        assertThat(catalog.searchPublished("greeting", "noun"))
+        assertThat(catalog.searchPublished("hello", "noun"))
                 .extracting(item -> item.id())
                 .contains(published.id());
+        assertThat(catalog.searchPublished("greeting", "noun"))
+                .extracting(item -> item.id())
+                .doesNotContain(published.id());
         var page = catalog.searchPage("compat-xin-chao", 0, 500, true);
         assertThat(page.getSize()).isEqualTo(100);
         assertThat(page.getContent()).extracting(item -> item.id()).containsExactly(published.id());

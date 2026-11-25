@@ -2,7 +2,7 @@ package com.sep490.backend.modules.vocabulary.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 /** Unit tests for notebook ownership, master links, lesson access and badge isolation. */
 class VocabularyNotebookServiceTests {
@@ -90,6 +92,40 @@ class VocabularyNotebookServiceTests {
         verify(entries).search(7L, "xin", null, null);
         assertThat(result).singleElement()
                 .satisfies(response -> assertThat(response.review().memoryStatus()).isEqualTo("NEW"));
+    }
+
+    @Test
+    void pageLoadsReviewStatesInOneBatchAndPracticeUsesBoundedPage() {
+        var first = entry(1L, 7L, null, null);
+        var second = entry(2L, 7L, null, null);
+        when(entries.searchPage(eq(7L), eq("xin"), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(first, second)));
+        var firstState = reviewState(1, now);
+        firstState.setId(1L);
+        var secondState = reviewState(3, now);
+        secondState.setId(2L);
+        when(reviews.findAllById(List.of(1L, 2L)))
+                .thenReturn(List.of(firstState, secondState));
+
+        var result = service.page(7L, " xin ", null, null, 0, 20);
+
+        assertThat(result.getContent()).hasSize(2);
+        verify(reviews).findAllById(List.of(1L, 2L));
+        assertKind(() -> service.practice(7L, 51), LearningException.Kind.INVALID);
+    }
+
+    @Test
+    void findsSavedEntryDirectlyByMasterVocabulary() {
+        var saved = entry(1L, 7L, master(10L, "xin", "hello", VocabularyStatus.PUBLISHED), null);
+        when(entries.findByUser_IdAndMasterVocabulary_Id(7L, 10L))
+                .thenReturn(Optional.of(saved));
+        when(reviews.findAllById(List.of(1L))).thenReturn(List.of());
+
+        assertThat(service.findByMasterVocabulary(7L, 10L).masterVocabularyId())
+                .isEqualTo(10L);
+        assertKind(
+                () -> service.findByMasterVocabulary(8L, 10L),
+                LearningException.Kind.NOT_FOUND);
     }
 
     @Test

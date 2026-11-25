@@ -21,7 +21,7 @@ public class VocabularyService {
 
     /** Chi tra du lieu da xuat ban cho nguoi hoc. */
     public List<VocabularyResponse> searchPublished(String keyword, String partOfSpeech) {
-        return repository.search(keyword, VocabularyStatus.PUBLISHED, partOfSpeech).stream()
+        return repository.search(keyword, VocabularyStatus.PUBLISHED, partOfSpeech, false).stream()
                 .map(VocabularyMapper::toResponse)
                 .toList();
     }
@@ -48,7 +48,7 @@ public class VocabularyService {
         }
 
         return repository
-                .searchPage(keyword, VocabularyStatus.PUBLISHED, null, page, size, exact)
+                .searchPage(keyword, VocabularyStatus.PUBLISHED, null, page, size, exact, false)
                 .map(VocabularyMapper::toResponse);
     }
 

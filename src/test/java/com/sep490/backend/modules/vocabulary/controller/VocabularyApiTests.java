@@ -70,18 +70,32 @@ class VocabularyApiTests extends ContentApiTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.totalElements").value(1));
 
-        // Exact mode deliberately compares the real Vietnamese word, not its folded form.
+        // Exact mode accepts the normalized no-accent headword used by dictionary learners.
         mvc.perform(get("/api/vocabulary/search")
                         .param("keyword", "kiem-thu-chao")
                         .param("exact", "true")
                         .with(user(LEARNER)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.result.totalElements").value(0));
+                .andExpect(jsonPath("$.result.totalElements").value(1));
         mvc.perform(get("/api/vocabulary/search")
                         .param("keyword", "kiểm-thử-chào")
                         .param("exact", "true")
                         .with(user(LEARNER)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.totalElements").value(1));
+
+        // Exact mode also supports a direct English translation, but not a partial translation.
+        mvc.perform(get("/api/vocabulary/search")
+                        .param("keyword", "integration greeting")
+                        .param("exact", "true")
+                        .with(user(LEARNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.totalElements").value(1));
+        mvc.perform(get("/api/vocabulary/search")
+                        .param("keyword", "integration")
+                        .param("exact", "true")
+                        .with(user(LEARNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result.totalElements").value(0));
     }
 }
