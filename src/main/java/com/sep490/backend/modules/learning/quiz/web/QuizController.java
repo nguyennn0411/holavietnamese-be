@@ -33,7 +33,7 @@ public class QuizController {
     if (workflow.isAdmin(user)) {
       if (questions.isCreatedByContentManager(id))
         throw ContentException.forbidden(
-            "CONTENT_REVIEW_ONLY", "Administrators review Content Manager questions without editing them.");
+            "CONTENT_REVIEW_ONLY", "Administrators review Content Creator questions without editing them.");
     } else questions.assertCanEdit(id, user.id());
     questions.assertNotInReviewedCourse(id);
   }
@@ -41,7 +41,7 @@ public class QuizController {
   private long quizCourse(long id) {
     var quiz = db.one("SELECT course_id FROM quizzes WHERE id=?", id);
     if (quiz.get("courseId") == null)
-      throw ContentException.forbidden("COURSE_REQUIRED", "Content managers can only work on course quizzes.");
+      throw ContentException.forbidden("COURSE_REQUIRED", "Content creators can only work on course quizzes.");
     return ContentStore.id(quiz, "courseId");
   }
 

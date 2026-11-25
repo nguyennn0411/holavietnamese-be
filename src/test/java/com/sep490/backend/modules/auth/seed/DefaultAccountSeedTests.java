@@ -37,7 +37,7 @@ class DefaultAccountSeedTests {
                         org.assertj.core.groups.Tuple.tuple(
                                 "admin", "admin@holavietnamese.com", "ADMIN"),
                         org.assertj.core.groups.Tuple.tuple(
-                                "content", "content@holavietnamese.com", "CONTENT"),
+                                "content", "content@holavietnamese.com", "CONTENT_CREATOR"),
                         org.assertj.core.groups.Tuple.tuple(
                                 "learner", "learner@holavietnamese.com", "LEARNER"));
         assertThat(accounts.getAllValues())

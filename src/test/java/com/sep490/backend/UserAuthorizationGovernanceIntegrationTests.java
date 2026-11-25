@@ -84,7 +84,7 @@ class UserAuthorizationGovernanceIntegrationTests {
         mvc.perform(put("/api/users/me")
                         .header("Authorization", learnerToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"fullName\":\"No escalation\",\"role\":\"CONTENT\"}"))
+                        .content("{\"fullName\":\"No escalation\",\"role\":\"CONTENT_CREATOR\"}"))
                 .andExpect(status().isBadRequest());
         assertThat(userRepository.findById(learnerUser.getId()).orElseThrow().getRole()).isEqualTo("LEARNER");
     }
@@ -94,7 +94,7 @@ class UserAuthorizationGovernanceIntegrationTests {
         mvc.perform(put("/api/admin/users/" + learnerUser.getId() + "/role")
                         .header("Authorization", learnerToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"CONTENT\"}"))
+                        .content("{\"role\":\"CONTENT_CREATOR\"}"))
                 .andExpect(status().isForbidden());
         assertThat(userRepository.findById(learnerUser.getId()).orElseThrow().getRole()).isEqualTo("LEARNER");
     }
@@ -104,11 +104,11 @@ class UserAuthorizationGovernanceIntegrationTests {
         mvc.perform(put("/api/admin/users/" + learnerUser.getId() + "/role")
                         .header("Authorization", adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"CONTENT\"}"))
+                        .content("{\"role\":\"CONTENT_CREATOR\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.result.role").value("CONTENT"))
+                .andExpect(jsonPath("$.result.role").value("CONTENT_CREATOR"))
                 .andExpect(jsonPath("$.result.roles").doesNotExist());
-        assertThat(userRepository.findById(learnerUser.getId()).orElseThrow().getRole()).isEqualTo("CONTENT");
+        assertThat(userRepository.findById(learnerUser.getId()).orElseThrow().getRole()).isEqualTo("CONTENT_CREATOR");
 
         mvc.perform(put("/api/admin/users/" + learnerUser.getId() + "/role")
                         .header("Authorization", adminToken)
@@ -133,7 +133,7 @@ class UserAuthorizationGovernanceIntegrationTests {
                 .andExpect(status().isBadRequest());
 
         mvc.perform(put(url).header("Authorization", adminToken)
-                        .contentType(MediaType.APPLICATION_JSON).content("{\"roles\":[\"LEARNER\",\"CONTENT\"]}"))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"roles\":[\"LEARNER\",\"CONTENT_CREATOR\"]}"))
                 .andExpect(status().isBadRequest());
 
         mvc.perform(put(url).header("Authorization", adminToken)
@@ -163,7 +163,7 @@ class UserAuthorizationGovernanceIntegrationTests {
         mvc.perform(put("/api/admin/users/" + learnerUser.getId() + "/role")
                         .header("Authorization", adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"CONTENT\"}"))
+                        .content("{\"role\":\"CONTENT_CREATOR\"}"))
                 .andExpect(status().isOk());
 
         mvc.perform(get("/api/me/session").header("Authorization", learnerToken))
@@ -172,7 +172,7 @@ class UserAuthorizationGovernanceIntegrationTests {
         String refreshedToken = obtainToken(learnerUser.getUsername(), "LearnerPass123");
         mvc.perform(get("/api/me/session").header("Authorization", refreshedToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.role").value("CONTENT"));
+                .andExpect(jsonPath("$.role").value("CONTENT_CREATOR"));
     }
 
     private User persistedUser(String prefix, String role, String password) {

@@ -7,14 +7,14 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Standard role-change contract for CONTENT and LEARNER roles.
+ * Standard role-change contract for CONTENT_CREATOR and LEARNER roles.
  */
 @Getter
 @Setter
 public class UpdateUserRoleRequest {
 
     @NotBlank(message = "role is required.")
-    @Pattern(regexp = "LEARNER|CONTENT", message = "role must be CONTENT or LEARNER.")
+    @Pattern(regexp = "LEARNER|CONTENT_CREATOR", message = "role must be CONTENT_CREATOR or LEARNER.")
     private String role;
 
     @JsonAnySetter

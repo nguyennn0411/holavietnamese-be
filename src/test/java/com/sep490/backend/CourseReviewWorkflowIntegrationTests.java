@@ -41,9 +41,9 @@ class CourseReviewWorkflowIntegrationTests {
 
   @BeforeEach
   void setup() {
-    managerId=user("manager","CONTENT"); otherManagerId=user("other-manager","CONTENT"); adminId=user("review-admin","ADMIN");
-    manager=new LearnerPrincipal(managerId,"manager@test","",true,"CONTENT");
-    otherManager=new LearnerPrincipal(otherManagerId,"other@test","",true,"CONTENT");
+    managerId=user("manager","CONTENT_CREATOR"); otherManagerId=user("other-manager","CONTENT_CREATOR"); adminId=user("review-admin","ADMIN");
+    manager=new LearnerPrincipal(managerId,"manager@test","",true,"CONTENT_CREATOR");
+    otherManager=new LearnerPrincipal(otherManagerId,"other@test","",true,"CONTENT_CREATOR");
     admin=new LearnerPrincipal(adminId,"admin@test","",true,"ADMIN");
     learner=new LearnerPrincipal(user("learner","LEARNER"),"learner@test","",true,"LEARNER");
   }

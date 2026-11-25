@@ -17,7 +17,7 @@ public class DefaultAccountSeed {
             new AccountDefinition(
                     "admin", "admin@holavietnamese.com", "System Administrator", "ADMIN"),
             new AccountDefinition(
-                    "content", "content@holavietnamese.com", "Content Manager", "CONTENT"),
+                    "content", "content@holavietnamese.com", "Content Creator", "CONTENT_CREATOR"),
             new AccountDefinition(
                     "learner", "learner@holavietnamese.com", "Default Learner", "LEARNER"));
 

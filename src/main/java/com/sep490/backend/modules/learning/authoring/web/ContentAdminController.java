@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping({"/api/admin", "/api/content"})
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN','CONTENT')")
+@PreAuthorize("hasAnyRole('ADMIN','CONTENT_CREATOR')")
 public class ContentAdminController {
   private final CourseContentService courses;
   private final ActivityService activities;
@@ -30,7 +30,7 @@ public class ContentAdminController {
   }
 
   @PostMapping("/courses")
-  @PreAuthorize("hasRole('CONTENT')")
+  @PreAuthorize("hasRole('CONTENT_CREATOR')")
   public Object create(
       @Valid @RequestBody ContentRequests.Course r, @AuthenticationPrincipal LearnerPrincipal u) {
     return courses.detail(courses.create(r, u.id()), null, true);
@@ -67,7 +67,7 @@ public class ContentAdminController {
   }
 
   @PostMapping("/courses/{id}/submit")
-  @PreAuthorize("hasRole('CONTENT')")
+  @PreAuthorize("hasRole('CONTENT_CREATOR')")
   public Object submit(@PathVariable long id, @AuthenticationPrincipal LearnerPrincipal u) {
     workflow.submit(id,u);
     return courses.detail(id,null,true);
@@ -91,7 +91,7 @@ public class ContentAdminController {
   }
 
   @PostMapping("/courses/{id}/edit-request")
-  @PreAuthorize("hasRole('CONTENT')")
+  @PreAuthorize("hasRole('CONTENT_CREATOR')")
   public Object requestEdit(@PathVariable long id,
       @Valid @RequestBody ContentRequests.CourseEditRequest r,
       @AuthenticationPrincipal LearnerPrincipal u) {

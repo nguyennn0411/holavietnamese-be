@@ -38,6 +38,9 @@ public record LearnerPrincipal(Long id, String email, String passwordHash, boole
             return "LEARNER";
         }
         String normalized = value.trim().toUpperCase(Locale.ROOT);
-        return Set.of("LEARNER", "CONTENT", "ADMIN").contains(normalized) ? normalized : "LEARNER";
+        if (normalized.equals("CONTENT") || normalized.equals("CONTENT_MANAGER")) {
+            return "CONTENT_CREATOR";
+        }
+        return Set.of("LEARNER", "CONTENT_CREATOR", "ADMIN").contains(normalized) ? normalized : "LEARNER";
     }
 }

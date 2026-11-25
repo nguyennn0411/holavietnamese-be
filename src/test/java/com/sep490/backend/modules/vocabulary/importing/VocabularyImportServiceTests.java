@@ -53,7 +53,7 @@ class VocabularyImportServiceTests {
             new Type(
                     "VOCABULARY", "Vocabulary", "VOCABULARY",
                     List.of("word", "part_of_speech"), List.of("word", "part_of_speech"));
-    private final LearnerPrincipal owner = new LearnerPrincipal(7L, "owner@test.local", "", true, "CONTENT");
+    private final LearnerPrincipal owner = new LearnerPrincipal(7L, "owner@test.local", "", true, "CONTENT_CREATOR");
 
     @BeforeEach
     void setUp() {

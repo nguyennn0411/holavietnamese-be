@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 public class AdminService {
 
     private static final Set<String> FIXED_ROLES = Set.of(
-            AccountRole.LEARNER.name(), AccountRole.CONTENT.name(), AccountRole.ADMIN.name());
+            AccountRole.LEARNER.name(), AccountRole.CONTENT_CREATOR.name(), AccountRole.ADMIN.name());
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -215,7 +215,7 @@ public class AdminService {
 
     /**
      * The only application-managed role transition. The target user may only
-     * move between LEARNER and CONTENT; ADMIN identities are database-managed.
+     * move between LEARNER and CONTENT_CREATOR; ADMIN identities are database-managed.
      */
     @Transactional
     public AdminUserResponse updateUserRole(Long id, String requestedRole) {
@@ -229,7 +229,7 @@ public class AdminService {
 
         if (!AccountRole.isAssignableByAdmin(requestedRole)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Only CONTENT or LEARNER may be assigned through the application.");
+                    "Only CONTENT_CREATOR or LEARNER may be assigned through the application.");
         }
 
         user.setRole(requestedRole);
