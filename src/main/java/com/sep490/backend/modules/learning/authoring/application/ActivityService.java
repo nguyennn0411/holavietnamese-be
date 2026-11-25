@@ -156,6 +156,7 @@ public class ActivityService {
         for (String k : List.of("imageUrl", "captionVi", "captionEn"))
           if (illustration.has(k) && illustration.get(k).isValueNode())
             out.set(k, illustration.get(k));
+        if ("inline".equals(illustration.path("placement").asText())) out.put("placement", "inline");
         if (illustration.path("sourcePage").isIntegralNumber())
           out.put("sourcePage", illustration.path("sourcePage").asInt());
       }
