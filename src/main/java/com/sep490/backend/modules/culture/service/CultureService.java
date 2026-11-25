@@ -33,6 +33,11 @@ public class CultureService {
     ObjectMapper objectMapper;
 
     static DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    static long VIEW_DEDUP_WINDOW_MS = 30L * 60 * 1000;
+    static int MAX_TRACKED_VIEWS = 10_000;
+
+    // Last counted view per "articleId|viewer"; not a constructor dependency.
+    Map<String, Long> recentViews = new java.util.concurrent.ConcurrentHashMap<>();
 
     @Transactional(readOnly = true)
     public List<CultureCategoryResponse> getCategories() {
@@ -127,19 +132,52 @@ public class CultureService {
 
     @Transactional
     public CultureArticleResponse getArticle(String id) {
+        return getArticle(id, null);
+    }
+
+    /**
+     * Returns a published article and records one real view per viewer per window,
+     * so reloads and duplicate requests do not inflate the counter.
+     */
+    @Transactional
+    public CultureArticleResponse getArticle(String id, String viewerKey) {
         CultureArticle article = articleRepository.findById(id)
                 .filter(a -> "PUBLISHED".equals(a.getStatus()))
                 .orElseThrow(() -> new ContentException("NOT_FOUND", "Không tìm thấy bài viết văn hóa: " + id, org.springframework.http.HttpStatus.NOT_FOUND));
 
-        try {
-            articleRepository.incrementViews(id);
-        } catch (Exception e) {
-            log.warn("Không thể tăng lượt xem cho bài viết: {}", id, e);
+        long views = article.getViews() != null ? article.getViews() : 0L;
+        if (shouldCountView(id, viewerKey)) {
+            try {
+                articleRepository.incrementViews(id);
+                views += 1;
+            } catch (Exception e) {
+                log.warn("Không thể tăng lượt xem cho bài viết: {}", id, e);
+            }
         }
 
         CultureArticleResponse response = toArticleResponse(article);
+        response.setViews(views);
         response.setRelatedArticles(getRelatedArticles(article));
         return response;
+    }
+
+    boolean shouldCountView(String articleId, String viewerKey) {
+        if (viewerKey == null || viewerKey.isBlank()) {
+            return true;
+        }
+        long now = System.currentTimeMillis();
+        if (recentViews.size() > MAX_TRACKED_VIEWS) {
+            recentViews.entrySet().removeIf(entry -> now - entry.getValue() > VIEW_DEDUP_WINDOW_MS);
+        }
+        boolean[] counted = {false};
+        recentViews.compute(articleId + "|" + viewerKey, (key, lastSeen) -> {
+            if (lastSeen == null || now - lastSeen > VIEW_DEDUP_WINDOW_MS) {
+                counted[0] = true;
+                return now;
+            }
+            return lastSeen;
+        });
+        return counted[0];
     }
 
     @Transactional(readOnly = true)

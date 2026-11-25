@@ -6,7 +6,11 @@ import com.sep490.backend.modules.culture.dto.response.CultureCategoryResponse;
 import com.sep490.backend.modules.culture.service.CultureService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -61,9 +65,22 @@ public class CultureController {
     }
 
     @GetMapping("/articles/{id}")
-    public ApiResponse<CultureArticleResponse> getArticle(@PathVariable String id) {
+    public ApiResponse<CultureArticleResponse> getArticle(@PathVariable String id, HttpServletRequest request) {
         return ApiResponse.<CultureArticleResponse>builder()
-                .result(cultureService.getArticle(id))
+                .result(cultureService.getArticle(id, resolveViewerKey(request)))
                 .build();
+    }
+
+    private String resolveViewerKey(HttpServletRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
+            return "user:" + auth.getName();
+        }
+        String forwarded = request.getHeader("X-Forwarded-For");
+        String ip = forwarded != null && !forwarded.isBlank()
+                ? forwarded.split(",")[0].trim()
+                : request.getRemoteAddr();
+        String agent = request.getHeader("User-Agent");
+        return "guest:" + ip + "|" + (agent != null ? agent.hashCode() : 0);
     }
 }
