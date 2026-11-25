@@ -1382,32 +1382,7 @@ public class AiTutorService {
     }
 
     private String generateInitialGreetingText(AiSession session, User user, AiSetting settings) {
-        String learnerName = user.getFullName() != null && !user.getFullName().isBlank()
-                ? user.getFullName() : "bạn";
-        String level = user.getTargetLevel() != null ? user.getTargetLevel() : "A1";
-        String language = user.getNativeLanguage() != null ? user.getNativeLanguage() : "English";
-        String goal = user.getLearningGoal() != null ? user.getLearningGoal() : "Everyday conversations";
-        String prompt = "Start a natural, friendly conversation with learner " + learnerName
-                + ". This is a " + getModeTitle(session.getMode()) + " session."
-                + " Do not give a long introduction or a list of choices."
-                + " Say hello, suggest one open topic related to the learner goal, and ask only one follow-up question."
-                + " Learner level: " + level + ". Preferred explanation language: " + language
-                + ". Learning goal: " + goal + ". Return only the JSON schema from the system prompt.";
-
-        if (aiProviderService.isApiKeyAvailable(settings.getActiveModel())) {
-            GeminiApiClient.GeminiResponse response = aiProviderService.generateContent(
-                    buildSystemPrompt(session.getMode(), level, language, goal,
-                            ConversationIntent.CASUAL_CHAT, null),
-                    prompt, settings.getActiveModel());
-            if (response != null && response.text() != null && !response.text().isBlank()) {
-                AiMessage generated = parseAndBuildAiMessage(session, response.text(), session.getMode());
-                if (generated.getText() != null && !generated.getText().isBlank()) {
-                    return generated.getText();
-                }
-            }
-        }
-
-        return "Chào " + learnerName + "! Mình ở đây để đồng hành cùng bạn. Bạn muốn bắt đầu bằng một câu chuyện ngắn về ngày hôm nay không?";
+        return getInitialGreetingForMode(session != null && session.getMode() != null ? session.getMode() : "tutor", user);
     }
 
     private String getInitialGreetingForMode(String mode, User user) {

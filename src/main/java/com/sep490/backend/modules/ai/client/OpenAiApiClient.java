@@ -5,9 +5,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SNIHostName;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,11 +29,15 @@ import java.util.Map;
 @Slf4j
 public class OpenAiApiClient {
 
+    private static final String CLOUDFLARE_SIN_EDGE_IP = "104.26.0.1";
+
     private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate edgeFallbackRestTemplate = createEdgeRestTemplate(CLOUDFLARE_SIN_EDGE_IP);
     private final ObjectMapper objectMapper;
     private final String configuredApiKey;
     private final String baseUrl;
     private volatile String runtimeApiKey;
+    private volatile boolean preferEdgeFallback = false;
 
     public OpenAiApiClient(
             @Value("${app.ai.openai-api-key:}") String configuredApiKey,
@@ -42,7 +58,59 @@ public class OpenAiApiClient {
             return configuredApiKey;
         }
         String envKey = System.getenv("OPENAI_API_KEY");
-        return envKey != null ? envKey.trim() : "";
+        if (envKey != null && !envKey.isBlank()) {
+            return envKey.trim();
+        }
+        String sysProp = System.getProperty("OPENAI_API_KEY");
+        if (sysProp != null && !sysProp.isBlank()) {
+            return sysProp.trim();
+        }
+        return readDotEnvKey("OPENAI_API_KEY");
+    }
+
+    public String getEffectiveBaseUrl(String apiKey) {
+        String key = (apiKey != null && !apiKey.isBlank()) ? apiKey : getEffectiveApiKey();
+        if (key.startsWith("sk-or-")) {
+            return "https://openrouter.ai/api/v1";
+        }
+        String envBase = System.getenv("OPENAI_BASE_URL");
+        if (envBase != null && !envBase.isBlank()) {
+            return envBase.trim().replaceAll("/+$", "");
+        }
+        String dotEnvBase = readDotEnvKey("OPENAI_BASE_URL");
+        if (!dotEnvBase.isBlank()) {
+            return dotEnvBase.replaceAll("/+$", "");
+        }
+        return baseUrl;
+    }
+
+    private static String readDotEnvKey(String keyName) {
+        try {
+            java.nio.file.Path[] candidates = new java.nio.file.Path[]{
+                    java.nio.file.Paths.get(".env"),
+                    java.nio.file.Paths.get(System.getProperty("user.dir", "."), ".env"),
+                    java.nio.file.Paths.get("..", ".env")
+            };
+            for (java.nio.file.Path p : candidates) {
+                if (java.nio.file.Files.isRegularFile(p)) {
+                    List<String> lines = java.nio.file.Files.readAllLines(p, java.nio.charset.StandardCharsets.UTF_8);
+                    for (String line : lines) {
+                        String trimmed = line.trim();
+                        if (trimmed.startsWith(keyName + "=")) {
+                            String val = trimmed.substring((keyName + "=").length()).trim();
+                            if ((val.startsWith("\"") && val.endsWith("\"")) || (val.startsWith("'") && val.endsWith("'"))) {
+                                val = val.substring(1, val.length() - 1);
+                            }
+                            if (!val.isBlank()) {
+                                return val.trim();
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return "";
     }
 
     public boolean isApiKeyAvailable() {
@@ -61,7 +129,7 @@ public class OpenAiApiClient {
             Map<String, Object> request = new HashMap<>();
             request.put("model", model);
             request.put("messages", List.of(Map.of("role", "user", "content", "Xin chào")));
-            request.put("max_tokens", 8);
+            request.put("max_tokens", 50);
             ResponseEntity<String> response = exchange(key.trim(), request);
             return response.getStatusCode().is2xxSuccessful();
         } catch (Exception e) {
@@ -99,7 +167,7 @@ public class OpenAiApiClient {
             request.put("model", model);
             request.put("messages", messages);
             request.put("temperature", 0.75);
-            request.put("max_tokens", 1024);
+            request.put("max_tokens", 2048);
 
             ResponseEntity<String> response = exchange(apiKey, request);
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
@@ -107,7 +175,14 @@ public class OpenAiApiClient {
             }
 
             JsonNode root = objectMapper.readTree(response.getBody());
-            String text = root.path("choices").path(0).path("message").path("content").asText("");
+            JsonNode messageNode = root.path("choices").path(0).path("message");
+            String text = messageNode.path("content").asText("");
+            if (text.isBlank()) {
+                text = messageNode.path("reasoning").asText("");
+            }
+            if (text.contains("</think>")) {
+                text = text.substring(text.indexOf("</think>") + 8).trim();
+            }
             if (text.isBlank()) {
                 return null;
             }
@@ -131,12 +206,92 @@ public class OpenAiApiClient {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(apiKey);
-        return restTemplate.exchange(
-                baseUrl + "/chat/completions",
-                HttpMethod.POST,
-                new HttpEntity<>(request, headers),
-                String.class
-        );
+        headers.set("HTTP-Referer", "http://localhost:5173");
+        headers.set("X-Title", "Hola Vietnamese");
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
+        String resolvedBase = getEffectiveBaseUrl(apiKey);
+        String url = resolvedBase + "/chat/completions";
+        if (preferEdgeFallback && url.contains("openrouter.ai")) {
+            return edgeFallbackRestTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+        }
+        try {
+            return restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+        } catch (HttpStatusCodeException ex) {
+            String body = ex.getResponseBodyAsString();
+            if (url.contains("openrouter.ai") && body != null && body.contains("Request path cannot be relayed")) {
+                preferEdgeFallback = true;
+                log.info("OpenRouter default edge returned relay block; switching to Singapore Cloudflare edge ({})", CLOUDFLARE_SIN_EDGE_IP);
+                return edgeFallbackRestTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            }
+            throw ex;
+        }
+    }
+
+    private static RestTemplate createEdgeRestTemplate(String edgeIp) {
+        SSLSocketFactory delegate = (SSLSocketFactory) SSLSocketFactory.getDefault();
+        SSLSocketFactory sniEdgeFactory = new SSLSocketFactory() {
+            @Override
+            public String[] getDefaultCipherSuites() {
+                return delegate.getDefaultCipherSuites();
+            }
+
+            @Override
+            public String[] getSupportedCipherSuites() {
+                return delegate.getSupportedCipherSuites();
+            }
+
+            @Override
+            public Socket createSocket(Socket s, String host, int port, boolean autoClose) throws IOException {
+                if (s != null && autoClose) {
+                    try {
+                        s.close();
+                    } catch (IOException ignored) {
+                    }
+                }
+                Socket tcp = new Socket();
+                tcp.connect(new InetSocketAddress(edgeIp, port), 10000);
+                tcp.setSoTimeout(60000);
+                SSLSocket ssl = (SSLSocket) delegate.createSocket(tcp, host, port, true);
+                SSLParameters params = ssl.getSSLParameters();
+                params.setServerNames(List.of(new SNIHostName(host)));
+                params.setEndpointIdentificationAlgorithm("HTTPS");
+                ssl.setSSLParameters(params);
+                return ssl;
+            }
+
+            @Override
+            public Socket createSocket(String host, int port) throws IOException {
+                return createSocket(null, host, port, true);
+            }
+
+            @Override
+            public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException {
+                return createSocket(null, host, port, true);
+            }
+
+            @Override
+            public Socket createSocket(InetAddress host, int port) throws IOException {
+                return createSocket(null, host.getHostName(), port, true);
+            }
+
+            @Override
+            public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort) throws IOException {
+                return createSocket(null, address.getHostName(), port, true);
+            }
+        };
+
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory() {
+            @Override
+            protected void prepareConnection(HttpURLConnection connection, String httpMethod) throws IOException {
+                super.prepareConnection(connection, httpMethod);
+                if (connection instanceof HttpsURLConnection httpsConnection) {
+                    httpsConnection.setSSLSocketFactory(sniEdgeFactory);
+                }
+            }
+        };
+        requestFactory.setConnectTimeout(10000);
+        requestFactory.setReadTimeout(60000);
+        return new RestTemplate(requestFactory);
     }
 
     private String extractText(Object parts) {
