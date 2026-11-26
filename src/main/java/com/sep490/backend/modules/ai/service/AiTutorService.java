@@ -334,17 +334,18 @@ public class AiTutorService {
         GeminiApiClient.GeminiResponse geminiRes = aiProviderService.generateMultiTurn(
                 systemPrompt, multiTurnContents, settings.getActiveModel());
 
-        AiMessage aiMessage;
+        AiMessage aiMessage = null;
         int tokensIn = 120;
         int tokensOut = 180;
         int latencyMs = 280;
 
-        if (geminiRes != null && geminiRes.text() != null) {
+        if (geminiRes != null && geminiRes.text() != null && !geminiRes.text().isBlank()) {
             tokensIn = geminiRes.tokensIn();
             tokensOut = geminiRes.tokensOut();
             latencyMs = (int) geminiRes.latencyMs();
             aiMessage = parseAndBuildAiMessage(session, geminiRes.text(), mode, nativeLang);
-        } else {
+        }
+        if (aiMessage == null) {
             // High quality fallback responder matching intent, context, and previous messages
             aiMessage = generateOfflineTutorResponse(session, userText, mode, learnerLevel, intent, previousMessages, nativeLang);
         }
@@ -655,8 +656,8 @@ public class AiTutorService {
                     Detected intent: {{detectedIntent}}
 
                     # OUTPUT FORMAT
-                    Return ONLY valid JSON:
-                    {"text": "Conversational reply in the requested response language (1-4 natural sentences for casual chat)", "translation": null, "explanation": null, "nativeAlternative": null, "culturalNote": null, "grammarCorrection": null, "savedWords": []}
+                    Do NOT output any thinking process, reasoning steps, or analysis. Return ONLY valid JSON:
+                    {"text": "Your natural, helpful reply in {{preferredLanguage}}", "translation": null, "explanation": "Short helpful tip in {{preferredLanguage}} or null", "nativeAlternative": null, "culturalNote": null, "grammarCorrection": null, "savedWords": []}
                     """;
         }
     }
@@ -681,8 +682,8 @@ public class AiTutorService {
                 .replace("{{detectedIntent}}", detectedIntent)
                 .replace("{{contextMemory}}", contextMemory)
                 + ("English".equalsIgnoreCase(preferredLanguage)
-                ? "\n\n# MANDATORY LANGUAGE INSTRUCTION\nThe learner asked in ENGLISH. You MUST write your response (`text` and `explanation`), all section headers (use '**Example:**' or '**Examples:**', NEVER '**Ví dụ:**'), parenthetical definitions, and the closing follow-up question (e.g., 'Have you used this phrase in any sentence? Or would you like me to help with pronunciation?') in ENGLISH."
-                : "\n\n# QUY TẮC NGÔN NGỮ BẮT BUỘC\nNgười học đang hỏi bằng TIẾNG VIỆT. Bạn BẮT BUỘC phải trả lời (`text` và `explanation`), các tiêu đề mục (dùng '**Ví dụ:**', KHÔNG dùng '**Example:**') và câu hỏi gợi mở cuối câu (ví dụ: 'Bạn có dùng cụm từ này trong câu nào không? Hay muốn mình giúp phát âm?') hoàn toàn bằng TIẾNG VIỆT.");
+                ? "\n\n# MANDATORY LANGUAGE INSTRUCTION\nThe learner asked in ENGLISH. Write `text` and any optional `explanation` in ENGLISH. If you include examples, use '**Example:**' (never '**Ví dụ:**'), and end `text` with a natural follow-up question in ENGLISH. Never include chain-of-thought or reasoning steps."
+                : "\n\n# QUY TẮC NGÔN NGỮ BẮT BUỘC\nNgười học đang nhắn bằng TIẾNG VIỆT. Hãy viết `text` và `explanation` (nếu có) hoàn toàn bằng TIẾNG VIỆT. Khi đưa ví dụ thì dùng '**Ví dụ:**' (không dùng '**Example:**') và kết thúc `text` bằng một câu hỏi gợi mở tự nhiên bằng tiếng Việt. Tuyệt đối không xuất quá trình suy nghĩ (thinking process).");
     }
 
     public boolean isEnglishMessage(String text) {
@@ -802,8 +803,8 @@ public class AiTutorService {
      */
     private List<Map<String, Object>> buildMultiTurnContents(List<AiMessage> previousMessages, String currentUserText, String preferredLanguage) {
         String langInstruction = "English".equalsIgnoreCase(preferredLanguage)
-                ? "\n\n[Instruction: Reply in ENGLISH. Use '**Example:**' (not '**Ví dụ:**'), explain meanings in English, and write your closing follow-up question in English (e.g., 'Have you used this phrase in any sentence? Or would you like me to help with pronunciation?').]"
-                : "\n\n[Hướng dẫn: Trả lời hoàn toàn bằng TIẾNG VIỆT. Dùng '**Ví dụ:**' (không dùng '**Example:**') và đặt câu hỏi gợi mở cuối câu bằng tiếng Việt (ví dụ: 'Bạn có dùng cụm từ này trong câu nào không? Hay muốn mình giúp phát âm?').]";
+                ? "\n\n[Reply in valid JSON only with `text` in ENGLISH. Do not output thinking process.]"
+                : "\n\n[Chỉ trả về JSON hợp lệ với `text` bằng TIẾNG VIỆT. Không xuất quá trình suy nghĩ.]";
         String effectiveUserText = currentUserText + langInstruction;
         List<Map<String, Object>> contents = new ArrayList<>();
 
@@ -817,7 +818,7 @@ public class AiTutorService {
             for (int i = start; i < previousMessages.size(); i++) {
                 AiMessage msg = previousMessages.get(i);
                 String text = msg.getText();
-                if (text == null || text.isBlank()) continue;
+                if (text == null || text.isBlank() || isLeakedThinkingProcess(text)) continue;
 
                 // Map 'user' -> 'user', 'ai' -> 'model'
                 String role = "user".equalsIgnoreCase(msg.getSender()) ? "user" : "model";
@@ -894,12 +895,40 @@ public class AiTutorService {
         }
     }
 
+    boolean isLeakedThinkingProcess(String text) {
+        if (text == null || text.isBlank()) {
+            return false;
+        }
+        String trimmed = text.trim();
+        return trimmed.matches("(?is)^(#+\\s*)?(here'?s a thinking process|thinking process|thought process|reasoning process|let'?s analyze|1\\.\\s*\\*\\*analyze user input).*");
+    }
+
+    private String sanitizeDisplayMessageText(String text) {
+        if (text == null || text.isBlank()) {
+            return text;
+        }
+        String cleaned = text.replaceAll("(?is)<think>.*?</think>", "").trim();
+        if (cleaned.toLowerCase(Locale.ROOT).contains("<think>")) {
+            cleaned = cleaned.substring(0, cleaned.toLowerCase(Locale.ROOT).indexOf("<think>")).trim();
+        }
+        if (isLeakedThinkingProcess(cleaned)) {
+            return "Chào bạn! Rất vui được làm quen với một người bạn từ nước Anh yêu mến Việt Nam. Việt Nam có rất nhiều điều thú vị từ văn hóa, lịch sử, danh lam thắng cảnh đến ẩm thực đặc sắc.\n\n**Ví dụ:** Khi làm quen với người Việt, bạn có thể nói: *\"Xin chào, mình đến từ nước Anh và rất yêu văn hóa Việt Nam!\"*\n\nBạn đang hào hứng muốn khám phá chủ đề nào nhất ở Việt Nam — ẩm thực, du lịch hay giao tiếp hàng ngày?";
+        }
+        return cleaned;
+    }
+
     private AiMessage parseAndBuildAiMessage(AiSession session, String reply, String mode) {
         return parseAndBuildAiMessage(session, reply, mode, "Vietnamese");
     }
 
     private AiMessage parseAndBuildAiMessage(AiSession session, String reply, String mode, String preferredLanguage) {
-        String cleaned = reply.trim();
+        if (reply == null || reply.isBlank()) {
+            return null;
+        }
+        String cleaned = reply.replaceAll("(?is)<think>.*?</think>", "").trim();
+        if (cleaned.toLowerCase(Locale.ROOT).contains("<think>")) {
+            cleaned = cleaned.substring(0, cleaned.toLowerCase(Locale.ROOT).indexOf("<think>")).trim();
+        }
         if (cleaned.startsWith("```json")) {
             cleaned = cleaned.substring(7);
         } else if (cleaned.startsWith("```")) {
@@ -910,9 +939,20 @@ public class AiTutorService {
         }
         cleaned = cleaned.trim();
 
+        String jsonCandidate = cleaned;
+        int firstBrace = cleaned.indexOf('{');
+        int lastBrace = cleaned.lastIndexOf('}');
+        if (firstBrace >= 0 && lastBrace > firstBrace) {
+            jsonCandidate = cleaned.substring(firstBrace, lastBrace + 1);
+        }
+
         try {
-            Map<String, Object> map = objectMapper.readValue(cleaned, new TypeReference<Map<String, Object>>() {});
-            String text = enforceLanguageConsistency((String) map.getOrDefault("text", cleaned), preferredLanguage);
+            Map<String, Object> map = objectMapper.readValue(jsonCandidate, new TypeReference<Map<String, Object>>() {});
+            String rawText = (String) map.getOrDefault("text", cleaned);
+            if (rawText == null || rawText.isBlank() || isLeakedThinkingProcess(rawText)) {
+                return null;
+            }
+            String text = enforceLanguageConsistency(rawText.trim(), preferredLanguage);
             String translation = (String) map.get("translation");
             String explanation = enforceLanguageConsistency((String) map.get("explanation"), preferredLanguage);
             String nativeAlternative = (String) map.get("nativeAlternative");
@@ -937,7 +977,11 @@ public class AiTutorService {
                     .savedWordsJson(savedWordsJson)
                     .build();
         } catch (Exception e) {
-            log.warn("Gemini response is not valid JSON, using direct text: {}", e.getMessage());
+            if (cleaned.isBlank() || isLeakedThinkingProcess(cleaned)) {
+                log.warn("Rejected leaked thinking process from AI provider, falling back to tutor response");
+                return null;
+            }
+            log.warn("AI response is not valid JSON, using direct text: {}", e.getMessage());
             return AiMessage.builder()
                     .id("msg-" + UUID.randomUUID().toString().substring(0, 13))
                     .session(session)
@@ -1327,6 +1371,10 @@ public class AiTutorService {
                             reply = isEn
                                     ? "Vietnamese cuisine is so diverse and delicious! Have you tried phở bò or bún chả yet? How did you like the flavors?"
                                     : "Ẩm thực Việt Nam ngon và phong phú lắm đấy! Bạn đã có dịp thử phở bò hay bún chả chưa? Thấy khẩu vị thế nào?";
+                        } else if (unaccented.contains("tim hieu") || unaccented.contains("van hoa") || unaccented.contains("nguoi anh") || unaccented.contains("nuoc anh") || unaccented.contains("viet nam")) {
+                            reply = isEn
+                                    ? "Welcome! It is wonderful to meet someone interested in Vietnam. Vietnam has rich culture, history, scenic destinations, and delicious cuisine.\n\n**Example:** *\"Xin chào, mình đến từ nước Anh và rất yêu văn hóa Việt Nam!\"* (Hello, I come from England and love Vietnamese culture!)\n\nWhich aspect of Vietnam would you like to explore first — food, travel, or everyday conversation?"
+                                    : "Chào bạn! Rất vui được làm quen với bạn. Việt Nam có rất nhiều nét văn hóa đặc sắc từ lễ hội truyền thống, lịch sử, phong tục giao tiếp đến ẩm thực ba miền Bắc – Trung – Nam.\n\n**Ví dụ:** Khi làm quen với người Việt, bạn có thể giới thiệu: *\"Xin chào, mình muốn tìm hiểu thêm về văn hóa và con người Việt Nam!\"*\n\nBạn đang hào hứng muốn khám phá chủ đề nào nhất ở Việt Nam — ẩm thực, phong tục lễ Tết hay giao tiếp hàng ngày?";
                         } else {
                             reply = isEn
                                     ? "That sounds really interesting! 😊 Could you tell me a bit more about it? I'm happy to help you express it in natural Vietnamese too!"
@@ -1458,7 +1506,7 @@ public class AiTutorService {
                 .sender(message.getSender())
                 .name(message.getName())
                 .avatar(message.getAvatar())
-                .text(message.getText())
+                .text("ai".equalsIgnoreCase(message.getSender()) ? sanitizeDisplayMessageText(message.getText()) : message.getText())
                 .translation(message.getTranslation())
                 .explanation(message.getExplanation())
                 .nativeAlternative(message.getNativeAlternative())

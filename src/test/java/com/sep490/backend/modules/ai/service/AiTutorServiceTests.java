@@ -320,6 +320,34 @@ class AiTutorServiceTests {
     }
 
     @Test
+    void sendMessageRejectsLeakedThinkingProcessAndReturnsCleanVietnameseReply() {
+        var activeSession = buildSession("s-think", testUser, "tutor", "ACTIVE", 1);
+        when(sessionRepository.findByIdAndUserId("s-think", 1L)).thenReturn(Optional.of(activeSession));
+        when(messageRepository.findBySessionIdOrderByCreatedAtAsc("s-think")).thenReturn(new ArrayList<>());
+        when(intentClassifier.classify(anyString(), anyList())).thenReturn(ConversationIntent.CASUAL_CHAT);
+
+        var leakedReasoning = new GeminiApiClient.GeminiResponse(
+                "Here's a thinking process:\n\n1. **Analyze User Input:**\n- User said: \"Tôi là người Anh muốn tìm hiểu về Việt Nam\"",
+                120, 400, 500L, true
+        );
+        when(aiProviderService.generateMultiTurn(anyString(), anyList(), anyString()))
+                .thenReturn(leakedReasoning);
+
+        var request = AiMessageSendRequest.builder()
+                .text("Tôi là người Anh muốn tìm hiểu về Việt Nam")
+                .mode("tutor")
+                .language("vi")
+                .build();
+
+        AiMessageResponse response = tutorService.sendMessage("s-think", request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getText()).doesNotContain("Here's a thinking process");
+        assertThat(response.getText()).doesNotContain("Analyze User Input");
+        assertThat(response.getText()).contains("Việt Nam");
+    }
+
+    @Test
     void endSessionMarksSessionCompletedAndGeneratesSummary() {
         var activeSession = buildSession("s-end", testUser, "tutor", "ACTIVE", 4);
         when(sessionRepository.findByIdAndUserId("s-end", 1L)).thenReturn(Optional.of(activeSession));

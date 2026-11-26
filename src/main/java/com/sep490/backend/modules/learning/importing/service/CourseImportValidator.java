@@ -10,7 +10,7 @@ import static com.sep490.backend.modules.learning.importing.dto.ImportSheet.*;
 
 @Component
 public class CourseImportValidator {
-    private static final Set<String> LEVELS = Set.of("STARTER", "A1", "A2", "B1", "B2", "C1", "C2");
+    private static final Set<String> LEVELS = Set.of("A1", "A2", "B1", "B2", "C1", "C2");
     private static final Set<String> STATUS = Set.of("DRAFT", "PUBLISHED", "ARCHIVED");
     private static final Set<String> BLOCK_TYPES = Set.of("INTRO","DIALOGUE","VOCABULARY","PRONUNCIATION","GRAMMAR","LISTENING","SPEAKING","READING","WRITING","CULTURE","SENTENCE_DRILL","EXERCISE","QUIZ");
     private static final Set<String> EXERCISE_TYPES = Set.of("MULTIPLE_CHOICE","TRUE_FALSE","FILL_IN_BLANK","MATCHING","ORDER_SENTENCE","LISTENING_CHOICE","SHORT_ANSWER");

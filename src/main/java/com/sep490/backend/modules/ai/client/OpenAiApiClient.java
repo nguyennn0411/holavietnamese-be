@@ -166,8 +166,11 @@ public class OpenAiApiClient {
             Map<String, Object> request = new HashMap<>();
             request.put("model", model);
             request.put("messages", messages);
-            request.put("temperature", 0.75);
-            request.put("max_tokens", 2048);
+            request.put("temperature", 0.7);
+            request.put("max_tokens", 4096);
+            if (getEffectiveBaseUrl(apiKey).contains("openrouter.ai")) {
+                request.put("reasoning", Map.of("effort", "low", "exclude", true));
+            }
 
             ResponseEntity<String> response = exchange(apiKey, request);
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
@@ -176,12 +179,11 @@ public class OpenAiApiClient {
 
             JsonNode root = objectMapper.readTree(response.getBody());
             JsonNode messageNode = root.path("choices").path(0).path("message");
-            String text = messageNode.path("content").asText("");
+            String text = cleanModelContent(messageNode.path("content").asText(""));
             if (text.isBlank()) {
-                text = messageNode.path("reasoning").asText("");
-            }
-            if (text.contains("</think>")) {
-                text = text.substring(text.indexOf("</think>") + 8).trim();
+                // Only salvage from reasoning if the model actually emitted a valid final JSON reply inside it;
+                // never return raw chain-of-thought ("Here's a thinking process...") as the assistant message.
+                text = extractFinalJsonFromReasoning(messageNode.path("reasoning").asText(""));
             }
             if (text.isBlank()) {
                 return null;
@@ -200,6 +202,61 @@ public class OpenAiApiClient {
                     model, baseUrl, e.getMessage());
             return null;
         }
+    }
+
+    String cleanModelContent(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        String cleaned = raw.replaceAll("(?is)<think>.*?</think>", "").trim();
+        if (cleaned.toLowerCase().contains("<think>")) {
+            cleaned = cleaned.substring(0, cleaned.toLowerCase().indexOf("<think>")).trim();
+        }
+        if (cleaned.contains("</think>")) {
+            cleaned = cleaned.substring(cleaned.indexOf("</think>") + 8).trim();
+        }
+        if (isRawThinkingProcess(cleaned)) {
+            String embeddedJson = extractFinalJsonFromReasoning(cleaned);
+            return embeddedJson != null ? embeddedJson : "";
+        }
+        return cleaned;
+    }
+
+    boolean isRawThinkingProcess(String text) {
+        if (text == null || text.isBlank()) {
+            return false;
+        }
+        String trimmed = text.trim();
+        return trimmed.matches("(?is)^(#+\\s*)?(here'?s a thinking process|thinking process|thought process|reasoning process|let'?s analyze|1\\.\\s*\\*\\*analyze user input).*");
+    }
+
+    String extractFinalJsonFromReasoning(String reasoning) {
+        if (reasoning == null || reasoning.isBlank()) {
+            return "";
+        }
+        int lastClose = reasoning.lastIndexOf('}');
+        int searchFrom = lastClose;
+        while (searchFrom > 0) {
+            int open = reasoning.lastIndexOf('{', searchFrom - 1);
+            if (open < 0) {
+                break;
+            }
+            String candidate = reasoning.substring(open, lastClose + 1).trim();
+            try {
+                JsonNode node = objectMapper.readTree(candidate);
+                if (node.isObject() && node.hasNonNull("text")) {
+                    String candidateText = node.path("text").asText("").trim();
+                    if (!candidateText.isBlank()
+                            && !candidateText.startsWith("Conversational reply")
+                            && !isRawThinkingProcess(candidateText)) {
+                        return candidate;
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+            searchFrom = open;
+        }
+        return "";
     }
 
     private ResponseEntity<String> exchange(String apiKey, Map<String, Object> request) {

@@ -24,20 +24,20 @@ class LearningPathIntegrationTests {
   void resolvesLevelPriorityAndRecommendsPublishedCourseRanges() {
     db.update("UPDATE courses SET status='DRAFT' WHERE status='PUBLISHED'");
     long learner = user(null);
-    long ranged = course("A0-A1-" + UUID.randomUUID(), "Vietnamese Foundations A0-A1", "A1", "PUBLISHED");
+    long ranged = course("A1-A2-" + UUID.randomUUID(), "Vietnamese Foundations A1-A2", "A1", "PUBLISHED");
     long b1Course = course("B1-" + UUID.randomUUID(), "Independent Vietnamese", "B1", "PUBLISHED");
     long b2Course = course("B2-" + UUID.randomUUID(), "Upper Intermediate Vietnamese", "B2", "PUBLISHED");
     long c1Course = course("C1-" + UUID.randomUUID(), "Advanced Vietnamese", "C1", "PUBLISHED");
-    course("DRAFT-" + UUID.randomUUID(), "Draft A0", "A0", "DRAFT");
+    course("DRAFT-" + UUID.randomUUID(), "Draft A1", "A1", "DRAFT");
 
     assertThat(paths.me(learner).get("requiresLevel")).isEqualTo(true);
 
     Map<String,Object> onboarding = paths.updatePreferences(learner,
-        new LearningPathRequests.Preferences("A0", "ONBOARDING", List.of("daily communication"), 15, null));
-    assertThat(pref(onboarding, "level")).isEqualTo("A0");
+        new LearningPathRequests.Preferences("A1", "ONBOARDING", List.of("daily communication"), 15, null));
+    assertThat(pref(onboarding, "level")).isEqualTo("A1");
     assertThat(pref(onboarding, "levelSource")).isEqualTo("ONBOARDING");
     assertThat(courseId(onboarding, "recommendation", "recommendedCourse")).isEqualTo(ranged);
-    assertThat(pref(paths.me(learner), "level")).isEqualTo("A0");
+    assertThat(pref(paths.me(learner), "level")).isEqualTo("A1");
 
     Instant latest = Instant.parse("2026-10-24T03:00:00Z");
     Map<String,Object> placement = paths.updatePreferences(learner,
