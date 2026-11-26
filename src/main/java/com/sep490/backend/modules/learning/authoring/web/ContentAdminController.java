@@ -7,6 +7,7 @@ import com.sep490.backend.modules.learning.authoring.web.dto.ContentRequests;
 
 
 
+import com.sep490.backend.common.exception.ContentException;
 import com.sep490.backend.common.security.LearnerPrincipal;
 import jakarta.validation.Valid;
 import java.util.*;
@@ -171,6 +172,10 @@ public class ContentAdminController {
   public Object lessonStatus(@PathVariable long id, @Valid @RequestBody ContentRequests.Status r,
       @AuthenticationPrincipal LearnerPrincipal u) {
     workflow.assertCanEdit(workflow.courseForLesson(id),u);
+    if (!workflow.isAdmin(u) && "PUBLISHED".equals(r.status())) {
+      throw ContentException.conflict("LESSON_PUBLISHED_ON_SUBMIT",
+          "Lessons are published when the course is submitted for review.");
+    }
     courses.lessonStatus(id, r.status());
     return activities.lesson(id,null,true);
   }

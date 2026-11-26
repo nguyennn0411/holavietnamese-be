@@ -143,18 +143,19 @@ class CourseReviewServiceTests {
 
   @Test
   void readinessReportsEveryMissingPublicationRequirement() {
-    when(db.one("SELECT id FROM courses WHERE id=?", 9L)).thenReturn(Map.of("id", 9L));
+    when(db.one("SELECT status FROM courses WHERE id=?", 9L)).thenReturn(Map.of("status", "DRAFT"));
     when(db.count(anyString(), any(Object[].class)))
-        .thenReturn(0L, 0L, 1L, 1L, 1L, 1L, 1L);
+        .thenReturn(0L, 0L, 1L, 1L, 1L, 1L, 1L, 1L);
 
     assertThat(service.readiness(9L))
         .containsExactly(
             "Add at least one module.",
             "Add at least one lesson.",
             "Every module needs a lesson.",
-            "Publish every lesson before submitting.",
+            "Restore archived lessons to draft before submitting.",
             "Every lesson needs a published required learning activity.",
             "Every lesson needs a published quiz activity.",
+            "Publish all quizzes linked to published activities.",
             "Set a published final course quiz and attach it to a lesson.");
   }
 

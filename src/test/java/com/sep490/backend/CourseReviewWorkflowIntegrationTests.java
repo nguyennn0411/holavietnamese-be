@@ -77,10 +77,21 @@ class CourseReviewWorkflowIntegrationTests {
         .andExpect(status().isOk()).andReturn().getResponse().getContentAsString()).path("id").asLong();
     mvc.perform(post(CONTENT_API+"/courses/"+course+"/submit").with(actor(manager)).with(csrf()))
         .andExpect(status().isBadRequest());
+    assertThat(db.one("SELECT publication_status,published FROM lessons WHERE id=?",lesson))
+        .containsEntry("publicationStatus","DRAFT").containsEntry("published",false);
     finishCourse(course,lesson);
+
+    mvc.perform(patch(CONTENT_API+"/lessons/"+lesson+"/status")
+        .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+        .content("{\"status\":\"PUBLISHED\"}"))
+        .andExpect(status().isConflict());
+    mvc.perform(get(CONTENT_API+"/lessons").param("status","DRAFT").with(actor(manager)))
+        .andExpect(status().isOk()).andExpect(jsonPath("$.content[0].id").value(lesson));
 
     mvc.perform(post(CONTENT_API+"/courses/"+course+"/submit").with(actor(manager)).with(csrf()))
         .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("REVIEW"));
+    assertThat(db.one("SELECT publication_status,published FROM lessons WHERE id=?",lesson))
+        .containsEntry("publicationStatus","PUBLISHED").containsEntry("published",true);
     mvc.perform(get("/api/courses/"+course)).andExpect(status().isNotFound());
     mvc.perform(post(CONTENT_API+"/courses/"+course+"/review").with(actor(manager)).with(csrf())
         .contentType(MediaType.APPLICATION_JSON).content("{\"decision\":\"APPROVE\"}"))
@@ -262,10 +273,6 @@ class CourseReviewWorkflowIntegrationTests {
     mvc.perform(post(CONTENT_API+"/lessons/"+lesson+"/activities")
         .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content("{\"activityType\":\"QUIZ\",\"titleEn\":\"Lesson quiz\",\"contentJson\":{},\"isRequired\":true,\"maxScore\":0,\"status\":\"PUBLISHED\",\"quizId\":"+lessonQuiz+",\"grammarTopicIds\":[]}"))
-        .andExpect(status().isOk());
-    mvc.perform(patch(CONTENT_API+"/lessons/"+lesson+"/status")
-        .with(actor(manager)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
-        .content("{\"status\":\"PUBLISHED\"}"))
         .andExpect(status().isOk());
     long finalQuiz=quiz(course,lesson,"COURSE",question);
     mvc.perform(post(CONTENT_API+"/lessons/"+lesson+"/activities")
