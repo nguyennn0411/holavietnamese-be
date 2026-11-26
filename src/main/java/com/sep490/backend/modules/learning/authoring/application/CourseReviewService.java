@@ -73,10 +73,16 @@ public class CourseReviewService {
 
   @Transactional
   public void submit(long courseId, LearnerPrincipal actor) {
+    courses.lock(courseId);
     assertCanEdit(courseId,actor);
     if(isAdmin(actor)) throw ContentException.forbidden("CONTENT_CREATOR_REQUIRED","Only a content creator account can submit a course for review.");
     var issues = readiness(courseId);
     if (!issues.isEmpty()) throw ContentException.invalid(String.join(" ", issues));
+    var drafts = db.rows("SELECT id FROM lessons WHERE course_id=? AND published=false"
+        + " AND COALESCE(publication_status,'DRAFT')='DRAFT' ORDER BY id", courseId);
+    for (var draft : drafts) {
+      courses.lessonStatus(ContentStore.id(draft,"id"), "PUBLISHED");
+    }
     db.update("UPDATE courses SET status='REVIEW',submitted_by=?,submitted_at=CURRENT_TIMESTAMP,"
         +" reviewed_by=NULL,reviewed_at=NULL,review_note=NULL,updated_at=CURRENT_TIMESTAMP WHERE id=?",
         actor.id(),courseId);
@@ -172,7 +178,8 @@ public class CourseReviewService {
   }
 
   public List<String> readiness(long courseId) {
-    db.one("SELECT id FROM courses WHERE id=?", courseId);
+    Object status = db.one("SELECT status FROM courses WHERE id=?", courseId).get("status");
+    boolean editable = "DRAFT".equals(status) || "REJECTED".equals(status);
     List<String> issues = new ArrayList<>();
     if (db.count("SELECT count(*) FROM course_units WHERE course_id=?", courseId) == 0)
       issues.add("Add at least one module.");
@@ -181,8 +188,13 @@ public class CourseReviewService {
     if (db.count("SELECT count(*) FROM course_units m WHERE m.course_id=? AND NOT EXISTS"
         + " (SELECT 1 FROM lessons l WHERE l.unit_id=m.id)", courseId) > 0)
       issues.add("Every module needs a lesson.");
-    if (db.count("SELECT count(*) FROM lessons WHERE course_id=? AND published=false", courseId) > 0)
-      issues.add("Publish every lesson before submitting.");
+    String unpublishedLessons = "SELECT count(*) FROM lessons WHERE course_id=? AND published=false";
+    if (editable) {
+      if (db.count(unpublishedLessons + " AND COALESCE(publication_status,'DRAFT')<>'DRAFT'", courseId) > 0)
+        issues.add("Restore archived lessons to draft before submitting.");
+    } else if (db.count(unpublishedLessons, courseId) > 0) {
+      issues.add("Publish every lesson before approving.");
+    }
     if (db.count("SELECT count(*) FROM lessons l WHERE l.course_id=? AND NOT EXISTS"
         + " (SELECT 1 FROM lesson_activities a WHERE a.lesson_id=l.id AND a.status='PUBLISHED'"
         + " AND a.is_required=true AND a.activity_type<>'QUIZ')", courseId) > 0)
@@ -195,6 +207,10 @@ public class CourseReviewService {
         + " AND NOT EXISTS (SELECT 1 FROM quiz_questions qq JOIN questions x"
         + " ON x.id=qq.question_id WHERE qq.quiz_id=q.id AND x.status<>'PUBLISHED'))", courseId) > 0)
       issues.add("Every lesson needs a published quiz activity.");
+    if (db.count("SELECT count(*) FROM lessons l JOIN lesson_activities a ON a.lesson_id=l.id"
+        + " LEFT JOIN quizzes q ON q.id=a.quiz_id WHERE l.course_id=? AND a.status='PUBLISHED'"
+        + " AND a.activity_type='QUIZ' AND (q.id IS NULL OR q.status<>'PUBLISHED')", courseId) > 0)
+      issues.add("Publish all quizzes linked to published activities.");
     if (db.count("SELECT count(*) FROM courses c LEFT JOIN quizzes q"
         + " ON q.id=c.final_assessment_quiz_id WHERE c.id=? AND"
         + " (q.id IS NULL OR q.status<>'PUBLISHED' OR q.quiz_type<>'COURSE'"

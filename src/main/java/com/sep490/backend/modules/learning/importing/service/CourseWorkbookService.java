@@ -112,7 +112,6 @@ public class CourseWorkbookService {
       List<Long> topics=a.get("grammarTopicIds").isBlank()?List.of():Arrays.stream(a.get("grammarTopicIds").split(";")).map(String::strip).map(Long::parseLong).toList();
       activities.create(lessons.get(a.get("lessonKey")),new ContentRequests.Activity(a.get("activityType"),a.get("titleEn"),a.get("instructionEn"),content,yes(a,"isRequired"),new BigDecimal(a.get("maxScore")),"PUBLISHED",quizIds.get(a.get("quizKey")),topics,blank(a.get("titleVi")),blank(a.get("instructionVi"))));
     }
-    for(long lesson:lessons.values()) courses.lessonStatus(lesson,"PUBLISHED");
     var result=new LinkedHashMap<>(report);result.put("courseId",courseId);result.put("status","DRAFT");
     return result;
   }

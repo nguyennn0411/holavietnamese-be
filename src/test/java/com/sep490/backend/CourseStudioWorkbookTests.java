@@ -2,6 +2,7 @@ package com.sep490.backend;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.sep490.backend.common.security.LearnerPrincipal;
 import com.sep490.backend.modules.learning.importing.service.CourseWorkbookService;
 import com.sep490.backend.modules.learning.authoring.application.CourseReviewService;
 import com.sep490.backend.modules.learning.shared.infrastructure.query.ContentStore;
@@ -41,11 +42,18 @@ class CourseStudioWorkbookTests {
     assertThat(db.one("SELECT status,created_by,thumbnail_url FROM courses WHERE id=?",course))
         .containsEntry("status","DRAFT").containsEntry("createdBy",author)
         .containsEntry("thumbnailUrl","/media/tv123/images/scans/cover.jpg");
-    assertThat(db.count("SELECT count(*) FROM lessons WHERE course_id=? AND publication_status='PUBLISHED'",course)).isEqualTo(2);
+    assertThat(db.count("SELECT count(*) FROM lessons WHERE course_id=? AND publication_status='DRAFT' AND published=false",course)).isEqualTo(2);
     assertThat(db.count("SELECT count(*) FROM lesson_activities a JOIN lessons l ON l.id=a.lesson_id WHERE l.course_id=? AND a.status='PUBLISHED'",course)).isEqualTo(6);
     assertThat(db.count("SELECT count(*) FROM quizzes WHERE course_id=? AND status='PUBLISHED'",course)).isEqualTo(3);
     assertThat(db.count("SELECT count(*) FROM quiz_questions qq JOIN quizzes q ON q.id=qq.quiz_id WHERE q.course_id=?",course)).isEqualTo(4);
     assertThat(db.count("SELECT count(DISTINCT qq.question_id) FROM quiz_questions qq JOIN quizzes q ON q.id=qq.quiz_id WHERE q.course_id=?",course)).isEqualTo(2);
     assertThat(reviews.readiness(course)).isEmpty();
+
+    reviews.submit(course, new LearnerPrincipal(author, "workbook@test", "", true, "CONTENT_CREATOR"));
+
+    assertThat(db.one("SELECT status FROM courses WHERE id=?", course))
+        .containsEntry("status", "REVIEW");
+    assertThat(db.count("SELECT count(*) FROM lessons WHERE course_id=? AND publication_status='PUBLISHED' AND published=true", course))
+        .isEqualTo(2);
   }
 }
